@@ -227,26 +227,62 @@ npx gsd-autopilot --prd ./idea.md --notify custom-adapter --adapter-path ./my-ad
 
 The file should export a default object implementing the `NotificationAdapter` interface. This allows teams to integrate with any internal notification system without modifying autopilot core.
 
-### 4. Local Response Web Server
+### 4. Web Dashboard & Response Server
 
-A minimal Express.js web server that runs on localhost during the autopilot session. It serves a clean, simple web page where humans respond to questions. This is the single source of truth for collecting human responses — all notification channels link back to this server.
+A local Express.js API server paired with a React SPA that serves as both the human response interface and a real-time project dashboard. This is the single source of truth for collecting human responses — all notification channels link back here.
 
-**Routes:**
+**API Routes (Express backend):**
 
-- `GET /` — Dashboard showing current autopilot status (phase, progress, pending questions)
-- `GET /respond/:questionId` — Shows a question with clickable option buttons
-- `POST /respond/:questionId` — Receives the selected option, unblocks the orchestrator
-- `GET /log` — Shows recent autopilot log output
-- `GET /health` — Health check endpoint
+- `GET /api/status` — Current autopilot state (phase, step, progress percentage)
+- `GET /api/phases` — All phases with status (pending, in-progress, completed, failed)
+- `GET /api/questions` — List of pending questions awaiting human input
+- `GET /api/questions/:questionId` — Single question with options
+- `POST /api/questions/:questionId` — Submit a response, unblocks the orchestrator
+- `GET /api/log` — Recent autopilot log output (supports `?since=` for polling)
+- `GET /api/log/stream` — SSE endpoint for real-time log streaming
+- `GET /api/health` — Health check endpoint
+- `GET /*` — Serves the React SPA for all other routes
 
-**Web UI design:**
+**React SPA Pages:**
 
-The response page is a single, clean HTML page (no framework needed):
-- Shows the question context (which phase, what's being decided)
-- Displays options as large, clickable buttons
-- Has a text input for freeform "Other" responses
-- Shows a confirmation after selection
-- Auto-closes or redirects to dashboard after response
+1. **Dashboard** (`/`)
+   - Overall progress bar showing phases completed vs total
+   - Current phase card with name, description, and active step
+   - Pending questions count with prominent call-to-action if any are waiting
+   - Recent activity feed (phase completions, errors, commits)
+   - Live log stream (collapsible, auto-scrolling)
+
+2. **Question Response** (`/respond/:questionId`)
+   - Phase context header (which phase, what's being decided)
+   - Question text with markdown rendering
+   - Options as large, clickable card-style buttons with descriptions
+   - Freeform text input for "Other" responses
+   - Confirmation state after selection with option to change before the orchestrator picks it up
+
+3. **Phase Detail** (`/phases/:phaseNumber`)
+   - Phase description from ROADMAP.md
+   - Step-by-step progress within the phase (plan → execute → verify)
+   - Commits made during this phase
+   - Log output filtered to this phase
+   - Verification status and any gaps found
+
+4. **Log Viewer** (`/log`)
+   - Full autopilot log with phase/step filtering
+   - Search within logs
+   - Auto-scroll with pause-on-hover
+   - Color-coded by log level (info, warning, error)
+
+**Tech stack:**
+- React 18 with React Router for client-side routing
+- Vite for build tooling (dev server during development, static build for production)
+- Tailwind CSS for styling
+- SSE (Server-Sent Events) for real-time updates from the backend
+- The Express server serves the built React app as static files in production
+
+**Real-time updates:**
+- The backend pushes state changes via SSE to connected dashboard clients
+- Events: `phase-started`, `phase-completed`, `question-pending`, `question-answered`, `error`, `log-entry`, `build-complete`
+- The dashboard reconnects automatically if the SSE connection drops
 
 The server shuts down automatically when the autopilot completes.
 
@@ -326,7 +362,6 @@ The discuss-phase is the one workflow that is inherently conversational and prod
 
 ## Out of Scope
 
-- Building a web dashboard beyond the minimal response UI (no React, no SPA)
 - Running in CI/CD (GitHub Actions) — designed for local execution only
 - Modifying GSD's core workflows or agents — the autopilot wraps GSD, it does not fork it
 - Authentication on the local web server — it runs on localhost, accessible only to the local machine
