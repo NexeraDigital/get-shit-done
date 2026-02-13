@@ -138,13 +138,80 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| CLI-01 | Phase 3 | Pending |
+| CLI-02 | Phase 6 | Pending |
+| CLI-03 | Phase 6 | Pending |
+| CLI-04 | Phase 7 | Pending |
+| CLI-05 | Phase 7 | Pending |
+| CLI-06 | Phase 7 | Pending |
+| CLI-07 | Phase 3 | Pending |
+| CLI-08 | Phase 3 | Pending |
+| CLI-09 | Phase 3 | Pending |
+| CLI-10 | Phase 3 | Pending |
+| CLI-11 | Phase 7 | Pending |
+| CLI-12 | Phase 1 | Pending |
+| CLI-13 | Phase 7 | Pending |
+| CLI-14 | Phase 3 | Pending |
+| ORCH-01 | Phase 3 | Pending |
+| ORCH-02 | Phase 3 | Pending |
+| ORCH-03 | Phase 3 | Pending |
+| ORCH-04 | Phase 3 | Pending |
+| ORCH-05 | Phase 3 | Pending |
+| ORCH-06 | Phase 3 | Pending |
+| ORCH-07 | Phase 3 | Pending |
+| ORCH-08 | Phase 3 | Pending |
+| ORCH-09 | Phase 3 | Pending |
+| ORCH-10 | Phase 3 | Pending |
+| CLDE-01 | Phase 2 | Pending |
+| CLDE-02 | Phase 2 | Pending |
+| CLDE-03 | Phase 2 | Pending |
+| CLDE-04 | Phase 2 | Pending |
+| CLDE-05 | Phase 2 | Pending |
+| DISC-01 | Phase 3 | Pending |
+| DISC-02 | Phase 3 | Pending |
+| DISC-03 | Phase 3 | Pending |
+| DISC-04 | Phase 3 | Pending |
+| NOTF-01 | Phase 6 | Pending |
+| NOTF-02 | Phase 6 | Pending |
+| NOTF-03 | Phase 6 | Pending |
+| NOTF-04 | Phase 6 | Pending |
+| NOTF-05 | Phase 6 | Pending |
+| NOTF-06 | Phase 6 | Pending |
+| NOTF-07 | Phase 6 | Pending |
+| NOTF-08 | Phase 6 | Pending |
+| NOTF-09 | Phase 6 | Pending |
+| NOTF-10 | Phase 6 | Pending |
+| DASH-01 | Phase 4 | Pending |
+| DASH-02 | Phase 4 | Pending |
+| DASH-03 | Phase 4 | Pending |
+| DASH-04 | Phase 4 | Pending |
+| DASH-05 | Phase 4 | Pending |
+| DASH-06 | Phase 4 | Pending |
+| DASH-07 | Phase 4 | Pending |
+| DASH-08 | Phase 4 | Pending |
+| DASH-09 | Phase 4 | Pending |
+| DASH-10 | Phase 5 | Pending |
+| DASH-11 | Phase 5 | Pending |
+| DASH-12 | Phase 5 | Pending |
+| DASH-13 | Phase 5 | Pending |
+| DASH-14 | Phase 5 | Pending |
+| DASH-15 | Phase 5 | Pending |
+| DASH-16 | Phase 5 | Pending |
+| DASH-17 | Phase 5 | Pending |
+| DASH-18 | Phase 5 | Pending |
+| DASH-19 | Phase 4 | Pending |
+| DASH-20 | Phase 4 | Pending |
+| FNDN-01 | Phase 1 | Pending |
+| FNDN-02 | Phase 1 | Pending |
+| FNDN-03 | Phase 1 | Pending |
+| FNDN-04 | Phase 7 | Pending |
+| FNDN-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 63 total
-- Mapped to phases: 0
-- Unmapped: 63
+- v1 requirements: 68 total
+- Mapped to phases: 68
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-13*
-*Last updated: 2026-02-13 after initial definition*
+*Last updated: 2026-02-13 after roadmap creation*
