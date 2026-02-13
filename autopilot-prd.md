@@ -2,28 +2,28 @@
 
 ## What This Is
 
-A local Node.js command-line tool that runs the entire Get Shit Done (GSD) workflow autonomously — from PRD to working code — without requiring manual CLI interaction. When the system needs a human decision (like implementation choices during discuss-phase, or failure triage), it sends a notification to Microsoft Teams and waits for the human to respond through a simple local web interface before continuing.
+A local Node.js command-line tool that runs the entire Get Shit Done (GSD) workflow autonomously — from PRD to working code — without requiring manual CLI interaction. When the system needs a human decision (like implementation choices during discuss-phase, or failure triage), it sends a notification through a configurable channel and waits for the human to respond through a simple local web interface before continuing.
 
-Think of it as a CI/CD pipeline for AI-assisted development that lives on your machine, with Microsoft Teams as the human-in-the-loop channel.
+Think of it as a CI/CD pipeline for AI-assisted development that lives on your machine, with pluggable notifications as the human-in-the-loop channel.
 
 ## Core Value
 
-Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through Teams notifications instead of synchronous CLI prompts.
+Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
 
 ## How It Works
 
 ### User Experience
 
-1. User runs: `npx gsd-autopilot --prd ./my-idea.md --teams-webhook https://outlook.office.com/webhook/...`
+1. User runs: `npx gsd-autopilot --prd ./my-idea.md --notify console`
 2. The tool initializes a GSD project from the PRD (using `/gsd:new-project --auto`)
 3. For each phase in the roadmap, it automatically runs plan → execute → verify
 4. When a question needs human input:
-   - A Microsoft Teams Adaptive Card appears with the question and options
-   - The card includes a link to `http://localhost:3847/respond/[id]`
+   - A notification appears through the configured channel (console, system toast, Teams, Slack, etc.)
+   - The notification includes a link to `http://localhost:3847/respond/[id]`
    - The human clicks the link, sees a clean web page with the options, clicks one
    - The tool receives the response and continues building
 5. When all phases complete, it runs milestone completion
-6. The human gets a final Teams notification: "Build complete — X phases, Y commits"
+6. The human gets a final notification: "Build complete — X phases, Y commits"
 
 ### Architecture
 
@@ -39,8 +39,8 @@ Turn a PRD document into a fully built project by running one command, with huma
 │         │ Intercepts questions:                     │
 │         │                                           │
 │  ┌──────▼──────┐    ┌───────────────────────────┐  │
-│  │ Notification │───>│ Teams Incoming Webhook     │  │
-│  │ Manager      │    │ (Adaptive Cards)           │  │
+│  │ Notification │───>│ Notification Adapters      │  │
+│  │ Manager      │    │ (console, system, webhook) │  │
 │  └──────┬──────┘    └───────────────────────────┘  │
 │         │                                           │
 │  ┌──────▼──────┐    ┌───────────────────────────┐  │
@@ -58,17 +58,30 @@ The main command that starts the autopilot process.
 
 ```
 npx gsd-autopilot --prd <path>         # Required: PRD/idea document
-                  --teams-webhook <url> # Required: Teams incoming webhook URL
-                  --port 3847           # Optional: local web server port (default 3847)
-                  --depth standard      # Optional: planning depth (quick/standard/comprehensive)
-                  --model balanced      # Optional: model profile (quality/balanced/budget)
-                  --skip-discuss        # Optional: skip discuss-phase, let Claude decide everything
-                  --skip-verify         # Optional: skip verify-work phase
-                  --phases 1-5          # Optional: only run specific phases
-                  --resume              # Optional: resume from where it left off
+                  --notify <channel>   # Optional: notification channel (default: "console")
+                  --webhook-url <url>  # Optional: webhook URL (for teams/slack/custom channels)
+                  --port 3847          # Optional: local web server port (default 3847)
+                  --depth standard     # Optional: planning depth (quick/standard/comprehensive)
+                  --model balanced     # Optional: model profile (quality/balanced/budget)
+                  --skip-discuss       # Optional: skip discuss-phase, let Claude decide everything
+                  --skip-verify        # Optional: skip verify-work phase
+                  --phases 1-5         # Optional: only run specific phases
+                  --resume             # Optional: resume from where it left off
 ```
 
-Configuration can also be provided via a `.gsd-autopilot.json` file in the project root or via environment variables (`GSD_TEAMS_WEBHOOK`, `GSD_PORT`).
+The `--notify` flag accepts a channel name. Built-in channels:
+
+| Channel    | Description                                      | Requires              |
+|------------|--------------------------------------------------|-----------------------|
+| `console`  | Prints to terminal with a link to the web UI     | Nothing (default)     |
+| `system`   | OS-native toast notifications (via `node-notifier`) | Nothing             |
+| `teams`    | Microsoft Teams Adaptive Cards via webhook       | `--webhook-url`       |
+| `slack`    | Slack messages via webhook                        | `--webhook-url`       |
+| `custom`   | HTTP POST to any URL with a standard JSON payload | `--webhook-url`      |
+
+Multiple channels can be combined: `--notify console,system` sends to both.
+
+Configuration can also be provided via a `.gsd-autopilot.json` file in the project root or via environment variables (`GSD_NOTIFY_CHANNEL`, `GSD_WEBHOOK_URL`, `GSD_PORT`).
 
 ### 2. Orchestrator
 
@@ -84,61 +97,139 @@ Read ROADMAP.md → extract phase list
   │
   ▼
 For each phase N:
-  ├── [Optional] Discuss Phase → may trigger Teams questions
+  ├── [Optional] Discuss Phase → may trigger notification questions
   ├── Plan Phase (claude -p "/gsd:plan-phase N")
   ├── Execute Phase (claude -p "/gsd:execute-phase N")
   ├── Check VERIFICATION.md status
   │   ├── passed → next phase
   │   ├── gaps_found → plan gaps → execute gaps → re-verify
-  │   └── human_needed → notify Teams, wait for response
+  │   └── human_needed → notify human, wait for response
   └── Update progress
   │
   ▼
 Complete Milestone (claude -p "/gsd:complete-milestone")
   │
   ▼
-Send "Build Complete" notification to Teams
+Send "Build Complete" notification
 ```
 
 **State persistence:** The orchestrator saves its own state to `.planning/autopilot-state.json` after each step so it can resume if interrupted. This file tracks: current phase, current step within phase, pending questions, completed phases, error history.
 
 **Error handling:**
 - If a `claude -p` call fails (non-zero exit), the orchestrator retries once
-- If retry fails, it sends a Teams notification with the error and waits for human guidance (retry / skip phase / abort)
+- If retry fails, it sends an error notification and waits for human guidance (retry / skip phase / abort)
 - All `claude -p` output is logged to `.planning/autopilot-log/phase-N-step.log`
 
-### 3. Teams Notification Module
+### 3. Notification System
 
-Sends Adaptive Cards to Microsoft Teams via an Incoming Webhook URL.
+A pluggable notification system built around a simple adapter interface. The Notification Manager dispatches messages to one or more configured adapters. All adapters receive the same structured notification object; each adapter formats and delivers it according to its channel.
 
-**Card types:**
+#### Adapter Interface
 
-1. **Question Card** — When human input is needed
-   - Shows: phase context, question text, available options
-   - Includes: clickable link to local web UI for responding
-   - Color: blue accent
+Every notification adapter implements this interface:
 
-2. **Progress Card** — Phase completed successfully
-   - Shows: phase name, what was built, commits made
+```typescript
+interface NotificationAdapter {
+  /** Human-readable name for logs */
+  name: string;
+
+  /** Initialize the adapter (validate config, open connections) */
+  init(config: AdapterConfig): Promise<void>;
+
+  /** Send a notification. Returns true if delivered successfully. */
+  send(notification: Notification): Promise<boolean>;
+
+  /** Clean up resources on shutdown */
+  shutdown(): Promise<void>;
+}
+```
+
+#### Notification Object
+
+All adapters receive the same structured payload:
+
+```typescript
+interface Notification {
+  id: string;                           // Unique notification ID
+  type: 'question' | 'progress' | 'error' | 'complete';
+  title: string;                        // Short summary
+  body: string;                         // Detailed message (markdown)
+  phase?: number;                       // Current phase number
+  phaseTitle?: string;                  // Current phase name
+  severity: 'info' | 'warning' | 'error';
+  respondUrl?: string;                  // URL to the local web UI response page
+  options?: NotificationOption[];       // For question type: the choices
+  metadata?: Record<string, unknown>;   // Extra data adapters can use
+}
+
+interface NotificationOption {
+  label: string;
+  value: string;
+  description?: string;
+}
+```
+
+#### Notification Types
+
+1. **Question** — When human input is needed
+   - Includes: phase context, question text, available options, link to web UI
+   - Severity: info
+
+2. **Progress** — Phase completed successfully
+   - Includes: phase name, what was built, commits made
    - No response needed
-   - Color: green accent
+   - Severity: info
 
-3. **Error Card** — Something failed
-   - Shows: phase name, error summary, suggested actions
-   - Includes: link to respond (retry / skip / abort)
-   - Color: red accent
+3. **Error** — Something failed
+   - Includes: phase name, error summary, suggested actions, link to respond
+   - Severity: error
 
-4. **Complete Card** — Build finished
-   - Shows: total phases, total commits, files created
-   - Color: green accent
+4. **Complete** — Build finished
+   - Includes: total phases, total commits, files created
+   - Severity: info
 
-**Adaptive Card format (JSON payload via HTTP POST to webhook URL):**
+#### Built-in Adapters
 
-The module sends standard Microsoft Teams Adaptive Card payloads. Each card includes the question/status, context about which phase is running, and a prominent link to the local response web UI.
+**Console Adapter** (default)
+- Prints formatted, colored messages to the terminal
+- For questions: displays the web UI URL prominently so the user can click it
+- For progress: prints a summary line with phase number and status
+- Zero dependencies, always available
+
+**System Notification Adapter**
+- Sends OS-native toast notifications via `node-notifier`
+- Clicking the toast opens the web UI response URL in the default browser
+- Works on Windows (Windows toast), macOS (Notification Center), and Linux (notify-send)
+- Falls back to console if the notification daemon is unavailable
+
+**Teams Adapter**
+- Sends Adaptive Cards to Microsoft Teams via an Incoming Webhook URL
+- Card includes question/status, phase context, and a prominent link to the local response web UI
+- Requires `--webhook-url` pointing to a Teams incoming webhook
+
+**Slack Adapter**
+- Sends Block Kit messages to Slack via an Incoming Webhook URL
+- Message includes question/status, phase context, and a link to the local response web UI
+- Requires `--webhook-url` pointing to a Slack incoming webhook
+
+**Custom Webhook Adapter**
+- Sends an HTTP POST with the raw `Notification` object as JSON to any URL
+- Useful for integrating with custom dashboards, bots, or other tooling
+- Requires `--webhook-url`
+
+#### Writing a Custom Adapter
+
+Custom adapters can be loaded from a local file:
+
+```
+npx gsd-autopilot --prd ./idea.md --notify custom-adapter --adapter-path ./my-adapter.js
+```
+
+The file should export a default object implementing the `NotificationAdapter` interface. This allows teams to integrate with any internal notification system without modifying autopilot core.
 
 ### 4. Local Response Web Server
 
-A minimal Express.js web server that runs on localhost during the autopilot session. It serves a clean, simple web page where humans respond to questions.
+A minimal Express.js web server that runs on localhost during the autopilot session. It serves a clean, simple web page where humans respond to questions. This is the single source of truth for collecting human responses — all notification channels link back to this server.
 
 **Routes:**
 
@@ -214,7 +305,7 @@ The discuss-phase is the one workflow that is inherently conversational and prod
 **When `--skip-discuss` is NOT set:**
 1. Orchestrator reads the phase description from ROADMAP.md
 2. Identifies the gray areas Claude would ask about (by running a lightweight analysis prompt via `claude -p`)
-3. For each gray area, creates a Teams question card with the options
+3. For each gray area, creates a question notification with the options
 4. Batches related questions together (sends 2-3 at a time, not one by one)
 5. Collects all responses via the local web UI
 6. Writes a CONTEXT.md file with the human's decisions in the standard GSD format
@@ -222,23 +313,21 @@ The discuss-phase is the one workflow that is inherently conversational and prod
 
 **When `--skip-discuss` IS set:**
 - Generates a CONTEXT.md marking all areas as "Claude's Discretion"
-- No Teams notification, no human input needed
+- No notification, no human input needed
 
 ## Technical Constraints
 
 - **Node.js >= 18** (for native fetch, stable async patterns)
 - **Claude Code CLI** must be installed and authenticated (`claude` command available in PATH)
 - **GSD** must be installed globally (`~/.claude/get-shit-done/` exists)
-- **Microsoft Teams** incoming webhook URL must be configured (standard Office 365 connector)
 - **No external database** — all state lives in `.planning/` files (JSON + markdown)
-- **No cloud services** — everything runs locally except the Teams webhook POST
+- **No cloud services** — everything runs locally except outbound webhook POSTs when using webhook-based adapters
 - **Single project at a time** — the orchestrator manages one GSD project per invocation
 
 ## Out of Scope
 
 - Building a web dashboard beyond the minimal response UI (no React, no SPA)
-- Supporting notification channels other than Microsoft Teams (Slack, Discord, email) — can be added later
 - Running in CI/CD (GitHub Actions) — designed for local execution only
 - Modifying GSD's core workflows or agents — the autopilot wraps GSD, it does not fork it
 - Authentication on the local web server — it runs on localhost, accessible only to the local machine
-- Mobile-optimized Teams cards — desktop Teams is sufficient
+- Bidirectional communication through notification channels — all responses come through the local web UI, notifications are outbound-only
