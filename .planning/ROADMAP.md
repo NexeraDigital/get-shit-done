@@ -32,11 +32,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Config is loaded from `.gsd-autopilot.json` with CLI flags overriding config file values overriding defaults
   4. Logger writes structured JSON to `.planning/autopilot-log/` files and exposes an in-memory ring buffer for future SSE consumption
   5. All file paths in the codebase use `path.join()` -- no hardcoded path separators
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Project skeleton and shared type definitions
+- [ ] 01-02-PLAN.md -- State store with atomic persistence (TDD)
+- [ ] 01-03-PLAN.md -- Config loader with precedence chain (TDD)
+- [ ] 01-04-PLAN.md -- Logger system with pino and ring buffer
 
 ### Phase 2: Claude Integration
 **Goal**: The system can execute GSD slash commands via the Claude Agent SDK and intercept human-in-the-loop questions, returning structured results
@@ -141,7 +143,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Types | 0/TBD | Not started | - |
+| 1. Foundation and Types | 0/4 | Not started | - |
 | 2. Claude Integration | 0/TBD | Not started | - |
 | 3. Core Orchestrator | 0/TBD | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
