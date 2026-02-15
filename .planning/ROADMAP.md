@@ -12,7 +12,7 @@ GSD Autopilot transforms a PRD into a built project via a single command, orches
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
+- [x] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
 - [ ] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
 - [ ] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
 - [ ] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
@@ -35,10 +35,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Project skeleton and shared type definitions
-- [ ] 01-02-PLAN.md -- State store with atomic persistence (TDD)
-- [ ] 01-03-PLAN.md -- Config loader with precedence chain (TDD)
-- [ ] 01-04-PLAN.md -- Logger system with pino and ring buffer
+- [x] 01-01-PLAN.md -- Project skeleton and shared type definitions
+- [x] 01-02-PLAN.md -- State store with atomic persistence (TDD)
+- [x] 01-03-PLAN.md -- Config loader with precedence chain (TDD)
+- [x] 01-04-PLAN.md -- Logger system with pino and ring buffer
 
 ### Phase 2: Claude Integration
 **Goal**: The system can execute GSD slash commands via the Claude Agent SDK and intercept human-in-the-loop questions, returning structured results
@@ -143,7 +143,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Types | 0/4 | Not started | - |
+| 1. Foundation and Types | 4/4 | Complete | 2026-02-14 |
 | 2. Claude Integration | 0/TBD | Not started | - |
 | 3. Core Orchestrator | 0/TBD | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
