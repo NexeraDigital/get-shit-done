@@ -26,3 +26,11 @@ export { StateStore } from './state/index.js';
 
 export { AutopilotLogger } from './logger/index.js';
 export { RingBuffer } from './logger/ring-buffer.js';
+
+export type {
+  CommandResult,
+  RunCommandOptions,
+  QuestionEvent,
+  QuestionItem,
+  QuestionOption,
+} from './claude/types.js';
