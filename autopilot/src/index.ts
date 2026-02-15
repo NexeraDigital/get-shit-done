@@ -1,3 +1,21 @@
 // Package entry point - re-exports public API
-// Placeholder for Task 1; full exports added in Task 2
-export {};
+export {
+  AutopilotConfigSchema,
+} from './types/index.js';
+
+export type {
+  AutopilotStatus,
+  PhaseStep,
+  PhaseStatus,
+  ErrorRecord,
+  PendingQuestion,
+  PhaseState,
+  AutopilotState,
+  AutopilotConfig,
+  LogLevel,
+  LogEntry,
+  NotificationSeverity,
+  NotificationType,
+  Notification,
+  NotificationAdapter,
+} from './types/index.js';
