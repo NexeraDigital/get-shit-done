@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 3 - Core Orchestrator (In Progress)
+**Current focus:** Phase 3 - Core Orchestrator (Complete)
 
 ## Current Position
 
-Phase: 3 of 7 (Core Orchestrator)
-Plan: 3 of 4 in current phase
-Status: In Progress
-Last activity: 2026-02-15 -- Completed 03-03 Orchestrator class (2 tasks, 17 tests)
+Phase: 3 of 7 (Core Orchestrator) -- COMPLETE
+Plan: 4 of 4 in current phase (all complete)
+Status: Phase Complete
+Last activity: 2026-02-15 -- Completed 03-04 CLI entry point (2 tasks, 334 tests passing)
 
-Progress: [████░░░░░░] ~39%
+Progress: [█████░░░░░] ~43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 3min
-- Total execution time: 0.60 hours
+- Total execution time: 0.63 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████░░░░░░] ~39%
 |-------|-------|-------|----------|
 | 01-foundation-and-types | 4/4 | 17min | 4min |
 | 02-claude-integration | 4/4 | 9min | 2min |
-| 03-core-orchestrator | 3/4 | 10min | 3min |
+| 03-core-orchestrator | 4/4 | 12min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (2min), 02-04 (3min), 03-01 (3min), 03-02 (3min), 03-03 (4min)
+- Last 5 plans: 02-04 (3min), 03-01 (3min), 03-02 (3min), 03-03 (4min), 03-04 (2min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -76,6 +76,9 @@ Recent decisions affecting current work:
 - [03-03]: ShutdownError custom error class to distinguish shutdown aborts from real errors
 - [03-03]: Phase 3 escalation defaults to abort (throw) since web UI is Phase 4
 - [03-03]: Gap detection resets verify step to idle after each iteration for re-verify
+- [03-04]: Commander.js v14 installed (ESM-native, async action support via parseAsync)
+- [03-04]: CLI validates --prd/--resume manually in action handler (not .requiredOption) for conditional requirement
+- [03-04]: ShutdownManager wiring: logger flush + state persist handlers registered before orchestrator start
 
 ### Pending Todos
 
@@ -89,5 +92,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 03-03-PLAN.md
+Stopped at: Completed 03-04-PLAN.md (Phase 3 complete)
 Resume file: None
