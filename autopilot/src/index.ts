@@ -27,6 +27,9 @@ export { StateStore } from './state/index.js';
 export { AutopilotLogger } from './logger/index.js';
 export { RingBuffer } from './logger/ring-buffer.js';
 
+export { ClaudeService } from './claude/index.js';
+export { QuestionHandler } from './claude/question-handler.js';
+
 export type {
   CommandResult,
   RunCommandOptions,
