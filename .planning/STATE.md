@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 2 - Claude Integration
+**Current focus:** Phase 2 - Claude Integration (Complete)
 
 ## Current Position
 
 Phase: 2 of 7 (Claude Integration)
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-02-15 -- Completed 02-03 question handler with TDD (2 tasks, 17 tests)
+Plan: 4 of 4 in current phase (phase complete)
+Status: Phase Complete
+Last activity: 2026-02-15 -- Completed 02-04 ClaudeService facade (2 tasks, 10 tests)
 
-Progress: [███░░░░░░░] ~25%
+Progress: [███░░░░░░░] ~29%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 3min
-- Total execution time: 0.38 hours
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-and-types | 4/4 | 17min | 4min |
-| 02-claude-integration | 3/4 | 6min | 2min |
+| 02-claude-integration | 4/4 | 9min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (8min), 02-01 (2min), 02-02 (2min), 02-03 (2min)
+- Last 5 plans: 02-01 (2min), 02-02 (2min), 02-03 (2min), 02-04 (3min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [02-03]: Locally-defined SDK interfaces (AskUserQuestionInput, PermissionResultAllow) to keep tests SDK-free
 - [02-03]: HandleQuestionOptions as separate parameter for phase/step metadata
 - [02-03]: Conditional spread for optional phase/step fields to keep QuestionEvent clean
+- [02-04]: Double-cast through unknown for SDK input types in canUseTool (strict mode)
+- [02-04]: vi.mock with async generator factories for testing SDK query() without process spawning
+- [02-04]: AbortError name-check for timeout detection (matches SDK abort behavior)
 
 ### Pending Todos
 
@@ -75,5 +78,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 02-03-PLAN.md
+Stopped at: Completed 02-04-PLAN.md (Phase 2 complete)
 Resume file: None

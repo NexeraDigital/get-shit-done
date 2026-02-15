@@ -13,7 +13,7 @@ GSD Autopilot transforms a PRD into a built project via a single command, orches
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
-- [ ] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
+- [x] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
 - [ ] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
 - [ ] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
 - [ ] **Phase 5: React Dashboard** - SPA with progress view, question response UI, phase detail, log viewer
@@ -52,10 +52,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Types, polyfills, timeout utility, and SDK installation
-- [ ] 02-02-PLAN.md -- Result parser (TDD)
-- [ ] 02-03-PLAN.md -- Question handler (TDD)
-- [ ] 02-04-PLAN.md -- ClaudeService facade with mocked SDK tests
+- [x] 02-01-PLAN.md -- Types, polyfills, timeout utility, and SDK installation
+- [x] 02-02-PLAN.md -- Result parser (TDD)
+- [x] 02-03-PLAN.md -- Question handler (TDD)
+- [x] 02-04-PLAN.md -- ClaudeService facade with mocked SDK tests
 
 ### Phase 3: Core Orchestrator
 **Goal**: User can run the autopilot and it sequences through all GSD lifecycle phases autonomously, persisting state for resume, retrying failures, and collecting discuss-phase input
@@ -147,7 +147,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Types | 4/4 | Complete | 2026-02-14 |
-| 2. Claude Integration | 0/4 | Not started | - |
+| 2. Claude Integration | 4/4 | Complete | 2026-02-15 |
 | 3. Core Orchestrator | 0/TBD | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
 | 5. React Dashboard | 0/TBD | Not started | - |
