@@ -22,5 +22,7 @@ export type {
 
 export { loadConfig } from './config/index.js';
 
+export { StateStore } from './state/index.js';
+
 export { AutopilotLogger } from './logger/index.js';
 export { RingBuffer } from './logger/ring-buffer.js';
