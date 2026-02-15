@@ -37,3 +37,10 @@ export type {
   QuestionItem,
   QuestionOption,
 } from './claude/types.js';
+
+export { Orchestrator } from './orchestrator/index.js';
+export type { OrchestratorOptions } from './orchestrator/index.js';
+export { ShutdownManager } from './orchestrator/shutdown.js';
+export { writeYoloConfig } from './orchestrator/yolo-config.js';
+export { generateSkipDiscussContext, writeSkipDiscussContext } from './orchestrator/discuss-handler.js';
+export { checkForGaps, parsePhaseRange } from './orchestrator/gap-detector.js';
