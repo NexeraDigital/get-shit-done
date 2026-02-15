@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 2 - Claude Integration (Complete)
+**Current focus:** Phase 3 - Core Orchestrator (In Progress)
 
 ## Current Position
 
-Phase: 2 of 7 (Claude Integration)
-Plan: 4 of 4 in current phase (phase complete)
-Status: Phase Complete
-Last activity: 2026-02-15 -- Completed 02-04 ClaudeService facade (2 tasks, 10 tests)
+Phase: 3 of 7 (Core Orchestrator)
+Plan: 1 of 4 in current phase
+Status: In Progress
+Last activity: 2026-02-15 -- Completed 03-01 ShutdownManager & YOLO config (4 TDD tasks, 20 tests)
 
-Progress: [███░░░░░░░] ~29%
+Progress: [████░░░░░░] ~32%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 3min
-- Total execution time: 0.43 hours
+- Total execution time: 0.48 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [███░░░░░░░] ~29%
 |-------|-------|-------|----------|
 | 01-foundation-and-types | 4/4 | 17min | 4min |
 | 02-claude-integration | 4/4 | 9min | 2min |
+| 03-core-orchestrator | 1/4 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (2min), 02-02 (2min), 02-03 (2min), 02-04 (3min)
+- Last 5 plans: 02-02 (2min), 02-03 (2min), 02-04 (3min), 03-01 (3min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [02-04]: Double-cast through unknown for SDK input types in canUseTool (strict mode)
 - [02-04]: vi.mock with async generator factories for testing SDK query() without process spawning
 - [02-04]: AbortError name-check for timeout detection (matches SDK abort behavior)
+- [03-01]: Injectable exit function in ShutdownManager.install() for testability (default: process.exit)
+- [03-01]: YOLO config uses spread merge ({...existing, ...yoloSettings}) preserving user keys not in override set
+- [03-01]: Invalid JSON in existing config.json treated as empty object (YOLO settings take priority)
 
 ### Pending Todos
 
@@ -78,5 +82,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 02-04-PLAN.md (Phase 2 complete)
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
