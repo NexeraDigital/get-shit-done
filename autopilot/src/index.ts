@@ -19,3 +19,8 @@ export type {
   Notification,
   NotificationAdapter,
 } from './types/index.js';
+
+export { loadConfig } from './config/index.js';
+
+export { AutopilotLogger } from './logger/index.js';
+export { RingBuffer } from './logger/ring-buffer.js';
