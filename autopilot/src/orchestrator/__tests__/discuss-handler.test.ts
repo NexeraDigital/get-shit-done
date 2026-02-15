@@ -11,19 +11,13 @@ vi.mock('node:fs/promises', () => ({
 describe('generateSkipDiscussContext', () => {
   const phase: PhaseInfo = { number: 3, name: 'Core Orchestrator' };
 
-  // Freeze date for deterministic output
-  let dateSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
-    dateSpy = vi.spyOn(globalThis, 'Date').mockImplementation(
-      () => new Date('2026-02-15T12:00:00Z') as unknown as Date,
-    );
-    // Restore the real Date for static methods we don't mock
-    (dateSpy as any).now = Date.now;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-02-15T12:00:00Z'));
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('produces output containing phase number and name in the title', () => {
@@ -90,21 +84,19 @@ describe('writeSkipDiscussContext', () => {
   let mockMkdir: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    vi.restoreAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-02-15T12:00:00Z'));
 
-    // Re-import to get fresh mocks
+    // Get mock references
     const fsMod = await import('node:fs/promises');
     mockWriteFile = fsMod.writeFile as unknown as ReturnType<typeof vi.fn>;
     mockMkdir = fsMod.mkdir as unknown as ReturnType<typeof vi.fn>;
-
-    // Freeze date
-    vi.spyOn(globalThis, 'Date').mockImplementation(
-      () => new Date('2026-02-15T12:00:00Z') as unknown as Date,
-    );
+    mockWriteFile.mockClear();
+    mockMkdir.mockClear();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('writes the file to the correct phase directory path', async () => {
