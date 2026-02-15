@@ -1,0 +1,40 @@
+{
+  "name": "@gsd/autopilot",
+  "version": "0.1.0",
+  "description": "Autonomous GSD workflow orchestrator",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "gsd-autopilot": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist/",
+    "dashboard/dist/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pino": "^10.3.0",
+    "write-file-atomic": "^7.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "pino-pretty": "^13.0.0",
+    "typescript": "~5.9.0",
+    "vitest": "^4.0.0"
+  }
+}

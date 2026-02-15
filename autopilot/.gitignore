@@ -1,0 +1,5 @@
+# Build output
+dist/
+
+# Dependencies (covered by root .gitignore too)
+node_modules/
