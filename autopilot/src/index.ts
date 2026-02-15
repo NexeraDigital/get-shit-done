@@ -43,4 +43,5 @@ export type { OrchestratorOptions } from './orchestrator/index.js';
 export { ShutdownManager } from './orchestrator/shutdown.js';
 export { writeYoloConfig } from './orchestrator/yolo-config.js';
 export { generateSkipDiscussContext, writeSkipDiscussContext } from './orchestrator/discuss-handler.js';
+export type { PhaseInfo } from './orchestrator/discuss-handler.js';
 export { checkForGaps, parsePhaseRange } from './orchestrator/gap-detector.js';
