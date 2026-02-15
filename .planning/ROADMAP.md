@@ -49,10 +49,13 @@ Plans:
   2. When Claude issues an `AskUserQuestion` tool call, the system intercepts it and blocks the orchestrator until a human response is provided
   3. Command execution respects a configurable timeout (default 10 minutes) and returns a timeout error if exceeded
   4. The integration layer exposes a clean async interface (`runGsdCommand(prompt): Promise<CommandResult>`) that the orchestrator can call without knowing SDK internals
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md -- Types, polyfills, timeout utility, and SDK installation
+- [ ] 02-02-PLAN.md -- Result parser (TDD)
+- [ ] 02-03-PLAN.md -- Question handler (TDD)
+- [ ] 02-04-PLAN.md -- ClaudeService facade with mocked SDK tests
 
 ### Phase 3: Core Orchestrator
 **Goal**: User can run the autopilot and it sequences through all GSD lifecycle phases autonomously, persisting state for resume, retrying failures, and collecting discuss-phase input
@@ -144,7 +147,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Types | 4/4 | Complete | 2026-02-14 |
-| 2. Claude Integration | 0/TBD | Not started | - |
+| 2. Claude Integration | 0/4 | Not started | - |
 | 3. Core Orchestrator | 0/TBD | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
 | 5. React Dashboard | 0/TBD | Not started | - |
