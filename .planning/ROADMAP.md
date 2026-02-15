@@ -67,12 +67,13 @@ Plans:
   3. When a Claude command fails, it retries once; on second failure, it escalates to the human with retry/skip/abort options
   4. The discuss-phase handler identifies gray areas, batches questions (2-3 at a time), collects responses via web UI, and writes CONTEXT.md; with `--skip-discuss` it writes "Claude's Discretion" for all areas
   5. After each phase completes verification, if gaps are found, the orchestrator re-plans and re-executes gaps (up to 3 iterations before escalating)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md -- Shutdown manager and YOLO config writer (TDD)
+- [ ] 03-02-PLAN.md -- Discuss-phase handler and gap detector (TDD)
+- [ ] 03-03-PLAN.md -- Orchestrator core class with phase lifecycle loop
+- [ ] 03-04-PLAN.md -- CLI entry point with Commander.js
 
 ### Phase 4: Response Server and API
 **Goal**: A local Express server exposes REST endpoints for autopilot state, question management, and real-time log streaming via SSE, enabling the dashboard and human-in-the-loop flow
@@ -148,7 +149,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 |-------|----------------|--------|-----------|
 | 1. Foundation and Types | 4/4 | Complete | 2026-02-14 |
 | 2. Claude Integration | 4/4 | Complete | 2026-02-15 |
-| 3. Core Orchestrator | 0/TBD | Not started | - |
+| 3. Core Orchestrator | 0/4 | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
 | 5. React Dashboard | 0/TBD | Not started | - |
 | 6. Notification System | 0/TBD | Not started | - |
