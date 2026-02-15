@@ -73,7 +73,7 @@ describe('QuestionHandler', () => {
       const resultPromise = handler.handleQuestion(input);
 
       expect(listener).toHaveBeenCalledOnce();
-      const event: QuestionEvent = listener.mock.calls[0][0];
+      const event: QuestionEvent = listener.mock.calls[0]![0] as QuestionEvent;
       expect(event.id).toBeDefined();
       expect(event.questions).toEqual(input.questions);
       expect(event.createdAt).toBeDefined();
@@ -91,7 +91,7 @@ describe('QuestionHandler', () => {
       handler.on('question:pending', listener);
       const resultPromise = handler.handleQuestion(input, { phase: 2, step: 'plan' });
 
-      const event: QuestionEvent = listener.mock.calls[0][0];
+      const event: QuestionEvent = listener.mock.calls[0]![0] as QuestionEvent;
       expect(event.phase).toBe(2);
       expect(event.step).toBe('plan');
 
