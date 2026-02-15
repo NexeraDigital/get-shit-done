@@ -60,12 +60,13 @@ Plans:
 ### Phase 3: Core Orchestrator
 **Goal**: User can run the autopilot and it sequences through all GSD lifecycle phases autonomously, persisting state for resume, retrying failures, and collecting discuss-phase input
 **Depends on**: Phase 2
-**Requirements**: ORCH-01, ORCH-02, ORCH-03, ORCH-04, ORCH-05, ORCH-06, ORCH-07, ORCH-08, ORCH-09, ORCH-10, DISC-01, DISC-02, DISC-03, DISC-04, CLI-01, CLI-10, CLI-09, CLI-07, CLI-08, CLI-14
+**Requirements**: ORCH-01, ORCH-02, ORCH-03, ORCH-04, ORCH-05, ORCH-06, ORCH-07, ORCH-08, ORCH-09, ORCH-10, DISC-04, CLI-01, CLI-10, CLI-09, CLI-07, CLI-08, CLI-14
+**Note**: DISC-01, DISC-02, DISC-03 (analyze gray areas, batch questions, collect responses via web UI) are implemented by the existing GSD `/gsd:discuss-phase` command. Phase 3 delegates to this command via `claudeService.runGsdCommand('/gsd:discuss-phase N')` -- the orchestrator invokes it but does not re-implement the discuss logic. DISC-04 (skip-discuss with Claude's Discretion) IS implemented directly in Phase 3.
 **Success Criteria** (what must be TRUE):
   1. Running `npx gsd-autopilot --prd ./idea.md` starts autonomous project building and sequences through init > plan > execute > verify for each phase
   2. If the process is interrupted (Ctrl+C or crash), running `--resume` picks up from the last completed step without re-executing completed work
   3. When a Claude command fails, it retries once; on second failure, it escalates to the human with retry/skip/abort options
-  4. The discuss-phase handler identifies gray areas, batches questions (2-3 at a time), collects responses via web UI, and writes CONTEXT.md; with `--skip-discuss` it writes "Claude's Discretion" for all areas
+  4. With `--skip-discuss`, the orchestrator writes "Claude's Discretion" CONTEXT.md directly (DISC-04); without `--skip-discuss`, the orchestrator delegates to `/gsd:discuss-phase` which handles gray area analysis, question batching, and response collection (DISC-01-03)
   5. After each phase completes verification, if gaps are found, the orchestrator re-plans and re-executes gaps (up to 3 iterations before escalating)
 **Plans**: 4 plans
 
