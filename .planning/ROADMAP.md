@@ -97,11 +97,11 @@ Plans:
   3. `GET /api/questions` returns pending questions; `POST /api/questions/:questionId` submits a response and unblocks the orchestrator's waiting Promise
   4. `GET /api/log/stream` opens an SSE connection that pushes real-time events (phase-started, phase-completed, question-pending, question-answered, error, log-entry, build-complete)
   5. Server shuts down cleanly when autopilot completes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md -- ResponseServer class, Express 5, REST endpoints (health, status, phases, questions), error middleware
+- [ ] 04-02-PLAN.md -- SSE streaming with event wiring, AutopilotLogger EventEmitter, SPA fallback, CLI integration
 
 ### Phase 5: React Dashboard
 **Goal**: User can open a browser to the local server and see real-time build progress, respond to questions, inspect phase details, and view live logs
