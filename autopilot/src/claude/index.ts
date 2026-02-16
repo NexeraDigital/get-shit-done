@@ -27,6 +27,7 @@ export interface ClaudeServiceOptions {
  * encapsulates all SDK complexity behind one method.
  *
  * Events:
+ * - 'message' -> SDKMessage (every message from the SDK stream -- for StreamRenderer/StreamLogger)
  * - 'question:pending' -> QuestionEvent (forwarded from QuestionHandler)
  * - 'question:answered' -> { id: string, answers: Record<string, string> }
  */
@@ -92,6 +93,9 @@ export class ClaudeService extends EventEmitter {
           settingSources: ['project', 'user'],
           permissionMode: 'bypassPermissions',
           allowDangerouslySkipPermissions: true,
+          // Enable streaming partial messages for real-time terminal output.
+          // WARNING: If thinking/maxThinkingTokens is set, stream_event messages are NOT emitted (SDK limitation).
+          includePartialMessages: true,
           allowedTools: [
             'Read',
             'Write',
@@ -109,6 +113,8 @@ export class ClaudeService extends EventEmitter {
           canUseTool: this.createCanUseTool(),
         },
       })) {
+        this.emit('message', message);
+
         if (message.type === 'system' && 'subtype' in message && message.subtype === 'init') {
           sessionId = message.session_id;
         }

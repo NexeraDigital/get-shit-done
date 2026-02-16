@@ -158,11 +158,43 @@ describe('ClaudeService', () => {
       type: 'preset',
       preset: 'claude_code',
     });
-    expect(callArgs.options.settingSources).toEqual(['project']);
+    expect(callArgs.options.settingSources).toEqual(['project', 'user']);
     expect(callArgs.options.permissionMode).toBe('bypassPermissions');
     expect(callArgs.options.allowDangerouslySkipPermissions).toBe(true);
     expect(callArgs.options.abortController).toBeInstanceOf(AbortController);
     expect(typeof callArgs.options.canUseTool).toBe('function');
+    expect(callArgs.options.includePartialMessages).toBe(true);
+  });
+
+  // Test 3b: Message emission for each SDK message
+  it('runGsdCommand emits message event for each SDK message', async () => {
+    mockQueryFn.mockReturnValue(
+      createMockQuery([createInitMessage(), createResultMessage()]),
+    );
+
+    const messages: unknown[] = [];
+    service.on('message', (m) => messages.push(m));
+
+    await service.runGsdCommand('/gsd:test');
+
+    expect(messages.length).toBe(2);
+    expect((messages[0] as { type: string }).type).toBe('system');
+    expect((messages[1] as { type: string }).type).toBe('result');
+  });
+
+  // Test 3c: includePartialMessages passed to query options
+  it('runGsdCommand passes includePartialMessages: true to query options', async () => {
+    mockQueryFn.mockReturnValue(
+      createMockQuery([createInitMessage(), createResultMessage()]),
+    );
+
+    await service.runGsdCommand('/gsd:test');
+
+    expect(mockQueryFn).toHaveBeenCalledTimes(1);
+    const callArgs = mockQueryFn.mock.calls[0]![0] as {
+      options: Record<string, unknown>;
+    };
+    expect(callArgs.options.includePartialMessages).toBe(true);
   });
 
   // Test 4: Timeout handling
