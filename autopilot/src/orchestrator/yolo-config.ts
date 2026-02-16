@@ -39,9 +39,11 @@ export async function writeYoloConfig(
 
   // Build YOLO overrides (only orchestrator-controlled settings)
   const yoloSettings: Record<string, unknown> = {
+    mode: 'yolo',
+    depth: config.depth,
     model_profile: config.model,
     research: true,
-    plan_checker: true,
+    plan_check: true,
     verifier: !config.skipVerify,
     parallelization: true,
   };

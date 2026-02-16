@@ -80,7 +80,7 @@ program
 
     // d. Create components
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
-    const claudeService = new ClaudeService({ defaultCwd: projectDir });
+    const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: true });
     const stateStore = options.resume
       ? await StateStore.restore(join(projectDir, '.planning', 'autopilot-state.json'))
       : StateStore.createFresh(projectDir);
@@ -120,6 +120,8 @@ program
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+      await logger.flush();
+      process.exit(0);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.log('error', 'cli', 'Autopilot failed', { error: message });

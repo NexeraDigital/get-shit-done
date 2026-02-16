@@ -3,6 +3,7 @@
 // Extends EventEmitter for progress tracking. Uses dependency injection for testability.
 
 import { EventEmitter } from 'node:events';
+import { execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
@@ -199,11 +200,22 @@ export class Orchestrator extends EventEmitter {
   private async initProject(prdPath: string): Promise<void> {
     this.logger.log('info', 'orchestrator', 'Initializing project', { prdPath });
 
-    // Run init command
-    await this.executeWithRetry(
+    // Ensure the project directory is a git repo (Claude Code requires it)
+    await this.ensureGitRepo();
+
+    // Run init command (longer timeout: new-project spawns researchers + synthesizer + roadmapper)
+    const initResult = await this.executeWithRetry(
       `/gsd:new-project --auto ${prdPath}`,
-      { phase: 0, step: 'init' },
+      { phase: 0, step: 'init', timeoutMs: 1_200_000 },
     );
+
+    this.logger.log('info', 'orchestrator', 'Init command result', {
+      success: initResult.success,
+      durationMs: initResult.durationMs,
+      costUsd: initResult.costUsd,
+      numTurns: initResult.numTurns,
+      error: initResult.error,
+    });
 
     // Read ROADMAP.md to extract populated phases
     let roadmapPhases: RoadmapPhase[];
@@ -228,6 +240,30 @@ export class Orchestrator extends EventEmitter {
       status: 'running',
       currentPhase: firstPhaseNumber,
     });
+  }
+
+  /**
+   * Ensures the project directory is a git repository.
+   * Claude Code requires a git repo to operate. If none exists, runs `git init`.
+   */
+  private async ensureGitRepo(): Promise<void> {
+    const isGitRepo = await new Promise<boolean>((resolve) => {
+      execFile('git', ['rev-parse', '--is-inside-work-tree'], { cwd: this.projectDir }, (err) => {
+        resolve(!err);
+      });
+    });
+
+    if (!isGitRepo) {
+      this.logger.log('info', 'orchestrator', 'No git repo found, running git init', {
+        projectDir: this.projectDir,
+      });
+      await new Promise<void>((resolve, reject) => {
+        execFile('git', ['init'], { cwd: this.projectDir }, (err) => {
+          if (err) reject(new Error(`git init failed: ${err.message}`));
+          else resolve();
+        });
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -432,7 +468,7 @@ export class Orchestrator extends EventEmitter {
 
   private async executeWithRetry(
     prompt: string,
-    meta: { phase: number; step: string },
+    meta: { phase: number; step: string; timeoutMs?: number },
   ): Promise<CommandResult> {
     this.logger.log('info', 'orchestrator', `Running command: ${prompt}`, {
       phase: meta.phase,
@@ -446,6 +482,7 @@ export class Orchestrator extends EventEmitter {
         cwd: this.projectDir,
         phase: meta.phase,
         step: meta.step,
+        timeoutMs: meta.timeoutMs,
       });
     } catch (err) {
       if (this.shutdownRequested) throw new ShutdownError();
@@ -469,6 +506,7 @@ export class Orchestrator extends EventEmitter {
         cwd: this.projectDir,
         phase: meta.phase,
         step: meta.step,
+        timeoutMs: meta.timeoutMs,
       });
     } catch (err) {
       if (this.shutdownRequested) throw new ShutdownError();

@@ -15,6 +15,8 @@ const DEFAULT_TIMEOUT_MS = 600_000; // 10 minutes
 export interface ClaudeServiceOptions {
   defaultTimeoutMs?: number;
   defaultCwd?: string;
+  /** When true, auto-select the first option for AskUserQuestion instead of blocking. */
+  autoAnswer?: boolean;
 }
 
 /**
@@ -32,6 +34,7 @@ export class ClaudeService extends EventEmitter {
   private readonly questionHandler = new QuestionHandler();
   private readonly defaultTimeoutMs: number;
   private readonly defaultCwd: string | undefined;
+  private readonly autoAnswer: boolean;
   private running = false;
   private currentAbort: AbortController | null = null;
 
@@ -39,6 +42,7 @@ export class ClaudeService extends EventEmitter {
     super();
     this.defaultTimeoutMs = options?.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.defaultCwd = options?.defaultCwd;
+    this.autoAnswer = options?.autoAnswer ?? false;
 
     // Forward QuestionHandler lifecycle events
     this.questionHandler.on('question:pending', (event) => {
@@ -79,8 +83,13 @@ export class ClaudeService extends EventEmitter {
         prompt,
         options: {
           cwd: options?.cwd ?? this.defaultCwd ?? process.cwd(),
+          env: (() => {
+            const env = { ...process.env };
+            delete env.CLAUDECODE;
+            return env;
+          })(),
           systemPrompt: { type: 'preset', preset: 'claude_code' },
-          settingSources: ['project'],
+          settingSources: ['project', 'user'],
           permissionMode: 'bypassPermissions',
           allowDangerouslySkipPermissions: true,
           allowedTools: [
@@ -93,6 +102,7 @@ export class ClaudeService extends EventEmitter {
             'WebFetch',
             'WebSearch',
             'Task',
+            'Skill',
             'AskUserQuestion',
           ],
           abortController: controller,
@@ -140,15 +150,32 @@ export class ClaudeService extends EventEmitter {
    * Creates the canUseTool callback for the SDK query options.
    * Routes AskUserQuestion tool calls to the QuestionHandler;
    * allows all other tools to proceed.
+   *
+   * When autoAnswer is enabled, questions are answered immediately
+   * by selecting the first option instead of blocking for human input.
    */
   private createCanUseTool(): CanUseTool {
     return async (toolName, input) => {
       if (toolName === 'AskUserQuestion') {
+        const typedInput = input as unknown as Parameters<QuestionHandler['handleQuestion']>[0];
+
+        if (this.autoAnswer) {
+          // Auto-select the first option for each question
+          const answers: Record<string, string> = {};
+          for (const q of typedInput.questions) {
+            if (q.options.length > 0) {
+              answers[q.question] = q.options[0]!.label;
+            }
+          }
+          return {
+            behavior: 'allow' as const,
+            updatedInput: { questions: typedInput.questions, answers },
+          };
+        }
+
         // Delegate to QuestionHandler -- this blocks SDK execution
         // until submitAnswer() resolves the deferred promise.
-        return await this.questionHandler.handleQuestion(
-          input as unknown as Parameters<QuestionHandler['handleQuestion']>[0],
-        );
+        return await this.questionHandler.handleQuestion(typedInput);
       }
 
       return { behavior: 'allow' as const, updatedInput: input };
