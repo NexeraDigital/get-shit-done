@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 3.1 - Display Claude Console Output (In Progress)
+**Current focus:** Phase 3.1 - Display Claude Console Output (Complete)
 
 ## Current Position
 
-Phase: 3.1 of 7 (Display Claude Console Output)
-Plan: 1 of 2 in current phase (03.1-01 complete)
-Status: In Progress
-Last activity: 2026-02-16 -- Completed 03.1-01 output infrastructure (2 tasks, 56 new tests, 390 total)
+Phase: 3.1 of 7 (Display Claude Console Output) -- COMPLETE
+Plan: 2 of 2 in current phase (03.1-02 complete)
+Status: Phase Complete
+Last activity: 2026-02-16 -- Completed 03.1-02 SDK stream wiring (2 tasks, 2 new tests, 392 total)
 
-Progress: [██████░░░░] ~48%
+Progress: [██████░░░░] ~52%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 3min
-- Total execution time: 0.71 hours
+- Total execution time: 0.78 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [██████░░░░] ~48%
 | 01-foundation-and-types | 4/4 | 17min | 4min |
 | 02-claude-integration | 4/4 | 9min | 2min |
 | 03-core-orchestrator | 4/4 | 12min | 3min |
-| 03.1-display-claude-output | 1/2 | 5min | 5min |
+| 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3min), 03-02 (3min), 03-03 (4min), 03-04 (2min), 03.1-01 (5min)
+- Last 5 plans: 03-02 (3min), 03-03 (4min), 03-04 (2min), 03.1-01 (5min), 03.1-02 (4min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -84,6 +84,10 @@ Recent decisions affecting current work:
 - [03.1-01]: Text delta stream events skipped in StreamLogger to prevent log bloat (Pitfall 3)
 - [03.1-01]: Unicode box-drawing with ASCII fallback via WT_SESSION/TERM_PROGRAM detection
 - [03.1-01]: Mock WritableOutput interface for testable stream output (not coupled to process.stdout)
+- [03.1-02]: ClaudeService emits 'message' before session_id/result parsing -- all consumers see every message type
+- [03.1-02]: StreamLogger flush registered before AutopilotLogger flush in ShutdownManager -- SDK logs flush first
+- [03.1-02]: Orchestrator event listeners wired proactively (forward-compatible with future emit() calls)
+- [03.1-02]: Spinner stopped before console.error in catch block to prevent garbled terminal output
 
 ### Roadmap Evolution
 
@@ -101,5 +105,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: Completed 03.1-01-PLAN.md
+Stopped at: Completed 03.1-02-PLAN.md (Phase 03.1 complete)
 Resume file: None
