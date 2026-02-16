@@ -45,3 +45,8 @@ export { writeYoloConfig } from './orchestrator/yolo-config.js';
 export { generateSkipDiscussContext, writeSkipDiscussContext } from './orchestrator/discuss-handler.js';
 export type { PhaseInfo } from './orchestrator/discuss-handler.js';
 export { checkForGaps, parsePhaseRange } from './orchestrator/gap-detector.js';
+
+export { StreamRenderer } from './output/index.js';
+export { StreamLogger } from './output/index.js';
+export type { VerbosityLevel, MessageCategory } from './output/index.js';
+export { renderBanner, renderPhaseBanner } from './output/index.js';

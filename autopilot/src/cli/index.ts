@@ -10,6 +10,8 @@ import { ClaudeService } from '../claude/index.js';
 import { Orchestrator } from '../orchestrator/index.js';
 import { ShutdownManager } from '../orchestrator/shutdown.js';
 import { parsePhaseRange } from '../orchestrator/gap-detector.js';
+import { StreamRenderer, StreamLogger } from '../output/index.js';
+import type { VerbosityLevel } from '../output/index.js';
 
 const program = new Command();
 
@@ -78,17 +80,30 @@ program
       port: parseInt(options.port, 10),
     });
 
-    // d. Create components
+    // d. Create core components
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
     const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: true });
     const stateStore = options.resume
       ? await StateStore.restore(join(projectDir, '.planning', 'autopilot-state.json'))
       : StateStore.createFresh(projectDir);
 
-    // e. Parse phase range (if provided)
+    // e. Determine verbosity level from config
+    const verbosity: VerbosityLevel = config.quiet ? 'quiet' : config.verbose ? 'verbose' : 'default';
+
+    // f. Create output streaming components
+    const streamRenderer = new StreamRenderer(verbosity);
+    const streamLogger = new StreamLogger(join(projectDir, '.planning', 'autopilot-log'));
+
+    // Wire SDK message stream to terminal renderer and log file (dual output per user decision)
+    claudeService.on('message', (message: unknown) => {
+      streamRenderer.render(message);
+      streamLogger.write(message);
+    });
+
+    // g. Parse phase range (if provided)
     const phaseRange = options.phases ? parsePhaseRange(options.phases) : undefined;
 
-    // f. Create Orchestrator
+    // h. Create Orchestrator
     const orchestrator = new Orchestrator({
       stateStore,
       claudeService,
@@ -97,8 +112,26 @@ program
       projectDir,
     });
 
-    // g. Install ShutdownManager
+    // Wire phase/step banners to StreamRenderer
+    orchestrator.on('phase:started', ({ phase, name }: { phase: number; name: string }) => {
+      streamRenderer.showBanner(phase, `Starting: ${name}`);
+    });
+    orchestrator.on('step:started', ({ phase, step }: { phase: number; step: string }) => {
+      streamRenderer.startSpinner(`Phase ${phase}: ${step}...`);
+    });
+    orchestrator.on('step:completed', () => {
+      streamRenderer.stopSpinner();
+    });
+    orchestrator.on('build:complete', () => {
+      streamRenderer.stopSpinner();
+    });
+
+    // i. Install ShutdownManager
     const shutdown = new ShutdownManager();
+    shutdown.register(async () => {
+      logger.log('info', 'cli', 'Flushing stream logger on shutdown');
+      await streamLogger.flush();
+    });
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing logger on shutdown');
       await logger.flush();
@@ -112,7 +145,7 @@ program
       orchestrator.requestShutdown();
     });
 
-    // h. Run orchestrator
+    // j. Run orchestrator
     try {
       const prdPath = options.prd ? resolve(options.prd) : '';
       await orchestrator.run(prdPath, phaseRange);
@@ -120,9 +153,11 @@ program
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+      await streamLogger.flush();
       await logger.flush();
       process.exit(0);
     } catch (err) {
+      streamRenderer.stopSpinner();
       const message = err instanceof Error ? err.message : String(err);
       logger.log('error', 'cli', 'Autopilot failed', { error: message });
       if (!options.quiet) {
@@ -132,7 +167,7 @@ program
     }
   });
 
-// i. Top-level error handling
+// k. Top-level error handling
 try {
   await program.parseAsync(process.argv);
 } catch (err) {
