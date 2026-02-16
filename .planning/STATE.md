@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 3 - Core Orchestrator (Complete)
+**Current focus:** Phase 3.1 - Display Claude Console Output (In Progress)
 
 ## Current Position
 
-Phase: 3 of 7 (Core Orchestrator) -- COMPLETE
-Plan: 4 of 4 in current phase (all complete)
-Status: Phase Complete
-Last activity: 2026-02-15 -- Completed 03-04 CLI entry point (2 tasks, 334 tests passing)
+Phase: 3.1 of 7 (Display Claude Console Output)
+Plan: 1 of 2 in current phase (03.1-01 complete)
+Status: In Progress
+Last activity: 2026-02-16 -- Completed 03.1-01 output infrastructure (2 tasks, 56 new tests, 390 total)
 
-Progress: [█████░░░░░] ~43%
+Progress: [██████░░░░] ~48%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 3min
-- Total execution time: 0.63 hours
+- Total execution time: 0.71 hours
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [█████░░░░░] ~43%
 | 01-foundation-and-types | 4/4 | 17min | 4min |
 | 02-claude-integration | 4/4 | 9min | 2min |
 | 03-core-orchestrator | 4/4 | 12min | 3min |
+| 03.1-display-claude-output | 1/2 | 5min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-04 (3min), 03-01 (3min), 03-02 (3min), 03-03 (4min), 03-04 (2min)
+- Last 5 plans: 03-01 (3min), 03-02 (3min), 03-03 (4min), 03-04 (2min), 03.1-01 (5min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -79,6 +80,14 @@ Recent decisions affecting current work:
 - [03-04]: Commander.js v14 installed (ESM-native, async action support via parseAsync)
 - [03-04]: CLI validates --prd/--resume manually in action handler (not .requiredOption) for conditional requirement
 - [03-04]: ShutdownManager wiring: logger flush + state persist handlers registered before orchestrator start
+- [03.1-01]: Error results (is_error: true) bypass verbosity filter -- always visible in quiet mode
+- [03.1-01]: Text delta stream events skipped in StreamLogger to prevent log bloat (Pitfall 3)
+- [03.1-01]: Unicode box-drawing with ASCII fallback via WT_SESSION/TERM_PROGRAM detection
+- [03.1-01]: Mock WritableOutput interface for testable stream output (not coupled to process.stdout)
+
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 3: Display claude console output to parent node process so users can see whats happening (URGENT)
 
 ### Pending Todos
 
@@ -91,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-15
-Stopped at: Completed 03-04-PLAN.md (Phase 3 complete)
+Last session: 2026-02-16
+Stopped at: Completed 03.1-01-PLAN.md
 Resume file: None
