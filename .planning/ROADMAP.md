@@ -76,6 +76,17 @@ Plans:
 - [ ] 03-03-PLAN.md -- Orchestrator core class with phase lifecycle loop
 - [ ] 03-04-PLAN.md -- CLI entry point with Commander.js
 
+### Phase 03.1: Display claude console output to parent node process so users can see whats happening (INSERTED)
+
+**Goal:** Stream real-time Claude Agent SDK output to the terminal with rich formatting (colors, spinners, banners) and persist raw messages to a separate log file, giving users full visibility into what the autopilot is doing
+**Depends on:** Phase 3
+**Requirements:** CLI-13, ORCH-07
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03.1-01-PLAN.md -- Output module: StreamRenderer, StreamLogger, verbosity, colors, banners
+- [ ] 03.1-02-PLAN.md -- SDK integration: ClaudeService message emission and CLI wiring
+
 ### Phase 4: Response Server and API
 **Goal**: A local Express server exposes REST endpoints for autopilot state, question management, and real-time log streaming via SSE, enabling the dashboard and human-in-the-loop flow
 **Depends on**: Phase 3
@@ -151,6 +162,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 1. Foundation and Types | 4/4 | Complete | 2026-02-14 |
 | 2. Claude Integration | 4/4 | Complete | 2026-02-15 |
 | 3. Core Orchestrator | 2/4 | In progress | - |
+| 03.1. Display Console Output | 0/2 | Not started | - |
 | 4. Response Server and API | 0/TBD | Not started | - |
 | 5. React Dashboard | 0/TBD | Not started | - |
 | 6. Notification System | 0/TBD | Not started | - |
