@@ -206,7 +206,19 @@ export class Orchestrator extends EventEmitter {
     );
 
     // Read ROADMAP.md to extract populated phases
-    const roadmapPhases = await extractPhases(this.projectDir);
+    let roadmapPhases: RoadmapPhase[];
+    try {
+      roadmapPhases = await extractPhases(this.projectDir);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('ENOENT')) {
+        throw new Error(
+          `Init command completed but ROADMAP.md was not created at ${join(this.projectDir, '.planning', 'ROADMAP.md')}. ` +
+          'Verify the Claude Agent SDK is configured (ANTHROPIC_API_KEY set) and GSD is installed.',
+        );
+      }
+      throw err;
+    }
     const phases: PhaseState[] = roadmapPhases.map(toPhaseState);
 
     // Persist initial state with phases
