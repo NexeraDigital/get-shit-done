@@ -100,8 +100,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- ResponseServer class, Express 5, REST endpoints (health, status, phases, questions), error middleware
-- [ ] 04-02-PLAN.md -- SSE streaming with event wiring, AutopilotLogger EventEmitter, SPA fallback, CLI integration
+- [x] 04-01-PLAN.md -- ResponseServer class, Express 5, REST endpoints (health, status, phases, questions), error middleware
+- [x] 04-02-PLAN.md -- SSE streaming with event wiring, AutopilotLogger EventEmitter, SPA fallback, CLI integration
 
 ### Phase 5: React Dashboard
 **Goal**: User can open a browser to the local server and see real-time build progress, respond to questions, inspect phase details, and view live logs
@@ -163,7 +163,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 2. Claude Integration | 4/4 | Complete | 2026-02-15 |
 | 3. Core Orchestrator | 4/4 | Complete | 2026-02-15 |
 | 03.1. Display Console Output | 2/2 | Complete | 2026-02-16 |
-| 4. Response Server and API | 0/TBD | Not started | - |
+| 4. Response Server and API | 2/2 | Complete | 2026-02-17 |
 | 5. React Dashboard | 0/TBD | Not started | - |
 | 6. Notification System | 0/TBD | Not started | - |
 | 7. CLI Polish and Distribution | 0/TBD | Not started | - |
