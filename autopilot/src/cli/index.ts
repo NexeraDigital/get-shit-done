@@ -12,6 +12,7 @@ import { ShutdownManager } from '../orchestrator/shutdown.js';
 import { parsePhaseRange } from '../orchestrator/gap-detector.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
+import { ResponseServer } from '../server/index.js';
 
 const program = new Command();
 
@@ -126,7 +127,16 @@ program
       streamRenderer.stopSpinner();
     });
 
-    // i. Install ShutdownManager
+    // i. Create ResponseServer
+    const responseServer = new ResponseServer({
+      stateStore,
+      claudeService,
+      orchestrator,
+      logger,
+      config,
+    });
+
+    // j. Install ShutdownManager
     const shutdown = new ShutdownManager();
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing stream logger on shutdown');
@@ -140,12 +150,23 @@ program
       logger.log('info', 'cli', 'Persisting state on shutdown');
       await stateStore.setState({ status: 'idle' });
     });
+    // Register server shutdown (runs FIRST due to LIFO -- registered last)
+    shutdown.register(async () => {
+      logger.log('info', 'cli', 'Shutting down response server');
+      await responseServer.close();
+    });
     shutdown.install(() => {
       logger.log('warn', 'cli', 'Shutdown requested, finishing current step...');
       orchestrator.requestShutdown();
     });
 
-    // j. Run orchestrator
+    // k. Start response server
+    await responseServer.start(config.port);
+    if (!options.quiet) {
+      console.log(`Dashboard server: http://localhost:${config.port}`);
+    }
+
+    // l. Run orchestrator
     try {
       const prdPath = options.prd ? resolve(options.prd) : '';
       await orchestrator.run(prdPath, phaseRange);
@@ -153,11 +174,13 @@ program
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+      await responseServer.close();
       await streamLogger.flush();
       await logger.flush();
       process.exit(0);
     } catch (err) {
       streamRenderer.stopSpinner();
+      await responseServer.close();
       const message = err instanceof Error ? err.message : String(err);
       logger.log('error', 'cli', 'Autopilot failed', { error: message });
       if (!options.quiet) {

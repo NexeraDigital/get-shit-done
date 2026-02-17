@@ -2,6 +2,7 @@
 // Uses minimal mock dependencies and OS-assigned ports.
 
 import { describe, it, expect, afterEach } from 'vitest';
+import { EventEmitter } from 'node:events';
 import type { AddressInfo } from 'node:net';
 import { createServer } from 'node:net';
 import { ResponseServer } from '../index.js';
@@ -24,15 +25,15 @@ function createMockDeps() {
         lastUpdatedAt: new Date().toISOString(),
       }),
     },
-    claudeService: {
+    claudeService: Object.assign(new EventEmitter(), {
       getPendingQuestions: () => [],
       submitAnswer: () => false,
-    },
-    orchestrator: {},
-    logger: {
+    }),
+    orchestrator: new EventEmitter(),
+    logger: Object.assign(new EventEmitter(), {
       log: () => {},
       getRecentEntries: () => [],
-    },
+    }),
     config: {
       port: 3847,
       notify: 'console',

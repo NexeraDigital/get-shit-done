@@ -50,3 +50,6 @@ export { StreamRenderer } from './output/index.js';
 export { StreamLogger } from './output/index.js';
 export type { VerbosityLevel, MessageCategory } from './output/index.js';
 export { renderBanner, renderPhaseBanner } from './output/index.js';
+
+export { ResponseServer } from './server/index.js';
+export type { ResponseServerOptions } from './server/index.js';
