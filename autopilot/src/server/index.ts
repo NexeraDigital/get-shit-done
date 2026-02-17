@@ -5,7 +5,7 @@
 
 import express from 'express';
 import type { Express } from 'express';
-import type { Server } from 'node:http';
+import { createServer, type Server } from 'node:http';
 import { createApiRoutes } from './routes/api.js';
 import { errorHandler } from './middleware/error.js';
 import type { StateStore } from '../state/index.js';
@@ -60,10 +60,7 @@ export class ResponseServer {
    */
   async start(port: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const server = this.app.listen(port, () => {
-        this.server = server;
-        resolve();
-      });
+      const server = createServer(this.app);
 
       server.on('error', (err: NodeJS.ErrnoException) => {
         if (err.code === 'EADDRINUSE') {
@@ -75,6 +72,11 @@ export class ResponseServer {
         } else {
           reject(err);
         }
+      });
+
+      server.listen(port, () => {
+        this.server = server;
+        resolve();
       });
     });
   }
