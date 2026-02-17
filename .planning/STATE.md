@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 5 of 7 (React Dashboard)
-Plan: 1 of 4 in current phase (05-01 complete)
+Plan: 2 of 4 in current phase (05-02 complete)
 Status: In Progress
-Last activity: 2026-02-17 -- Completed 05-01 Project Scaffold and Data Layer (3 tasks, 11 new files)
+Last activity: 2026-02-17 -- Completed 05-02 Dashboard Layout and Overview Page (2 tasks, 11 files)
 
-Progress: [██████░░░░] ~65%
+Progress: [██████░░░░] ~68%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 3min
-- Total execution time: 0.96 hours
+- Total execution time: 1.01 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [██████░░░░] ~65%
 | 03-core-orchestrator | 4/4 | 12min | 3min |
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
-| 05-react-dashboard | 1/4 | 2min | 2min |
+| 05-react-dashboard | 2/4 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 03.1-01 (5min), 03.1-02 (4min), 04-01 (4min), 04-02 (5min), 05-01 (2min)
+- Last 5 plans: 03.1-02 (4min), 04-01 (4min), 04-02 (5min), 05-01 (2min), 05-02 (3min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -102,6 +102,10 @@ Recent decisions affecting current work:
 - [05-01]: useSSE rehydrates full state from REST on every connect/reconnect
 - [05-01]: Log buffer capped at 500, activities at 50 to bound client memory
 - [05-01]: Vite proxy /api to localhost:3847 for dev, same-origin in production
+- [05-02]: Layout calls useSSE() and initial data fetch at top level so all child routes get real-time updates
+- [05-02]: Individual store selectors in Overview (not entire store) to minimize re-renders
+- [05-02]: Inline timeAgo helper instead of date-fns dependency for relative timestamp formatting
+- [05-02]: LogStream auto-scroll uses scrollHeight-scrollTop-clientHeight threshold detection
 
 ### Roadmap Evolution
 
@@ -119,5 +123,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 05-01-PLAN.md
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
