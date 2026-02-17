@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 4 - Response Server and API (Complete)
+**Current focus:** Phase 5 - React Dashboard (In Progress)
 
 ## Current Position
 
-Phase: 4 of 7 (Response Server and API) -- COMPLETE
-Plan: 2 of 2 in current phase (04-02 complete)
-Status: Phase Complete
-Last activity: 2026-02-17 -- Completed 04-02 SSE Streaming and CLI Wiring (3 tasks, 6 new tests)
+Phase: 5 of 7 (React Dashboard)
+Plan: 1 of 4 in current phase (05-01 complete)
+Status: In Progress
+Last activity: 2026-02-17 -- Completed 05-01 Project Scaffold and Data Layer (3 tasks, 11 new files)
 
-Progress: [██████░░░░] ~60%
+Progress: [██████░░░░] ~65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 3min
-- Total execution time: 0.93 hours
+- Total execution time: 0.96 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████░░░░] ~60%
 | 03-core-orchestrator | 4/4 | 12min | 3min |
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
+| 05-react-dashboard | 1/4 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 03-04 (2min), 03.1-01 (5min), 03.1-02 (4min), 04-01 (4min), 04-02 (5min)
+- Last 5 plans: 03.1-01 (5min), 03.1-02 (4min), 04-01 (4min), 04-02 (5min), 05-01 (2min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -96,6 +97,11 @@ Recent decisions affecting current work:
 - [04-02]: SSE client cleanup via try-catch in broadcast loop handles disconnected clients without crashing
 - [04-02]: SPA fallback checks req.path.startsWith('/api/') to avoid catching API routes
 - [04-02]: ResponseServer shutdown registered last in ShutdownManager for LIFO first-close ordering
+- [05-01]: Zustand 5 curried create<T>()() pattern for TypeScript compatibility
+- [05-01]: Dashboard types duplicated from server (no cross-project imports -- separate Vite project)
+- [05-01]: useSSE rehydrates full state from REST on every connect/reconnect
+- [05-01]: Log buffer capped at 500, activities at 50 to bound client memory
+- [05-01]: Vite proxy /api to localhost:3847 for dev, same-origin in production
 
 ### Roadmap Evolution
 
@@ -113,5 +119,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-02-PLAN.md (Phase 4 complete)
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
