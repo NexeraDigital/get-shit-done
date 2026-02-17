@@ -1,12 +1,14 @@
 // ResponseServer - Express 5 HTTP server for the autopilot dashboard.
 // Accepts injected dependencies via constructor (DI pattern).
-// Mounts REST API routes and error middleware.
-// SSE streaming and SPA serving are deferred to Plan 02.
+// Mounts REST API routes, SSE streaming, SPA fallback, and error middleware.
 
 import express from 'express';
 import type { Express } from 'express';
 import { createServer, type Server } from 'node:http';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { createApiRoutes } from './routes/api.js';
+import { setupSSE } from './routes/sse.js';
 import { errorHandler } from './middleware/error.js';
 import type { StateStore } from '../state/index.js';
 import type { ClaudeService } from '../claude/index.js';
@@ -35,6 +37,7 @@ export interface ResponseServerOptions {
 export class ResponseServer {
   private server: Server | null = null;
   private readonly app: Express;
+  private closeAllSSE: (() => void) | null = null;
 
   constructor(private readonly options: ResponseServerOptions) {
     this.app = express();
@@ -48,6 +51,27 @@ export class ResponseServer {
       claudeService: options.claudeService,
     });
     this.app.use('/api', apiRouter);
+
+    // Mount SSE endpoint and wire events
+    const { closeAll } = setupSSE({
+      app: this.app,
+      orchestrator: options.orchestrator,
+      claudeService: options.claudeService,
+      logger: options.logger,
+    });
+    this.closeAllSSE = closeAll;
+
+    // SPA fallback (DASH-09): serve dashboard/dist/ if directory exists
+    if (options.dashboardDir && existsSync(options.dashboardDir)) {
+      this.app.use(express.static(options.dashboardDir));
+      this.app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api/')) {
+          next();
+          return;
+        }
+        res.sendFile(join(options.dashboardDir!, 'index.html'));
+      });
+    }
 
     // Error handling middleware (must be last)
     this.app.use(errorHandler);
@@ -86,6 +110,11 @@ export class ResponseServer {
    * No-op if the server has not been started.
    */
   async close(): Promise<void> {
+    // Close SSE connections first (prevents hanging connections from blocking server.close)
+    if (this.closeAllSSE) {
+      this.closeAllSSE();
+    }
+
     return new Promise<void>((resolve, reject) => {
       if (!this.server) {
         resolve();

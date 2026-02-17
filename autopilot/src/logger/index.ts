@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import pino from 'pino';
 import type { Logger } from 'pino';
 import { join } from 'node:path';
@@ -56,13 +57,14 @@ function waitForReadyAndFlush(dest: SonicBoomDest): Promise<void> {
  * - Ring buffer is populated synchronously in log(), not in pino's stream pipeline
  * - Creates the log directory automatically if it does not exist
  */
-export class AutopilotLogger {
+export class AutopilotLogger extends EventEmitter {
   private readonly logger: Logger;
   private readonly destination: SonicBoomDest;
   private readonly ringBuffer: RingBuffer<LogEntry>;
   private readonly logDir: string;
 
   constructor(logDir: string, ringBufferSize = DEFAULT_RING_BUFFER_SIZE) {
+    super();
     this.logDir = logDir;
     this.ringBuffer = new RingBuffer<LogEntry>(ringBufferSize);
 
@@ -128,6 +130,9 @@ export class AutopilotLogger {
 
     // Push to ring buffer synchronously (per research: keep separate from pino pipeline)
     this.ringBuffer.push(entry);
+
+    // Emit entry event for real-time SSE delivery
+    this.emit('entry', entry);
 
     // Forward to pino at the appropriate level
     this.logger[level]({ component, ...meta }, message);
