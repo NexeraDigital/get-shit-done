@@ -64,7 +64,7 @@ export class ResponseServer {
     // SPA fallback (DASH-09): serve dashboard/dist/ if directory exists
     if (options.dashboardDir && existsSync(options.dashboardDir)) {
       this.app.use(express.static(options.dashboardDir));
-      this.app.get('*', (req, res, next) => {
+      this.app.get('{*path}', (req, res, next) => {
         if (req.path.startsWith('/api/')) {
           next();
           return;
