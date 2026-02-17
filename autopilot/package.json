@@ -20,7 +20,8 @@
     "dashboard/dist/"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cd dashboard && npm install && npm run build",
+    "build:dashboard": "cd dashboard && npm install && npm run build",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",

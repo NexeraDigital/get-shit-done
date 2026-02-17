@@ -3,6 +3,8 @@ import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { access } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import { loadConfig } from '../config/index.js';
 import { StateStore } from '../state/index.js';
 import { AutopilotLogger } from '../logger/index.js';
@@ -127,13 +129,19 @@ program
       streamRenderer.stopSpinner();
     });
 
-    // i. Create ResponseServer
+    // i. Resolve dashboard dist path for SPA serving
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const dashboardDir = join(__dirname, '..', '..', 'dashboard', 'dist');
+
+    // Create ResponseServer
     const responseServer = new ResponseServer({
       stateStore,
       claudeService,
       orchestrator,
       logger,
       config,
+      dashboardDir,
     });
 
     // j. Install ShutdownManager
