@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 6 - Notification System (In Progress)
+**Current focus:** Phase 7 - Integration and CLI Wiring
 
 ## Current Position
 
-Phase: 6 of 7 (Notification System) -- In Progress
-Plan: 1 of 2 in current phase (06-01 complete)
+Phase: 7 of 7 (Integration and CLI Wiring) -- Next
+Plan: 2 of 2 in current phase (06-02 complete)
 Status: Active
-Last activity: 2026-02-18 -- Completed 06-01 Notification System Foundation (2 tasks, 7 files, 33 tests)
+Last activity: 2026-02-18 -- Completed 06-02 Remote Notification Adapters (2 tasks, 9 files, 29 tests)
 
-Progress: [████████░░] ~85%
+Progress: [█████████░] ~92%
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [████████░░] ~85%
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
-| 06-notification-system | 1/2 | 3min | 3min |
+| 06-notification-system | 2/2 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (3min), 05-03 (10min), 05-04 (~30min across sessions), 06-01 (3min)
-- Trend: Back to fast pace after 05-04 session split
+- Last 5 plans: 05-03 (10min), 05-04 (~30min across sessions), 06-01 (3min), 06-02 (2min)
+- Trend: Fast pace on notification system plans
 
 *Updated after each plan completion*
 
@@ -117,6 +117,11 @@ Recent decisions affecting current work:
 - [06-01]: Terminal bell uses \x07 (not \a which is not a JS escape sequence) for question notifications in ConsoleAdapter
 - [06-01]: NotificationManager.createNotification() static helper auto-generates UUID and ISO timestamp
 - [06-01]: ConsoleAdapter format() method is public for testability without I/O side effects
+- [06-02]: TeamsAdapter uses Adaptive Card format in message/attachments envelope (NOT deprecated MessageCard)
+- [06-02]: SlackAdapter requires top-level text fallback field alongside blocks (Slack API requirement)
+- [06-02]: SystemAdapter uses createRequire(import.meta.url) for CJS node-notifier in ESM project
+- [06-02]: loadCustomAdapter resolves paths relative to process.cwd() (not import.meta.url)
+- [06-02]: loadCustomAdapter validates init/send/close methods before returning adapter
 
 ### Roadmap Evolution
 
@@ -134,5 +139,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-01-PLAN.md (notification system foundation, 2 tasks, 33 tests)
+Stopped at: Completed 06-02-PLAN.md (remote notification adapters, 2 tasks, 29 tests)
 Resume file: None
