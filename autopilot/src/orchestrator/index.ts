@@ -203,10 +203,10 @@ export class Orchestrator extends EventEmitter {
     // Ensure the project directory is a git repo (Claude Code requires it)
     await this.ensureGitRepo();
 
-    // Run init command (longer timeout + high maxTurns: new-project spawns researchers + synthesizer + roadmapper)
+    // Run init command (high maxTurns: new-project spawns researchers + synthesizer + roadmapper)
     const initResult = await this.executeWithRetry(
       `/gsd:new-project --auto ${prdPath}`,
-      { phase: 0, step: 'init', timeoutMs: 1_200_000, maxTurns: 200 },
+      { phase: 0, step: 'init', maxTurns: 200 },
     );
 
     this.logger.log('info', 'orchestrator', 'Init command result', {
@@ -409,14 +409,14 @@ export class Orchestrator extends EventEmitter {
   private async runPlan(phase: PhaseState): Promise<void> {
     await this.executeWithRetry(
       `/gsd:plan-phase ${phase.number}`,
-      { phase: phase.number, step: 'plan' },
+      { phase: phase.number, step: 'plan', maxTurns: 200 },
     );
   }
 
   private async runExecute(phase: PhaseState): Promise<void> {
     await this.executeWithRetry(
       `/gsd:execute-phase ${phase.number}`,
-      { phase: phase.number, step: 'execute' },
+      { phase: phase.number, step: 'execute', maxTurns: 200 },
     );
   }
 

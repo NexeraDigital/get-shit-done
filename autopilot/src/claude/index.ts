@@ -10,7 +10,7 @@ import { parseResult } from './result-parser.js';
 import { QuestionHandler } from './question-handler.js';
 import type { CommandResult, RunCommandOptions } from './types.js';
 
-const DEFAULT_TIMEOUT_MS = 600_000; // 10 minutes
+const DEFAULT_TIMEOUT_MS = 3_600_000; // 1 hour
 
 export interface ClaudeServiceOptions {
   defaultTimeoutMs?: number;
@@ -139,7 +139,11 @@ export class ClaudeService extends EventEmitter {
         numTurns: 0,
       };
     } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') {
+      const isAbort = err instanceof Error && (
+        err.name === 'AbortError' ||
+        err.message.includes('aborted')
+      );
+      if (isAbort) {
         return {
           success: false,
           error: `Command timed out after ${timeoutMs}ms`,
