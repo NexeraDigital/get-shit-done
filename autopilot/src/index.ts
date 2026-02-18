@@ -53,3 +53,13 @@ export { renderBanner, renderPhaseBanner } from './output/index.js';
 
 export { ResponseServer } from './server/index.js';
 export type { ResponseServerOptions } from './server/index.js';
+
+// Notifications
+export { NotificationManager } from './notifications/index.js';
+export { ConsoleAdapter } from './notifications/index.js';
+export { TeamsAdapter } from './notifications/adapters/teams.js';
+export { SlackAdapter } from './notifications/adapters/slack.js';
+export { CustomWebhookAdapter } from './notifications/adapters/webhook.js';
+export { SystemAdapter } from './notifications/adapters/system.js';
+export { loadCustomAdapter } from './notifications/loader.js';
+export type { NotificationManagerOptions } from './notifications/types.js';

@@ -17,7 +17,8 @@
   },
   "files": [
     "dist/",
-    "dashboard/dist/"
+    "dashboard/dist/",
+    "example-adapter.js"
   ],
   "scripts": {
     "build": "tsc && cd dashboard && npm install && npm run build",
@@ -43,5 +44,8 @@
     "pino-pretty": "^13.0.0",
     "typescript": "~5.9.0",
     "vitest": "^4.0.0"
+  },
+  "optionalDependencies": {
+    "node-notifier": "^10.0.1"
   }
 }
