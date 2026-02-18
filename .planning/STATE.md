@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 7 of 7 (Integration and CLI Wiring) -- Next
-Plan: 2 of 2 in current phase (06-02 complete)
+Phase: 06-notification-system (COMPLETE -- all 3 plans done)
+Plan: 3 of 3 in phase 06 (06-03 complete)
 Status: Active
-Last activity: 2026-02-18 -- Completed 06-02 Remote Notification Adapters (2 tasks, 9 files, 29 tests)
+Last activity: 2026-02-18 -- Completed 06-03 CLI Integration and Package Wiring (2 tasks, 6 files)
 
-Progress: [█████████░] ~92%
+Progress: [█████████░] ~96%
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [█████████░] ~92%
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
-| 06-notification-system | 2/2 | 5min | 2.5min |
+| 06-notification-system | 3/3 | 8min | 2.7min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (10min), 05-04 (~30min across sessions), 06-01 (3min), 06-02 (2min)
-- Trend: Fast pace on notification system plans
+- Last 5 plans: 06-01 (3min), 06-02 (2min), 06-03 (3min)
+- Trend: Fast pace on notification system plans -- all 3 plans complete
 
 *Updated after each plan completion*
 
@@ -122,6 +122,10 @@ Recent decisions affecting current work:
 - [06-02]: SystemAdapter uses createRequire(import.meta.url) for CJS node-notifier in ESM project
 - [06-02]: loadCustomAdapter resolves paths relative to process.cwd() (not import.meta.url)
 - [06-02]: loadCustomAdapter validates init/send/close methods before returning adapter
+- [06-03]: NotificationManager constructor only takes questionReminderMs -- ConsoleAdapter receives port/stopSpinner directly
+- [06-03]: Console adapter always added as fallback before channel-specific adapter switch
+- [06-03]: notificationManager.close() called in success path, error path, and ShutdownManager LIFO registration
+- [06-03]: build:complete has two listeners -- one for streamRenderer.stopSpinner(), one for notification dispatch (separate concerns)
 
 ### Roadmap Evolution
 
@@ -139,5 +143,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-02-PLAN.md (remote notification adapters, 2 tasks, 29 tests)
+Stopped at: Completed 06-03-PLAN.md (CLI integration and package wiring, 2 tasks, 6 files)
 Resume file: None
