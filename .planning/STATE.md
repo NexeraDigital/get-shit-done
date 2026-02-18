@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 5 - React Dashboard (In Progress)
+**Current focus:** Phase 6 - Notifications (Next)
 
 ## Current Position
 
-Phase: 5 of 7 (React Dashboard)
-Plan: 3 of 4 in current phase (05-03 complete)
-Status: In Progress
-Last activity: 2026-02-17 -- Completed 05-03 Question Response and Phase Detail Pages (2 tasks, 5 files)
+Phase: 5 of 7 (React Dashboard) -- COMPLETE
+Plan: 4 of 4 in current phase (05-04 complete)
+Status: Phase Complete -- Ready for Phase 6
+Last activity: 2026-02-18 -- Completed 05-04 LogViewer, Build Integration, Visual Verification (3 tasks, 4 files)
 
-Progress: [███████░░░] ~72%
+Progress: [████████░░] ~80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 3min
 - Total execution time: 1.18 hours
 
@@ -32,11 +32,11 @@ Progress: [███████░░░] ~72%
 | 03-core-orchestrator | 4/4 | 12min | 3min |
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
-| 05-react-dashboard | 3/4 | 15min | 5min |
+| 05-react-dashboard | 4/4 | ~45min | ~11min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (4min), 04-02 (5min), 05-01 (2min), 05-02 (3min), 05-03 (10min)
-- Trend: Stable (05-03 longer due to file write issues requiring retry)
+- Last 5 plans: 05-01 (2min), 05-02 (3min), 05-03 (10min), 05-04 (~30min across sessions)
+- Trend: 05-04 longer due to human-verify checkpoint spanning two sessions
 
 *Updated after each plan completion*
 
@@ -110,6 +110,9 @@ Recent decisions affecting current work:
 - [05-03]: Freeform text overrides option selection when non-empty (merge priority on submit)
 - [05-03]: LogStream component reused from Plan 02 for filtered phase logs
 - [05-03]: PhaseCard STEP_ORDER fixed to const assertion to avoid PhaseStep union indexing error
+- [05-04]: Express 5 path-to-regexp v8 requires named wildcards ({*path}) instead of bare * for SPA catchall
+- [05-04]: dashboardDir resolved via fileURLToPath(import.meta.url) from dist/cli/index.js up two levels to dashboard/dist
+- [05-04]: Log filtering uses useMemo with AND-composed phase/step/search filters for efficient client-side filtering
 
 ### Roadmap Evolution
 
@@ -126,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-02-18
+Stopped at: Completed 05-04-PLAN.md (Phase 5 complete)
 Resume file: None
