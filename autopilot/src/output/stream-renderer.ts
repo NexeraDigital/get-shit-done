@@ -25,7 +25,8 @@ interface WritableOutput {
 export class StreamRenderer {
   private spinner: Ora | null = null;
   private readonly agentMap: Map<string, { name: string }> = new Map();
-  private readonly agentInputAccumulators: Map<string, string> = new Map();
+  private currentToolBlock: { name: string; id: string; input: string } | null = null;
+  private streamedParentIds = new Set<string>();
   private readonly verbosity: VerbosityLevel;
   private readonly output: WritableOutput;
 
@@ -113,13 +114,12 @@ export class StreamRenderer {
 
         if (block.type === 'tool_use') {
           this.stopSpinner();
-          if (block.name === 'Task' && block.id) {
-            // Track this tool_use_id for agent identification
-            this.agentInputAccumulators.set(block.id, '');
-          }
+          this.currentToolBlock = { name: block.name ?? '', id: block.id ?? '', input: '' };
+          this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
           this.write(palette.toolName(`\n[${block.name}] `));
         } else if (block.type === 'text') {
           this.stopSpinner();
+          this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
         }
         break;
       }
@@ -130,25 +130,38 @@ export class StreamRenderer {
 
         if (delta.type === 'text_delta' && delta.text) {
           this.stopSpinner();
+          this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
           const prefix = this.getPrefix(msg.parent_tool_use_id ?? null);
           this.write(prefix + delta.text);
         } else if (delta.type === 'input_json_delta' && delta.partial_json) {
-          // Accumulate JSON input for Task tool agent identification
-          for (const [id, acc] of this.agentInputAccumulators) {
-            this.agentInputAccumulators.set(id, acc + delta.partial_json);
+          if (this.currentToolBlock) {
+            this.currentToolBlock.input += delta.partial_json;
           }
-          this.tryParseAgentName();
         }
         break;
       }
 
-      case 'content_block_stop':
-        // Clean up input accumulators for completed blocks
+      case 'content_block_stop': {
+        if (this.currentToolBlock) {
+          const summary = this.extractToolSummary(this.currentToolBlock.name, this.currentToolBlock.input);
+          if (summary) {
+            this.write(palette.dim(summary));
+          }
+          // For Task tools, register agent in agentMap for sub-agent prefix coloring
+          if (this.currentToolBlock.name === 'Task') {
+            this.registerAgent(this.currentToolBlock.id, this.currentToolBlock.input);
+          }
+          this.currentToolBlock = null;
+        }
         break;
+      }
 
       case 'message_start':
+        break;
+
       case 'message_stop':
-        // No-op for message lifecycle events
+        // Defensive cleanup in case stream aborted mid-block
+        this.currentToolBlock = null;
         break;
 
       default:
@@ -165,6 +178,12 @@ export class StreamRenderer {
       message?: { content?: Array<{ type?: string; text?: string; name?: string }> };
       parent_tool_use_id?: string | null;
     };
+
+    const parentId = msg.parent_tool_use_id ?? '__root__';
+    if (this.streamedParentIds.has(parentId)) {
+      this.streamedParentIds.delete(parentId);
+      return; // Already rendered via stream_event path
+    }
 
     const content = msg.message?.content;
     if (!Array.isArray(content)) return;
@@ -355,20 +374,63 @@ export class StreamRenderer {
   }
 
   /**
-   * Try to parse agent name from accumulated Task tool input JSON.
+   * Extract a concise summary string from a tool's accumulated JSON input.
+   * Maps each tool to its most informative parameter for display.
    */
-  private tryParseAgentName(): void {
-    for (const [id, acc] of this.agentInputAccumulators) {
-      try {
-        // Try to find agent_type or description in partial JSON
-        const agentTypeMatch = /"(?:subagent_type|agent_type)"\s*:\s*"(\w+)"/.exec(acc);
-        if (agentTypeMatch?.[1]) {
-          this.agentMap.set(id, { name: agentTypeMatch[1] });
-          this.agentInputAccumulators.delete(id);
-        }
-      } catch {
-        // JSON not complete yet -- continue accumulating
+  private extractToolSummary(toolName: string, rawInput: string): string {
+    let params: Record<string, unknown>;
+    try {
+      params = JSON.parse(rawInput);
+    } catch {
+      return '';
+    }
+
+    switch (toolName) {
+      case 'Bash': {
+        const cmd = typeof params.command === 'string' ? (params.command.split('\n')[0] ?? '') : '';
+        return cmd.length > 80 ? cmd.slice(0, 80) + '...' : cmd;
       }
+      case 'Read':
+      case 'Write':
+      case 'Edit':
+        return typeof params.file_path === 'string' ? params.file_path : '';
+      case 'Glob':
+        return typeof params.pattern === 'string' ? params.pattern : '';
+      case 'Grep':
+        return typeof params.pattern === 'string' ? params.pattern : '';
+      case 'Task': {
+        const desc = typeof params.description === 'string' ? params.description : '';
+        const agent = typeof params.subagent_type === 'string' ? params.subagent_type : '';
+        return agent ? `${desc} (${agent})` : desc;
+      }
+      case 'WebFetch':
+        return typeof params.url === 'string' ? params.url : '';
+      case 'WebSearch':
+        return typeof params.query === 'string' ? params.query : '';
+      case 'Skill':
+        return typeof params.skill === 'string' ? params.skill : '';
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * Register a Task tool's sub-agent in the agent map for prefix coloring.
+   * Called on content_block_stop when full JSON input is available.
+   */
+  private registerAgent(toolUseId: string, rawInput: string): void {
+    try {
+      const params = JSON.parse(rawInput) as Record<string, unknown>;
+      const agentType = typeof params.subagent_type === 'string'
+        ? params.subagent_type
+        : typeof params.agent_type === 'string'
+          ? params.agent_type
+          : null;
+      if (agentType) {
+        this.agentMap.set(toolUseId, { name: agentType });
+      }
+    } catch {
+      // Malformed JSON -- skip agent registration
     }
   }
 }
