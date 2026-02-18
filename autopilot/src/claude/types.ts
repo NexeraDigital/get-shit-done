@@ -14,6 +14,7 @@ export type CommandResult = {
 
 export type RunCommandOptions = {
   timeoutMs?: number;    // Default: 600_000 (10 minutes)
+  maxTurns?: number;     // Max agentic turns before the SDK stops
   cwd?: string;          // Working directory for the command
   phase?: number;        // Current phase number (for logging)
   step?: string;         // Current step name (for logging)

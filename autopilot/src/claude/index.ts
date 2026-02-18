@@ -89,7 +89,11 @@ export class ClaudeService extends EventEmitter {
             delete env.CLAUDECODE;
             return env;
           })(),
-          systemPrompt: { type: 'preset', preset: 'claude_code' },
+          systemPrompt: {
+            type: 'preset',
+            preset: 'claude_code',
+            append: 'CRITICAL: When you spawn background Task subagents, do NOT end your turn while tasks are pending. Poll their output files (Read or Bash `cat`) every 10-15 seconds until all tasks complete, then continue your work. The session ends when you stop making tool calls.',
+          },
           settingSources: ['project', 'user'],
           permissionMode: 'bypassPermissions',
           allowDangerouslySkipPermissions: true,
@@ -109,6 +113,7 @@ export class ClaudeService extends EventEmitter {
             'Skill',
             'AskUserQuestion',
           ],
+          ...(options?.maxTurns != null ? { maxTurns: options.maxTurns } : {}),
           abortController: controller,
           canUseTool: this.createCanUseTool(),
         },

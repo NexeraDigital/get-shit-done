@@ -157,6 +157,7 @@ describe('ClaudeService', () => {
     expect(callArgs.options.systemPrompt).toEqual({
       type: 'preset',
       preset: 'claude_code',
+      append: expect.any(String),
     });
     expect(callArgs.options.settingSources).toEqual(['project', 'user']);
     expect(callArgs.options.permissionMode).toBe('bypassPermissions');

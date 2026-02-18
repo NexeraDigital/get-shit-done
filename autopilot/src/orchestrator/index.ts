@@ -203,10 +203,10 @@ export class Orchestrator extends EventEmitter {
     // Ensure the project directory is a git repo (Claude Code requires it)
     await this.ensureGitRepo();
 
-    // Run init command (longer timeout: new-project spawns researchers + synthesizer + roadmapper)
+    // Run init command (longer timeout + high maxTurns: new-project spawns researchers + synthesizer + roadmapper)
     const initResult = await this.executeWithRetry(
       `/gsd:new-project --auto ${prdPath}`,
-      { phase: 0, step: 'init', timeoutMs: 1_200_000 },
+      { phase: 0, step: 'init', timeoutMs: 1_200_000, maxTurns: 200 },
     );
 
     this.logger.log('info', 'orchestrator', 'Init command result', {
@@ -215,21 +215,40 @@ export class Orchestrator extends EventEmitter {
       costUsd: initResult.costUsd,
       numTurns: initResult.numTurns,
       error: initResult.error,
+      resultPreview: initResult.result?.slice(0, 500),
     });
 
-    // Read ROADMAP.md to extract populated phases
+    // Read ROADMAP.md to extract populated phases -- poll with retry since
+    // background Task subagents may still be finishing when the SDK session ends.
+    const roadmapPath = join(this.projectDir, '.planning', 'ROADMAP.md');
     let roadmapPhases: RoadmapPhase[];
-    try {
-      roadmapPhases = await extractPhases(this.projectDir);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('ENOENT')) {
-        throw new Error(
-          `Init command completed but ROADMAP.md was not created at ${join(this.projectDir, '.planning', 'ROADMAP.md')}. ` +
-          'Verify the Claude Agent SDK is configured (ANTHROPIC_API_KEY set) and GSD is installed.',
-        );
+    const POLL_INTERVAL_MS = 5_000;
+    const MAX_POLL_MS = 120_000;
+    const pollStart = Date.now();
+
+    while (true) {
+      try {
+        roadmapPhases = await extractPhases(this.projectDir);
+        break; // Success -- exit polling loop
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!msg.includes('ENOENT')) throw err; // Non-ENOENT errors bubble immediately
+
+        const elapsed = Date.now() - pollStart;
+        if (elapsed >= MAX_POLL_MS) {
+          throw new Error(
+            `Init command completed (${initResult.numTurns} turns, ${initResult.durationMs}ms) but ROADMAP.md was not created at ${roadmapPath} after polling for ${MAX_POLL_MS / 1000}s. ` +
+            `Result preview: ${initResult.result?.slice(0, 500) ?? '(none)'}. ` +
+            'Verify the Claude Agent SDK is configured (ANTHROPIC_API_KEY set) and GSD is installed.',
+          );
+        }
+
+        this.logger.log('warn', 'orchestrator', 'ROADMAP.md not found yet, polling...', {
+          elapsedMs: elapsed,
+          maxPollMs: MAX_POLL_MS,
+        });
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
-      throw err;
     }
     const phases: PhaseState[] = roadmapPhases.map(toPhaseState);
 
@@ -468,7 +487,7 @@ export class Orchestrator extends EventEmitter {
 
   private async executeWithRetry(
     prompt: string,
-    meta: { phase: number; step: string; timeoutMs?: number },
+    meta: { phase: number; step: string; timeoutMs?: number; maxTurns?: number },
   ): Promise<CommandResult> {
     this.logger.log('info', 'orchestrator', `Running command: ${prompt}`, {
       phase: meta.phase,
@@ -483,6 +502,7 @@ export class Orchestrator extends EventEmitter {
         phase: meta.phase,
         step: meta.step,
         timeoutMs: meta.timeoutMs,
+        maxTurns: meta.maxTurns,
       });
     } catch (err) {
       if (this.shutdownRequested) throw new ShutdownError();
@@ -507,6 +527,7 @@ export class Orchestrator extends EventEmitter {
         phase: meta.phase,
         step: meta.step,
         timeoutMs: meta.timeoutMs,
+        maxTurns: meta.maxTurns,
       });
     } catch (err) {
       if (this.shutdownRequested) throw new ShutdownError();
