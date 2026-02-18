@@ -145,7 +145,7 @@ export class StreamRenderer {
         if (this.currentToolBlock) {
           const summary = this.extractToolSummary(this.currentToolBlock.name, this.currentToolBlock.input);
           if (summary) {
-            this.write(palette.dim(summary));
+            this.write(palette.dim(summary) + '\n');
           }
           // For Task tools, register agent in agentMap for sub-agent prefix coloring
           if (this.currentToolBlock.name === 'Task') {
