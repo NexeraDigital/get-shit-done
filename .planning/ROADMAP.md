@@ -131,11 +131,12 @@ Plans:
   3. With `--notify teams --webhook-url <url>`, Adaptive Card messages are POSTed to the Teams webhook; similarly for `--notify slack`
   4. With `--adapter-path ./my-adapter.js`, a user-provided adapter module is loaded and receives the standard Notification object (id, type, title, body, severity, respondUrl, options)
   5. If all configured adapters fail, console fallback is always attempted as a last resort
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- NotificationManager with parallel dispatch, console fallback, reminders; ConsoleAdapter with inline colored output
+- [ ] 06-02-PLAN.md -- Teams, Slack, Webhook, System adapters; custom adapter loader; example-adapter.js
+- [ ] 06-03-PLAN.md -- CLI wiring, config schema update, package exports, node-notifier optional dependency
 
 ### Phase 7: CLI Polish and Distribution
 **Goal**: The CLI is feature-complete with all flags, published as an npm package, cross-platform tested, and provides a polished developer experience
@@ -166,5 +167,5 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 03.1. Display Console Output | 2/2 | Complete | 2026-02-16 |
 | 4. Response Server and API | 2/2 | Complete | 2026-02-17 |
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
-| 6. Notification System | 0/TBD | Not started | - |
+| 6. Notification System | 0/3 | Not started | - |
 | 7. CLI Polish and Distribution | 0/TBD | Not started | - |
