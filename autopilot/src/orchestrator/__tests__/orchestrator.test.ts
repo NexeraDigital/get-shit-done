@@ -33,6 +33,7 @@ import { checkForGaps } from '../gap-detector.js';
 function createDefaultConfig(overrides?: Partial<AutopilotConfig>): AutopilotConfig {
   return {
     notify: 'console',
+    questionReminderMs: 300_000,
     port: 3847,
     depth: 'standard',
     model: 'balanced',

@@ -15,6 +15,18 @@ import { parsePhaseRange } from '../orchestrator/gap-detector.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
 import { ResponseServer } from '../server/index.js';
+import {
+  NotificationManager,
+  ConsoleAdapter,
+  TeamsAdapter,
+  SlackAdapter,
+  CustomWebhookAdapter,
+  SystemAdapter,
+  loadCustomAdapter,
+} from '../notifications/index.js';
+import { randomUUID } from 'node:crypto';
+import type { Notification } from '../types/notification.js';
+import type { QuestionEvent } from '../claude/types.js';
 
 const program = new Command();
 
@@ -34,6 +46,7 @@ program
   .option('--model <profile>', 'Model profile (quality, balanced, budget)', 'balanced')
   .option('--verbose', 'Verbose output')
   .option('--quiet', 'Suppress non-error output')
+  .option('--adapter-path <path>', 'Path to custom notification adapter module')
   .action(async (options: {
     prd?: string;
     resume?: boolean;
@@ -42,6 +55,7 @@ program
     phases?: string;
     notify: string;
     webhookUrl?: string;
+    adapterPath?: string;
     port: string;
     depth: string;
     model: string;
@@ -78,8 +92,9 @@ program
       quiet: options.quiet ?? false,
       depth: options.depth as 'quick' | 'standard' | 'comprehensive',
       model: options.model as 'quality' | 'balanced' | 'budget',
-      notify: options.notify as 'console' | 'system' | 'teams' | 'slack',
+      notify: options.notify as 'console' | 'system' | 'teams' | 'slack' | 'webhook',
       webhookUrl: options.webhookUrl,
+      adapterPath: options.adapterPath,
       port: parseInt(options.port, 10),
     });
 
@@ -106,6 +121,63 @@ program
     // g. Parse phase range (if provided)
     const phaseRange = options.phases ? parsePhaseRange(options.phases) : undefined;
 
+    // g2. Create NotificationManager and wire adapters
+    const notificationManager = new NotificationManager({
+      questionReminderMs: config.questionReminderMs,
+    });
+
+    // Always add console adapter (default, zero-dependency)
+    notificationManager.addAdapter(new ConsoleAdapter({
+      port: config.port,
+      stopSpinner: () => streamRenderer.stopSpinner(),
+    }));
+
+    // Add channel-specific adapter based on config.notify
+    switch (config.notify) {
+      case 'system':
+        notificationManager.addAdapter(new SystemAdapter());
+        break;
+      case 'teams':
+        if (config.webhookUrl) {
+          notificationManager.addAdapter(new TeamsAdapter({ webhookUrl: config.webhookUrl }));
+        } else {
+          console.error('Warning: --notify teams requires --webhook-url');
+        }
+        break;
+      case 'slack':
+        if (config.webhookUrl) {
+          notificationManager.addAdapter(new SlackAdapter({ webhookUrl: config.webhookUrl }));
+        } else {
+          console.error('Warning: --notify slack requires --webhook-url');
+        }
+        break;
+      case 'webhook':
+        if (config.webhookUrl) {
+          notificationManager.addAdapter(new CustomWebhookAdapter({ webhookUrl: config.webhookUrl }));
+        } else {
+          console.error('Warning: --notify webhook requires --webhook-url');
+        }
+        break;
+      case 'console':
+      default:
+        // Console already added above
+        break;
+    }
+
+    // Load custom adapter if --adapter-path provided
+    if (config.adapterPath) {
+      try {
+        const customAdapter = await loadCustomAdapter(config.adapterPath);
+        notificationManager.addAdapter(customAdapter);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`Warning: Failed to load custom adapter: ${msg}`);
+      }
+    }
+
+    // Initialize all adapters (failures logged and adapter removed, not thrown)
+    await notificationManager.init();
+
     // h. Create Orchestrator
     const orchestrator = new Orchestrator({
       stateStore,
@@ -127,6 +199,83 @@ program
     });
     orchestrator.on('build:complete', () => {
       streamRenderer.stopSpinner();
+    });
+
+    // Wire question:pending -> notification dispatch + reminder
+    claudeService.on('question:pending', (event: QuestionEvent) => {
+      const respondUrl = `http://localhost:${config.port}/questions/${event.id}`;
+      const questionText = event.questions.map(q => q.question).join('\n');
+      const optionLabels = event.questions.flatMap(q => q.options.map(o => o.label));
+
+      const notification: Notification = {
+        id: randomUUID(),
+        type: 'question',
+        title: `Question${event.phase ? ` (Phase ${event.phase})` : ''}: ${event.questions[0]?.header ?? 'Input needed'}`,
+        body: questionText,
+        severity: 'warning',
+        respondUrl,
+        options: optionLabels.length > 0 ? optionLabels : undefined,
+        phase: event.phase,
+        step: event.step,
+        createdAt: new Date().toISOString(),
+      };
+
+      notificationManager.notify(notification);
+      notificationManager.startReminder(event.id, notification);
+    });
+
+    // Wire question:answered -> cancel reminder
+    claudeService.on('question:answered', ({ id }: { id: string }) => {
+      notificationManager.cancelReminder(id);
+    });
+
+    // Wire build:complete -> completion notification
+    orchestrator.on('build:complete', () => {
+      const state = stateStore.getState();
+      const completedCount = state.phases.filter(p => p.status === 'completed').length;
+      const totalCount = state.phases.length;
+      const elapsed = state.startedAt
+        ? Math.round((Date.now() - new Date(state.startedAt).getTime()) / 60000)
+        : 0;
+
+      const notification: Notification = {
+        id: randomUUID(),
+        type: 'complete',
+        title: 'Build complete',
+        body: 'All phases finished successfully.',
+        severity: 'info',
+        createdAt: new Date().toISOString(),
+        summary: `${completedCount} of ${totalCount} phases completed in ${elapsed} min`,
+        nextSteps: 'Review output in .planning/ directory',
+      };
+
+      notificationManager.notify(notification);
+    });
+
+    // Wire error:escalation -> error notification
+    orchestrator.on('error:escalation', ({ phase, step, error }: { phase: number; step: string; error: string }) => {
+      const state = stateStore.getState();
+      const completedCount = state.phases.filter(p => p.status === 'completed').length;
+      const totalCount = state.phases.length;
+      const elapsed = state.startedAt
+        ? Math.round((Date.now() - new Date(state.startedAt).getTime()) / 60000)
+        : 0;
+
+      const notification: Notification = {
+        id: randomUUID(),
+        type: 'error',
+        title: `Autopilot stopped (Phase ${phase}, ${step})`,
+        body: error,
+        severity: 'critical',
+        phase,
+        step,
+        createdAt: new Date().toISOString(),
+        summary: `${completedCount} of ${totalCount} phases completed in ${elapsed} min`,
+        nextSteps: 'Run `gsd-autopilot --resume` to retry from the failed step',
+        errorMessage: error,
+      };
+
+      notificationManager.notify(notification);
     });
 
     // i. Resolve dashboard dist path for SPA serving
@@ -158,6 +307,11 @@ program
       logger.log('info', 'cli', 'Persisting state on shutdown');
       await stateStore.setState({ status: 'idle' });
     });
+    // Register notification manager shutdown (runs before server due to LIFO)
+    shutdown.register(async () => {
+      logger.log('info', 'cli', 'Closing notification manager');
+      await notificationManager.close();
+    });
     // Register server shutdown (runs FIRST due to LIFO -- registered last)
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Shutting down response server');
@@ -182,12 +336,14 @@ program
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+      await notificationManager.close();
       await responseServer.close();
       await streamLogger.flush();
       await logger.flush();
       process.exit(0);
     } catch (err) {
       streamRenderer.stopSpinner();
+      await notificationManager.close();
       await responseServer.close();
       const message = err instanceof Error ? err.message : String(err);
       logger.log('error', 'cli', 'Autopilot failed', { error: message });
