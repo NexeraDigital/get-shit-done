@@ -31,7 +31,7 @@ describe('writeYoloConfig', () => {
 
     expect(config).toHaveProperty('model_profile', 'balanced');
     expect(config).toHaveProperty('research', true);
-    expect(config).toHaveProperty('plan_checker', true);
+    expect(config).toHaveProperty('plan_check', true);
     expect(config).toHaveProperty('verifier', true);
     expect(config).toHaveProperty('parallelization', true);
   });

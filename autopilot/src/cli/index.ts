@@ -14,6 +14,7 @@ import { Orchestrator } from '../orchestrator/index.js';
 import { ShutdownManager } from '../orchestrator/shutdown.js';
 import { parsePhaseRange } from '../orchestrator/gap-detector.js';
 import { runPreflightChecks } from './preflight.js';
+import { runSetupWizard } from './wizard.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
 import { ResponseServer } from '../server/index.js';
@@ -80,14 +81,17 @@ Dashboard:
     quiet?: boolean;
     embeddedServer?: boolean;
   }) => {
-    // a. Validate --prd / --resume mutual requirement
+    // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
-      console.error('Error: No input specified\n');
-      console.error('You must provide either:');
-      console.error('  --prd <path>   Start a new run with a PRD document');
-      console.error('  --resume       Continue from last checkpoint\n');
-      console.error('Run gsd-autopilot --help for more information');
-      process.exit(1);
+      // No args provided -- launch interactive setup wizard (per user decision)
+      const wizardResult = await runSetupWizard();
+      options.prd = wizardResult.prdPath;
+      options.notify = wizardResult.notify;
+      options.model = wizardResult.model;
+      options.depth = wizardResult.depth;
+      if (wizardResult.webhookUrl) {
+        options.webhookUrl = wizardResult.webhookUrl;
+      }
     }
 
     // If --prd provided, resolve path (existence check happens in preflight)
