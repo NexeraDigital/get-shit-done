@@ -5,6 +5,7 @@ import { access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { spawn } from 'node:child_process';
 import { loadConfig } from '../config/index.js';
 import { StateStore } from '../state/index.js';
 import { AutopilotLogger } from '../logger/index.js';
@@ -15,6 +16,9 @@ import { parsePhaseRange } from '../orchestrator/gap-detector.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
 import { ResponseServer } from '../server/index.js';
+import { EventWriter } from '../ipc/event-writer.js';
+import { HeartbeatWriter } from '../ipc/heartbeat-writer.js';
+import { AnswerPoller } from '../ipc/answer-poller.js';
 import {
   NotificationManager,
   ConsoleAdapter,
@@ -47,6 +51,7 @@ program
   .option('--verbose', 'Verbose output')
   .option('--quiet', 'Suppress non-error output')
   .option('--adapter-path <path>', 'Path to custom notification adapter module')
+  .option('--embedded-server', 'Run dashboard server in-process (legacy mode)')
   .action(async (options: {
     prd?: string;
     resume?: boolean;
@@ -61,6 +66,7 @@ program
     model: string;
     verbose?: boolean;
     quiet?: boolean;
+    embeddedServer?: boolean;
   }) => {
     // a. Validate --prd / --resume mutual requirement
     if (!options.resume && !options.prd) {
@@ -178,6 +184,15 @@ program
     // Initialize all adapters (failures logged and adapter removed, not thrown)
     await notificationManager.init();
 
+    // g3. Create IPC components for file-based communication with dashboard
+    const eventWriter = new EventWriter(projectDir);
+    const heartbeatWriter = new HeartbeatWriter(projectDir);
+
+    // Create AnswerPoller only when autoAnswer is off (questions block on human input)
+    const answerPoller = !claudeService.isRunning
+      ? new AnswerPoller(projectDir, (qId, answers) => claudeService.submitAnswer(qId, answers))
+      : null;
+
     // h. Create Orchestrator
     const orchestrator = new Orchestrator({
       stateStore,
@@ -199,6 +214,53 @@ program
     });
     orchestrator.on('build:complete', () => {
       streamRenderer.stopSpinner();
+    });
+
+    // Wire events to EventWriter for IPC
+    orchestrator.on('phase:started', (data: unknown) => {
+      void eventWriter.write('phase-started', data);
+    });
+    orchestrator.on('phase:completed', (data: unknown) => {
+      void eventWriter.write('phase-completed', data);
+    });
+    orchestrator.on('build:complete', () => {
+      void eventWriter.write('build-complete', {});
+    });
+    orchestrator.on('error:escalation', (data: unknown) => {
+      void eventWriter.write('error', data);
+    });
+    claudeService.on('question:pending', (data: unknown) => {
+      void eventWriter.write('question-pending', data);
+    });
+    claudeService.on('question:answered', (data: unknown) => {
+      void eventWriter.write('question-answered', data);
+    });
+    logger.on('entry', (entry: unknown) => {
+      void eventWriter.write('log-entry', entry);
+    });
+
+    // Wire question:pending -> persist full question data to state file
+    claudeService.on('question:pending', (event: QuestionEvent) => {
+      const state = stateStore.getState();
+      const pendingQuestions = [...state.pendingQuestions];
+      pendingQuestions.push({
+        id: event.id,
+        phase: event.phase ?? 0,
+        step: (event.step as any) ?? 'idle',
+        questions: event.questions.map(q => q.question),
+        questionItems: event.questions,
+        createdAt: event.createdAt,
+      });
+      void stateStore.setState({ pendingQuestions });
+    });
+
+    // Wire question:answered -> update state file
+    claudeService.on('question:answered', ({ id, answers }: { id: string; answers: Record<string, string> }) => {
+      const state = stateStore.getState();
+      const pendingQuestions = state.pendingQuestions.map(q =>
+        q.id === id ? { ...q, answeredAt: new Date().toISOString(), answers } : q,
+      );
+      void stateStore.setState({ pendingQuestions });
     });
 
     // Wire question:pending -> notification dispatch + reminder
@@ -283,15 +345,37 @@ program
     const __dirname = dirname(__filename);
     const dashboardDir = join(__dirname, '..', '..', 'dashboard', 'dist');
 
-    // Create ResponseServer
-    const responseServer = new ResponseServer({
-      stateStore,
-      claudeService,
-      orchestrator,
-      logger,
-      config,
-      dashboardDir,
-    });
+    // i2. Start dashboard -- either embedded (legacy) or as a separate process
+    let responseServer: ResponseServer | null = null;
+
+    if (options.embeddedServer) {
+      // Legacy mode: run dashboard server in-process
+      responseServer = new ResponseServer({
+        stateStore,
+        claudeService,
+        orchestrator,
+        logger,
+        config,
+        dashboardDir,
+      });
+      await responseServer.start(config.port);
+    } else {
+      // Spawn dashboard as a detached child process
+      const standaloneScript = join(__dirname, '..', 'server', 'standalone.js');
+      const child = spawn(
+        process.execPath,
+        [standaloneScript, '--project-dir', projectDir, '--port', String(config.port)],
+        {
+          stdio: 'ignore',
+          detached: true,
+        },
+      );
+      child.unref();
+    }
+
+    if (!options.quiet) {
+      console.log(`Dashboard server: http://localhost:${config.port}`);
+    }
 
     // j. Install ShutdownManager
     const shutdown = new ShutdownManager();
@@ -312,21 +396,27 @@ program
       logger.log('info', 'cli', 'Closing notification manager');
       await notificationManager.close();
     });
-    // Register server shutdown (runs FIRST due to LIFO -- registered last)
+    // Register IPC cleanup
     shutdown.register(async () => {
-      logger.log('info', 'cli', 'Shutting down response server');
-      await responseServer.close();
+      logger.log('info', 'cli', 'Stopping IPC components');
+      heartbeatWriter.stop();
+      answerPoller?.stop();
     });
+    // Register server shutdown if embedded (runs FIRST due to LIFO -- registered last)
+    if (responseServer) {
+      shutdown.register(async () => {
+        logger.log('info', 'cli', 'Shutting down embedded response server');
+        await responseServer!.close();
+      });
+    }
     shutdown.install(() => {
       logger.log('warn', 'cli', 'Shutdown requested, finishing current step...');
       orchestrator.requestShutdown();
     });
 
-    // k. Start response server
-    await responseServer.start(config.port);
-    if (!options.quiet) {
-      console.log(`Dashboard server: http://localhost:${config.port}`);
-    }
+    // k. Start IPC components
+    await heartbeatWriter.start();
+    await answerPoller?.start();
 
     // l. Run orchestrator
     try {
@@ -336,15 +426,19 @@ program
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+      heartbeatWriter.stop();
+      answerPoller?.stop();
       await notificationManager.close();
-      await responseServer.close();
+      if (responseServer) await responseServer.close();
       await streamLogger.flush();
       await logger.flush();
       process.exit(0);
     } catch (err) {
       streamRenderer.stopSpinner();
+      heartbeatWriter.stop();
+      answerPoller?.stop();
       await notificationManager.close();
-      await responseServer.close();
+      if (responseServer) await responseServer.close();
       const message = err instanceof Error ? err.message : String(err);
       logger.log('error', 'cli', 'Autopilot failed', { error: message });
       if (!options.quiet) {

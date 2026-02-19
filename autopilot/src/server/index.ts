@@ -8,22 +8,37 @@ import { createServer, type Server } from 'node:http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApiRoutes } from './routes/api.js';
+import type { StateProvider, QuestionProvider } from './routes/api.js';
 import { setupSSE } from './routes/sse.js';
+import type { SSEDepsInProcess, SSEDepsFileTail } from './routes/sse.js';
 import { errorHandler } from './middleware/error.js';
-import type { StateStore } from '../state/index.js';
-import type { ClaudeService } from '../claude/index.js';
-import type { Orchestrator } from '../orchestrator/index.js';
-import type { AutopilotLogger } from '../logger/index.js';
-import type { AutopilotConfig } from '../types/index.js';
+
+/** SSE options without the app (it's provided by the server) */
+export type SSEOptions =
+  | Omit<SSEDepsInProcess, 'app'>
+  | Omit<SSEDepsFileTail, 'app'>;
 
 export interface ResponseServerOptions {
-  stateStore: StateStore;
-  claudeService: ClaudeService;
-  orchestrator: Orchestrator;
-  logger: AutopilotLogger;
-  config: AutopilotConfig;
-  /** Path to dashboard/dist/ for Phase 5 SPA serving. */
+  stateProvider: StateProvider;
+  questionProvider: QuestionProvider;
+  /** SSE config -- if not provided, SSE is disabled */
+  sseDeps?: SSEOptions;
+  /** Path to dashboard/dist/ for SPA serving. */
   dashboardDir?: string;
+}
+
+/** Legacy options shape -- kept for backwards compatibility with existing callers */
+export interface ResponseServerOptionsLegacy {
+  stateStore: StateProvider;
+  claudeService: QuestionProvider & { on(event: string, listener: (...args: any[]) => void): unknown };
+  orchestrator: { on(event: string, listener: (...args: any[]) => void): unknown };
+  logger: { on(event: string, listener: (...args: any[]) => void): unknown; getRecentEntries(): unknown[] };
+  config: Record<string, unknown>;
+  dashboardDir?: string;
+}
+
+function isLegacy(opts: ResponseServerOptions | ResponseServerOptionsLegacy): opts is ResponseServerOptionsLegacy {
+  return 'stateStore' in opts && 'orchestrator' in opts;
 }
 
 /**
@@ -39,37 +54,54 @@ export class ResponseServer {
   private readonly app: Express;
   private closeAllSSE: (() => void) | null = null;
 
-  constructor(private readonly options: ResponseServerOptions) {
+  constructor(opts: ResponseServerOptions | ResponseServerOptionsLegacy) {
     this.app = express();
 
     // JSON body parsing middleware
     this.app.use(express.json());
 
+    let stateProvider: StateProvider;
+    let questionProvider: QuestionProvider;
+    let sseOptions: SSEOptions | undefined;
+    let dashboardDir: string | undefined;
+
+    if (isLegacy(opts)) {
+      // Legacy path: map old prop names to new interfaces
+      stateProvider = opts.stateStore;
+      questionProvider = opts.claudeService;
+      sseOptions = {
+        mode: 'in-process' as const,
+        orchestrator: opts.orchestrator,
+        claudeService: opts.claudeService,
+        logger: opts.logger,
+      };
+      dashboardDir = opts.dashboardDir;
+    } else {
+      stateProvider = opts.stateProvider;
+      questionProvider = opts.questionProvider;
+      sseOptions = opts.sseDeps;
+      dashboardDir = opts.dashboardDir;
+    }
+
     // Mount REST API routes at /api
-    const apiRouter = createApiRoutes({
-      stateStore: options.stateStore,
-      claudeService: options.claudeService,
-    });
+    const apiRouter = createApiRoutes({ stateProvider, questionProvider });
     this.app.use('/api', apiRouter);
 
-    // Mount SSE endpoint and wire events
-    const { closeAll } = setupSSE({
-      app: this.app,
-      orchestrator: options.orchestrator,
-      claudeService: options.claudeService,
-      logger: options.logger,
-    });
-    this.closeAllSSE = closeAll;
+    // Mount SSE endpoint and wire events (if deps provided)
+    if (sseOptions) {
+      const { closeAll } = setupSSE({ ...sseOptions, app: this.app } as any);
+      this.closeAllSSE = closeAll;
+    }
 
     // SPA fallback (DASH-09): serve dashboard/dist/ if directory exists
-    if (options.dashboardDir && existsSync(options.dashboardDir)) {
-      this.app.use(express.static(options.dashboardDir));
+    if (dashboardDir && existsSync(dashboardDir)) {
+      this.app.use(express.static(dashboardDir));
       this.app.get('{*path}', (req, res, next) => {
         if (req.path.startsWith('/api/')) {
           next();
           return;
         }
-        res.sendFile(join(options.dashboardDir!, 'index.html'));
+        res.sendFile(join(dashboardDir!, 'index.html'));
       });
     }
 

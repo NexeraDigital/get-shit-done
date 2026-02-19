@@ -17,6 +17,13 @@ const ErrorRecordSchema = z.object({
   truncatedOutput: z.string().optional(),
 });
 
+const QuestionItemStateSchema = z.object({
+  question: z.string(),
+  header: z.string(),
+  options: z.array(z.object({ label: z.string(), description: z.string() })),
+  multiSelect: z.boolean(),
+});
+
 const PendingQuestionSchema = z.object({
   id: z.string(),
   phase: z.number(),
@@ -25,6 +32,7 @@ const PendingQuestionSchema = z.object({
   createdAt: z.string(),
   answeredAt: z.string().optional(),
   answers: z.record(z.string(), z.string()).optional(),
+  questionItems: z.array(QuestionItemStateSchema).optional(),
 });
 
 const PhaseStateSchema = z.object({

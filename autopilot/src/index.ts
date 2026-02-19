@@ -9,6 +9,7 @@ export type {
   PhaseStatus,
   ErrorRecord,
   PendingQuestion,
+  QuestionItemState,
   PhaseState,
   AutopilotState,
   AutopilotConfig,
@@ -53,6 +54,30 @@ export { renderBanner, renderPhaseBanner } from './output/index.js';
 
 export { ResponseServer } from './server/index.js';
 export type { ResponseServerOptions } from './server/index.js';
+
+// Server route interfaces
+export type { StateProvider, QuestionProvider } from './server/routes/api.js';
+
+// IPC
+export {
+  IPC_PATHS,
+  HEARTBEAT_STALE_MS,
+  HEARTBEAT_INTERVAL_MS,
+  ANSWER_POLL_INTERVAL_MS,
+  EventWriter,
+  HeartbeatWriter,
+  AnswerPoller,
+  FileStateReader,
+  EventTailer,
+  AnswerWriter,
+  FileQuestionProvider,
+} from './ipc/index.js';
+
+export type {
+  IPCEvent,
+  IPCAnswer,
+  IPCHeartbeat,
+} from './ipc/index.js';
 
 // Notifications
 export { NotificationManager } from './notifications/index.js';

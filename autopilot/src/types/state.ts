@@ -31,6 +31,13 @@ export interface ErrorRecord {
   truncatedOutput?: string;
 }
 
+export interface QuestionItemState {
+  question: string;
+  header: string;
+  options: { label: string; description: string }[];
+  multiSelect: boolean;
+}
+
 export interface PendingQuestion {
   id: string;
   phase: number;
@@ -39,6 +46,8 @@ export interface PendingQuestion {
   createdAt: string;
   answeredAt?: string;
   answers?: Record<string, string>;
+  /** Full question data for dashboard rendering (only present in IPC mode) */
+  questionItems?: QuestionItemState[];
 }
 
 export interface PhaseState {

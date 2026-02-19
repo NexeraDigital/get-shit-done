@@ -4,13 +4,23 @@
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { StateStore } from '../../state/index.js';
-import type { ClaudeService } from '../../claude/index.js';
 import type { AutopilotState } from '../../types/state.js';
+import type { QuestionEvent } from '../../claude/types.js';
+
+/** Provides readonly access to autopilot state */
+export interface StateProvider {
+  getState(): Readonly<AutopilotState>;
+}
+
+/** Provides question listing and answer submission */
+export interface QuestionProvider {
+  getPendingQuestions(): QuestionEvent[];
+  submitAnswer(questionId: string, answers: Record<string, string>): boolean;
+}
 
 export interface ApiRouteDeps {
-  stateStore: StateStore;
-  claudeService: ClaudeService;
+  stateProvider: StateProvider;
+  questionProvider: QuestionProvider;
 }
 
 /**
@@ -34,11 +44,11 @@ export function computeProgress(state: Readonly<AutopilotState>): number {
 /**
  * Creates an Express Router with all REST API endpoints.
  *
- * @param deps - Injected dependencies (stateStore, claudeService)
+ * @param deps - Injected dependencies (stateProvider, questionProvider)
  * @returns Express Router mounted at /api by the ResponseServer
  */
 export function createApiRoutes(deps: ApiRouteDeps): Router {
-  const { stateStore, claudeService } = deps;
+  const { stateProvider, questionProvider } = deps;
   const router = Router();
 
   // DASH-08: Health check
@@ -48,7 +58,7 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
 
   // DASH-02: Status with progress percentage
   router.get('/status', (_req: Request, res: Response) => {
-    const state = stateStore.getState();
+    const state = stateProvider.getState();
     res.json({
       status: state.status,
       currentPhase: state.currentPhase,
@@ -61,20 +71,20 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
 
   // DASH-03: All phases
   router.get('/phases', (_req: Request, res: Response) => {
-    const state = stateStore.getState();
+    const state = stateProvider.getState();
     res.json({ phases: state.phases });
   });
 
   // DASH-04: All pending questions
   router.get('/questions', (_req: Request, res: Response) => {
-    const questions = claudeService.getPendingQuestions();
+    const questions = questionProvider.getPendingQuestions();
     res.json({ questions });
   });
 
   // DASH-05: Single question by ID
   router.get('/questions/:questionId', (req: Request, res: Response) => {
     const questionId = String(req.params['questionId']);
-    const questions = claudeService.getPendingQuestions();
+    const questions = questionProvider.getPendingQuestions();
     const question = questions.find((q) => q.id === questionId);
     if (!question) {
       res.status(404).json({ error: 'Question not found' });
@@ -91,7 +101,7 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       res.status(400).json({ error: 'Missing or invalid answers object' });
       return;
     }
-    const resolved = claudeService.submitAnswer(
+    const resolved = questionProvider.submitAnswer(
       questionId,
       answers as Record<string, string>,
     );

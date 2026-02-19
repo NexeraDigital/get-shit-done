@@ -5,6 +5,7 @@ export type {
   PhaseStatus,
   ErrorRecord,
   PendingQuestion,
+  QuestionItemState,
   PhaseState,
   AutopilotState,
 } from './state.js';

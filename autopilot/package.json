@@ -13,7 +13,8 @@
     }
   },
   "bin": {
-    "gsd-autopilot": "./dist/cli/index.js"
+    "gsd-autopilot": "./dist/cli/index.js",
+    "gsd-dashboard": "./dist/server/standalone.js"
   },
   "files": [
     "dist/",

@@ -95,8 +95,8 @@ beforeAll(async () => {
   app.use(
     '/api',
     createApiRoutes({
-      stateStore: mockStateStore as any,
-      claudeService: mockClaudeService as any,
+      stateProvider: mockStateStore as any,
+      questionProvider: mockClaudeService as any,
     }),
   );
   app.use(errorHandler);
