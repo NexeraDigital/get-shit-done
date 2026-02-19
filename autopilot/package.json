@@ -1,7 +1,7 @@
 {
-  "name": "@gsd/autopilot",
+  "name": "gsd-autopilot",
   "version": "0.1.0",
-  "description": "Autonomous GSD workflow orchestrator",
+  "description": "Autonomous GSD workflow orchestrator -- turns a PRD into a built project",
   "type": "module",
   "engines": {
     "node": ">=20.0.0"
@@ -17,13 +17,17 @@
     "gsd-dashboard": "./dist/server/standalone.js"
   },
   "files": [
-    "dist/",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "dashboard/dist/",
-    "example-adapter.js"
+    "example-adapter.js",
+    "!dist/**/*.test.*",
+    "!dist/**/__tests__"
   ],
   "scripts": {
     "build": "tsc && cd dashboard && npm install && npm run build",
     "build:dashboard": "cd dashboard && npm install && npm run build",
+    "prepare": "npm run build",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",

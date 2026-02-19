@@ -1,0 +1,6 @@
+# Force LF line endings for all files in this package
+* text=auto eol=lf
+
+# Bin scripts MUST use LF (shebang fails with CRLF on Unix)
+dist/cli/*.js text eol=lf
+dist/server/*.js text eol=lf
