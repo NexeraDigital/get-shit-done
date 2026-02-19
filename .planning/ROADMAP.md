@@ -141,17 +141,17 @@ Plans:
 ### Phase 7: CLI Polish and Distribution
 **Goal**: The CLI is feature-complete with all flags, published as an npm package, cross-platform tested, and provides a polished developer experience
 **Depends on**: Phase 5, Phase 6
-**Requirements**: FNDN-04, CLI-04, CLI-05, CLI-06, CLI-11, CLI-13
+**Requirements**: FNDN-04, CLI-04, CLI-05, CLI-06, CLI-13
 **Success Criteria** (what must be TRUE):
-  1. `npx gsd-autopilot --help` shows all documented flags (--prd, --notify, --webhook-url, --port, --depth, --model, --skip-discuss, --skip-verify, --phases, --resume, --dry-run, --verbose, --quiet, --adapter-path)
-  2. `--dry-run` previews all planned actions (phases, steps, notification channels) without executing any Claude commands
-  3. `--verbose` increases log detail; `--quiet` suppresses all non-error output; `--port` changes the server port; `--depth` and `--model` pass through to GSD config
-  4. `npm pack` produces a package under 2MB that installs and runs correctly via `npx gsd-autopilot` on macOS, Linux, and Windows
-**Plans**: TBD
+  1. `npx gsd-autopilot --help` shows all documented flags (--prd, --notify, --webhook-url, --port, --depth, --model, --skip-discuss, --skip-verify, --phases, --resume, --verbose, --quiet, --adapter-path)
+  2. `--verbose` increases log detail; `--quiet` suppresses all non-error output; `--port` changes the server port; `--depth` and `--model` pass through to GSD config
+  3. `npm pack` produces a package under 2MB that installs and runs correctly via `npx gsd-autopilot` on macOS, Linux, and Windows
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md -- Preflight checks, actionable error messaging, enhanced phase range parser
+- [ ] 07-02-PLAN.md -- Interactive setup wizard, CLI help text polish
+- [ ] 07-03-PLAN.md -- npm packaging, distribution config, build verification
 
 ## Progress
 
@@ -168,4 +168,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 4. Response Server and API | 2/2 | Complete | 2026-02-17 |
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
-| 7. CLI Polish and Distribution | 0/TBD | Not started | - |
+| 7. CLI Polish and Distribution | 0/3 | Not started | - |
