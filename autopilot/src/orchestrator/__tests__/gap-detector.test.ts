@@ -126,16 +126,24 @@ describe('checkForGaps', () => {
 });
 
 describe('parsePhaseRange', () => {
-  it('parses single number "3" into { start: 3, end: 3 }', () => {
-    expect(parsePhaseRange('3')).toEqual({ start: 3, end: 3 });
+  it('parses single number "3" into [3]', () => {
+    expect(parsePhaseRange('3')).toEqual([3]);
   });
 
-  it('parses range "2-5" into { start: 2, end: 5 }', () => {
-    expect(parsePhaseRange('2-5')).toEqual({ start: 2, end: 5 });
+  it('parses range "2-5" into [2, 3, 4, 5]', () => {
+    expect(parsePhaseRange('2-5')).toEqual([2, 3, 4, 5]);
   });
 
-  it('parses range "1-1" into { start: 1, end: 1 }', () => {
-    expect(parsePhaseRange('1-1')).toEqual({ start: 1, end: 1 });
+  it('parses range "1-1" into [1]', () => {
+    expect(parsePhaseRange('1-1')).toEqual([1]);
+  });
+
+  it('parses comma-separated "1-3,5,7-9" into [1, 2, 3, 5, 7, 8, 9]', () => {
+    expect(parsePhaseRange('1-3,5,7-9')).toEqual([1, 2, 3, 5, 7, 8, 9]);
+  });
+
+  it('deduplicates "3,3,5,5" into [3, 5]', () => {
+    expect(parsePhaseRange('3,3,5,5')).toEqual([3, 5]);
   });
 
   it('throws on "5-3" (start > end)', () => {
@@ -143,15 +151,15 @@ describe('parsePhaseRange', () => {
   });
 
   it('throws on "abc" (invalid format)', () => {
-    expect(() => parsePhaseRange('abc')).toThrow(/invalid phase range/i);
+    expect(() => parsePhaseRange('abc')).toThrow(/invalid phase specifier/i);
   });
 
   it('throws on empty string', () => {
-    expect(() => parsePhaseRange('')).toThrow(/invalid phase range/i);
+    expect(() => parsePhaseRange('')).toThrow(/invalid phase specifier/i);
   });
 
   it('throws on "1-2-3" (too many segments)', () => {
-    expect(() => parsePhaseRange('1-2-3')).toThrow(/invalid phase range/i);
+    expect(() => parsePhaseRange('1-2-3')).toThrow(/invalid phase specifier/i);
   });
 });
 

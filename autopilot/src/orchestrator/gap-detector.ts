@@ -105,30 +105,52 @@ function isEnoent(err: unknown): boolean {
  * Parses a phase range string from the --phases CLI flag.
  *
  * Accepts:
- * - "N" -> { start: N, end: N }
- * - "N-M" -> { start: N, end: M }
+ * - "N" -> [N]
+ * - "N-M" -> [N, N+1, ..., M]
+ * - "N,M,..." -> [N, M, ...]
+ * - "N-M,O,P-Q" -> [N, N+1, ..., M, O, P, P+1, ..., Q]
+ *
+ * Returns a sorted, deduplicated array of phase numbers.
  *
  * @param range - Phase range string
- * @returns Parsed range with start and end phase numbers
- * @throws Error on invalid format or when start > end
+ * @returns Sorted array of phase numbers
+ * @throws Error on invalid format or when start > end in any range
  */
-export function parsePhaseRange(range: string): { start: number; end: number } {
-  const match = range.match(/^(\d+)(?:-(\d+))?$/);
+export function parsePhaseRange(range: string): number[] {
+  const phases: number[] = [];
+  const segments = range.split(',').map((s) => s.trim());
 
-  if (!match) {
+  for (const segment of segments) {
+    // Single number: "3"
+    if (/^\d+$/.test(segment)) {
+      phases.push(parseInt(segment, 10));
+      continue;
+    }
+
+    // Range: "2-5"
+    const rangeMatch = segment.match(/^(\d+)-(\d+)$/);
+    if (rangeMatch) {
+      const start = parseInt(rangeMatch[1]!, 10);
+      const end = parseInt(rangeMatch[2]!, 10);
+
+      if (start > end) {
+        throw new Error(
+          `Invalid phase range: start (${start}) > end (${end}) in segment "${segment}"`,
+        );
+      }
+
+      for (let i = start; i <= end; i++) {
+        phases.push(i);
+      }
+      continue;
+    }
+
+    // Invalid format
     throw new Error(
-      `Invalid phase range: "${range}". Expected format: N or N-M (e.g., "3" or "2-5")`,
+      `Invalid phase specifier: "${segment}". Expected format: "N", "N-M", or comma-separated (e.g., "1-3,5,7-9")`,
     );
   }
 
-  const start = parseInt(match[1]!, 10);
-  const end = match[2] ? parseInt(match[2], 10) : start;
-
-  if (start > end) {
-    throw new Error(
-      `Invalid phase range: start (${start}) > end (${end})`,
-    );
-  }
-
-  return { start, end };
+  // Sort and deduplicate
+  return Array.from(new Set(phases)).sort((a, b) => a - b);
 }
