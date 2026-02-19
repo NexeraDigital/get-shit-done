@@ -139,11 +139,11 @@ export class Orchestrator extends EventEmitter {
    * discuss > plan > execute > verify for each.
    *
    * @param prdPath - Path to the PRD document (used for init)
-   * @param phaseRange - Optional filter to run only specific phases
+   * @param phaseRange - Optional array of phase numbers to run
    */
   async run(
     prdPath: string,
-    phaseRange?: { start: number; end: number },
+    phaseRange?: number[],
   ): Promise<void> {
     this.logger.log('info', 'orchestrator', 'Starting autopilot run', { prdPath });
 
@@ -165,10 +165,8 @@ export class Orchestrator extends EventEmitter {
       // Skip completed or skipped phases
       if (phase.status === 'completed' || phase.status === 'skipped') continue;
 
-      // Skip if outside phase range
-      if (phaseRange) {
-        if (phase.number < phaseRange.start || phase.number > phaseRange.end) continue;
-      }
+      // Skip if not in phase range
+      if (phaseRange && !phaseRange.includes(phase.number)) continue;
 
       // Check shutdown before starting new phase
       if (this.shutdownRequested) break;

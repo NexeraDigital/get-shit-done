@@ -13,6 +13,7 @@ import { ClaudeService } from '../claude/index.js';
 import { Orchestrator } from '../orchestrator/index.js';
 import { ShutdownManager } from '../orchestrator/shutdown.js';
 import { parsePhaseRange } from '../orchestrator/gap-detector.js';
+import { runPreflightChecks } from './preflight.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
 import { ResponseServer } from '../server/index.js';
@@ -38,11 +39,22 @@ program
   .name('gsd-autopilot')
   .description('Autonomous GSD workflow orchestrator -- turns a PRD into a built project')
   .version('0.1.0')
+  .showHelpAfterError('(run gsd-autopilot --help for usage information)')
+  .addHelpText('after', `
+Examples:
+  $ gsd-autopilot --prd ./idea.md
+  $ gsd-autopilot --resume
+  $ gsd-autopilot --prd ./spec.md --notify teams --webhook-url https://...
+  $ gsd-autopilot --prd ./plan.md --phases 1-3,5 --depth comprehensive
+
+Dashboard:
+  http://localhost:3847 (configurable with --port)
+`)
   .option('--prd <path>', 'Path to PRD/idea document')
   .option('--resume', 'Resume from last checkpoint')
   .option('--skip-discuss', 'Skip discuss-phase, let Claude decide everything')
   .option('--skip-verify', 'Skip verification step')
-  .option('--phases <range>', 'Run specific phases (e.g., 1-3, 2)')
+  .option('--phases <range>', 'Run specific phases (e.g., 1-3,5,7-9)')
   .option('--notify <channel>', 'Notification channel (console, system, teams, slack)', 'console')
   .option('--webhook-url <url>', 'Webhook URL for Teams/Slack notifications')
   .option('--port <number>', 'Dashboard server port', '3847')
@@ -70,51 +82,80 @@ program
   }) => {
     // a. Validate --prd / --resume mutual requirement
     if (!options.resume && !options.prd) {
-      console.error('Error: Either --prd <path> or --resume is required');
+      console.error('Error: No input specified\n');
+      console.error('You must provide either:');
+      console.error('  --prd <path>   Start a new run with a PRD document');
+      console.error('  --resume       Continue from last checkpoint\n');
+      console.error('Run gsd-autopilot --help for more information');
       process.exit(1);
     }
 
-    // If --prd provided, resolve and verify file exists
+    // If --prd provided, resolve path (existence check happens in preflight)
     if (options.prd) {
-      const prdAbsolute = resolve(options.prd);
-      try {
-        await access(prdAbsolute);
-      } catch {
-        console.error(`Error: PRD file not found: ${prdAbsolute}`);
-        process.exit(1);
-      }
-      // Store resolved path back for use below
-      options.prd = prdAbsolute;
+      options.prd = resolve(options.prd);
     }
 
     // b. Determine project directory
     const projectDir = process.cwd();
 
     // c. Load config with CLI overrides
-    const config = await loadConfig(projectDir, {
-      skipDiscuss: options.skipDiscuss ?? false,
-      skipVerify: options.skipVerify ?? false,
-      verbose: options.verbose ?? false,
-      quiet: options.quiet ?? false,
-      depth: options.depth as 'quick' | 'standard' | 'comprehensive',
-      model: options.model as 'quality' | 'balanced' | 'budget',
-      notify: options.notify as 'console' | 'system' | 'teams' | 'slack' | 'webhook',
-      webhookUrl: options.webhookUrl,
-      adapterPath: options.adapterPath,
-      port: parseInt(options.port, 10),
-    });
+    let config;
+    try {
+      config = await loadConfig(projectDir, {
+        skipDiscuss: options.skipDiscuss ?? false,
+        skipVerify: options.skipVerify ?? false,
+        verbose: options.verbose ?? false,
+        quiet: options.quiet ?? false,
+        depth: options.depth as 'quick' | 'standard' | 'comprehensive',
+        model: options.model as 'quality' | 'balanced' | 'budget',
+        notify: options.notify as 'console' | 'system' | 'teams' | 'slack' | 'webhook',
+        webhookUrl: options.webhookUrl,
+        adapterPath: options.adapterPath,
+        port: parseInt(options.port, 10),
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`Configuration error: ${msg}\n`);
+      console.error('Check your .gsd-autopilot.json file or CLI flags.');
+      console.error('Run gsd-autopilot --help for valid options.');
+      process.exit(1);
+    }
 
-    // d. Create core components
+    // d. Run preflight checks -- validate ALL prerequisites at once
+    const preflightFailures = await runPreflightChecks(config, options.prd);
+    if (preflightFailures.length > 0) {
+      console.error('\nPreflight checks failed:\n');
+      for (const failure of preflightFailures) {
+        console.error(`  x ${failure.error}`);
+        console.error(`    ${failure.fix}\n`);
+      }
+      process.exit(1);
+    }
+
+    // e. Create core components
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
     const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: true });
-    const stateStore = options.resume
-      ? await StateStore.restore(join(projectDir, '.planning', 'autopilot-state.json'))
-      : StateStore.createFresh(projectDir);
 
-    // e. Determine verbosity level from config
+    // Handle --resume with no state file
+    let stateStore;
+    if (options.resume) {
+      try {
+        stateStore = await StateStore.restore(join(projectDir, '.planning', 'autopilot-state.json'));
+      } catch {
+        console.error('No previous run found in this directory.\n');
+        console.error('To start a new run:');
+        console.error('  gsd-autopilot --prd <path-to-your-prd>\n');
+        console.error('The --resume flag requires a previous autopilot run in the current directory.');
+        process.exit(1);
+      }
+    } else {
+      stateStore = StateStore.createFresh(projectDir);
+    }
+
+    // f. Determine verbosity level from config
     const verbosity: VerbosityLevel = config.quiet ? 'quiet' : config.verbose ? 'verbose' : 'default';
 
-    // f. Create output streaming components
+    // g. Create output streaming components
     const streamRenderer = new StreamRenderer(verbosity);
     const streamLogger = new StreamLogger(join(projectDir, '.planning', 'autopilot-log'));
 
@@ -124,10 +165,10 @@ program
       streamLogger.write(message);
     });
 
-    // g. Parse phase range (if provided)
+    // h. Parse phase range (if provided)
     const phaseRange = options.phases ? parsePhaseRange(options.phases) : undefined;
 
-    // g2. Create NotificationManager and wire adapters
+    // i. Create NotificationManager and wire adapters
     const notificationManager = new NotificationManager({
       questionReminderMs: config.questionReminderMs,
     });
@@ -184,7 +225,7 @@ program
     // Initialize all adapters (failures logged and adapter removed, not thrown)
     await notificationManager.init();
 
-    // g3. Create IPC components for file-based communication with dashboard
+    // j. Create IPC components for file-based communication with dashboard
     const eventWriter = new EventWriter(projectDir);
     const heartbeatWriter = new HeartbeatWriter(projectDir);
 
@@ -193,7 +234,7 @@ program
       ? new AnswerPoller(projectDir, (qId, answers) => claudeService.submitAnswer(qId, answers))
       : null;
 
-    // h. Create Orchestrator
+    // k. Create Orchestrator
     const orchestrator = new Orchestrator({
       stateStore,
       claudeService,
@@ -340,12 +381,12 @@ program
       notificationManager.notify(notification);
     });
 
-    // i. Resolve dashboard dist path for SPA serving
+    // l. Resolve dashboard dist path for SPA serving
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const dashboardDir = join(__dirname, '..', '..', 'dashboard', 'dist');
 
-    // i2. Start dashboard -- either embedded (legacy) or as a separate process
+    // m. Start dashboard -- either embedded (legacy) or as a separate process
     let responseServer: ResponseServer | null = null;
 
     if (options.embeddedServer) {
@@ -377,7 +418,7 @@ program
       console.log(`Dashboard server: http://localhost:${config.port}`);
     }
 
-    // j. Install ShutdownManager
+    // n. Install ShutdownManager
     const shutdown = new ShutdownManager();
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing stream logger on shutdown');
@@ -414,11 +455,11 @@ program
       orchestrator.requestShutdown();
     });
 
-    // k. Start IPC components
+    // o. Start IPC components
     await heartbeatWriter.start();
     await answerPoller?.start();
 
-    // l. Run orchestrator
+    // p. Run orchestrator
     try {
       const prdPath = options.prd ? resolve(options.prd) : '';
       await orchestrator.run(prdPath, phaseRange);
@@ -448,7 +489,7 @@ program
     }
   });
 
-// k. Top-level error handling
+// q. Top-level error handling
 try {
   await program.parseAsync(process.argv);
 } catch (err) {

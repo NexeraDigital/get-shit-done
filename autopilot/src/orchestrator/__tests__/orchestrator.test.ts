@@ -468,7 +468,7 @@ describe('Orchestrator', () => {
     });
     deps.stateStore.getState.mockReturnValue(state);
 
-    await orchestrator.run('/test/prd.md', { start: 2, end: 3 });
+    await orchestrator.run('/test/prd.md', [2, 3]);
 
     const calls = deps.claudeService.runGsdCommand.mock.calls.map((c: unknown[]) => c[0] as string);
 
