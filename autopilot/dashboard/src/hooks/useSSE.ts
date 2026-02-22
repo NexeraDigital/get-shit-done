@@ -146,9 +146,25 @@ export function useSSE(): void {
       });
     });
 
+    // Poll status + phases every 3s to catch state changes that don't emit SSE events
+    // (e.g., init completing and phases being loaded, step transitions within a phase)
+    const pollTimer = setInterval(() => {
+      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+        const st = useDashboardStore.getState();
+        st.setStatus({
+          status: s.status,
+          currentPhase: s.currentPhase,
+          currentStep: s.currentStep,
+          progress: s.progress,
+        });
+        st.setPhases(p.phases);
+      }).catch(() => { /* ignore poll failures */ });
+    }, 3000);
+
     return () => {
       es.close();
       esRef.current = null;
+      clearInterval(pollTimer);
     };
   }, []);
 }

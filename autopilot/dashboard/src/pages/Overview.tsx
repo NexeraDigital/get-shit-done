@@ -9,6 +9,7 @@ import { ActivityFeed } from '../components/ActivityFeed.js';
 import { LogStream } from '../components/LogStream.js';
 
 export function Overview() {
+  const status = useDashboardStore((s) => s.status);
   const progress = useDashboardStore((s) => s.progress);
   const phases = useDashboardStore((s) => s.phases);
   const currentPhase = useDashboardStore((s) => s.currentPhase);
@@ -21,7 +22,7 @@ export function Overview() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Top row: Progress bar (full width) */}
       <div className="lg:col-span-3">
-        <ProgressBar progress={progress} />
+        <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
       </div>
 
       {/* Middle row: Phase card (2/3) + Question badge (1/3) */}

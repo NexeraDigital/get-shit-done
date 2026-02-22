@@ -1,6 +1,6 @@
-// Current phase card (DASH-11).
-// Shows phase info with clickable link to phase detail page.
-// Step progress dots: idle, discuss, plan, execute, verify, done.
+// Phase overview card (DASH-11).
+// Shows ALL phases with status indicators. Current phase is highlighted.
+// During init (no phases yet), shows an "Initializing" state.
 
 import { Link } from 'react-router';
 import type { PhaseState, PhaseStep } from '../types/index.js';
@@ -27,7 +27,7 @@ function StepDot({ stepName, stepStatus, isActive }: {
   stepStatus: PhaseStep;
   isActive: boolean;
 }) {
-  let dotClass = 'w-3 h-3 rounded-full border-2 ';
+  let dotClass = 'w-2.5 h-2.5 rounded-full border-2 ';
 
   if (stepStatus === 'done') {
     dotClass += 'bg-green-500 border-green-500';
@@ -38,57 +38,47 @@ function StepDot({ stepName, stepStatus, isActive }: {
   }
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5">
       <div className={dotClass} />
-      <span className="text-xs text-gray-500">{stepName}</span>
+      <span className="text-[10px] text-gray-400">{stepName}</span>
     </div>
   );
 }
 
-export function PhaseCard({ phases, currentPhase, currentStep }: PhaseCardProps) {
-  const phase = phases.find((p) => p.number === currentPhase);
-
-  if (!phase) {
-    return (
-      <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
-        <p className="text-gray-400 text-sm">No phases loaded</p>
-      </div>
-    );
-  }
-
+function PhaseRow({ phase, isCurrent, currentStep }: {
+  phase: PhaseState;
+  isCurrent: boolean;
+  currentStep: string;
+}) {
   const statusColor = STATUS_COLORS[phase.status] ?? STATUS_COLORS['pending']!;
+  const borderClass = isCurrent ? 'border-blue-300 bg-blue-50/30' : 'border-gray-100';
 
   return (
     <Link
-      to={`/phases/${String(currentPhase)}`}
-      className="block rounded-lg border border-gray-200 shadow-sm p-6 bg-white hover:shadow-md transition-shadow cursor-pointer"
+      to={`/phases/${String(phase.number)}`}
+      className={`block rounded-lg border ${borderClass} p-3 hover:shadow-sm transition-shadow`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <span className="text-xs font-medium text-gray-500">
-            Phase {phase.number}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-gray-400">
+            {String(phase.number).padStart(2, '0')}
           </span>
-          <h3 className="text-lg font-semibold text-gray-900">{phase.name}</h3>
+          <span className={`text-sm font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
+            {phase.name}
+          </span>
         </div>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}
+          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor}`}
         >
           {phase.status.replace('_', ' ')}
         </span>
       </div>
 
-      {/* Current step label */}
-      <div className="mb-4">
-        <span className="inline-block bg-blue-50 text-blue-700 rounded px-2 py-0.5 text-xs font-medium">
-          Step: {currentStep}
-        </span>
-      </div>
-
       {/* Step progress dots */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-3 ml-6">
         {STEP_ORDER.map((step) => {
           const stepStatus = phase.steps[step];
-          const isActive = currentStep === step && phase.status === 'in_progress';
+          const isActive = isCurrent && currentStep === step && phase.status === 'in_progress';
           return (
             <StepDot
               key={step}
@@ -100,5 +90,47 @@ export function PhaseCard({ phases, currentPhase, currentStep }: PhaseCardProps)
         })}
       </div>
     </Link>
+  );
+}
+
+export function PhaseCard({ phases, currentPhase, currentStep }: PhaseCardProps) {
+  if (phases.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+          <div>
+            <p className="text-sm font-medium text-gray-700">Initializing project...</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Setting up research, requirements, and roadmap
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const completedCount = phases.filter((p) => p.status === 'completed').length;
+  const totalCount = phases.length;
+
+  return (
+    <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-gray-700">Phases</h3>
+        <span className="text-xs text-gray-400">
+          {completedCount}/{totalCount} complete
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+        {phases.map((phase) => (
+          <PhaseRow
+            key={phase.number}
+            phase={phase}
+            isCurrent={phase.number === currentPhase}
+            currentStep={currentStep}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
