@@ -323,11 +323,13 @@ export class Orchestrator extends EventEmitter {
     // ORCH-09: Emit phase:started
     this.emit('phase:started', { phase: phase.number, name: phase.name });
 
-    // Update state to mark phase as current
+    // Update state to mark phase as current and in-progress
+    phase.status = 'in_progress';
     await this.stateStore.setState({
       currentPhase: phase.number,
       status: 'running',
     });
+    await this.persistPhaseUpdate(phase);
 
     // Step sequence with resume support (Pitfall 2: check individual step states)
     if (phase.steps.discuss !== 'done') {

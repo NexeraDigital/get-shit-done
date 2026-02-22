@@ -13,7 +13,6 @@ export function Overview() {
   const progress = useDashboardStore((s) => s.progress);
   const phases = useDashboardStore((s) => s.phases);
   const currentPhase = useDashboardStore((s) => s.currentPhase);
-  const currentStep = useDashboardStore((s) => s.currentStep);
   const questions = useDashboardStore((s) => s.questions);
   const activities = useDashboardStore((s) => s.activities);
   const logs = useDashboardStore((s) => s.logs);
@@ -30,7 +29,6 @@ export function Overview() {
         <PhaseCard
           phases={phases}
           currentPhase={currentPhase}
-          currentStep={currentStep}
         />
       </div>
       <div className="lg:col-span-1">

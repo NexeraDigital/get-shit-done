@@ -8,7 +8,6 @@ import type { PhaseState, PhaseStep } from '../types/index.js';
 interface PhaseCardProps {
   phases: PhaseState[];
   currentPhase: number;
-  currentStep: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -45,10 +44,9 @@ function StepDot({ stepName, stepStatus, isActive }: {
   );
 }
 
-function PhaseRow({ phase, isCurrent, currentStep }: {
+function PhaseRow({ phase, isCurrent }: {
   phase: PhaseState;
   isCurrent: boolean;
-  currentStep: string;
 }) {
   const statusColor = STATUS_COLORS[phase.status] ?? STATUS_COLORS['pending']!;
   const borderClass = isCurrent ? 'border-blue-300 bg-blue-50/30' : 'border-gray-100';
@@ -78,7 +76,7 @@ function PhaseRow({ phase, isCurrent, currentStep }: {
       <div className="flex items-center gap-3 ml-6">
         {STEP_ORDER.map((step) => {
           const stepStatus = phase.steps[step];
-          const isActive = isCurrent && currentStep === step && phase.status === 'in_progress';
+          const isActive = isCurrent && stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step;
           return (
             <StepDot
               key={step}
@@ -93,7 +91,7 @@ function PhaseRow({ phase, isCurrent, currentStep }: {
   );
 }
 
-export function PhaseCard({ phases, currentPhase, currentStep }: PhaseCardProps) {
+export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
   if (phases.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
@@ -127,7 +125,6 @@ export function PhaseCard({ phases, currentPhase, currentStep }: PhaseCardProps)
             key={phase.number}
             phase={phase}
             isCurrent={phase.number === currentPhase}
-            currentStep={currentStep}
           />
         ))}
       </div>
