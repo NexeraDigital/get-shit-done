@@ -284,6 +284,58 @@ Dashboard:
       void eventWriter.write('log-entry', entry);
     });
 
+    // Wire SDK messages to EventWriter as log-entry events for dashboard live logs.
+    // Converts meaningful message types (tool use, assistant text) to LogEntry format.
+    // Skips noisy stream_event text deltas to prevent log bloat.
+    claudeService.on('message', (message: unknown) => {
+      const msg = message as { type?: string; subtype?: string; tool_name?: string; parameters?: Record<string, unknown>; message?: { content?: Array<{ type?: string; text?: string; name?: string }> }; parent_tool_use_id?: string | null; event?: { type?: string; content_block?: { type?: string; name?: string }; delta?: { type?: string } } };
+
+      if (msg.type === 'tool_use_summary') {
+        const toolName = msg.tool_name ?? 'unknown';
+        const params = msg.parameters ?? {};
+        const summary = (params.file_path ?? params.command ?? params.pattern ?? params.query ?? params.description ?? params.skill ?? '') as string;
+        const preview = typeof summary === 'string' ? summary.split('\n')[0]?.slice(0, 120) ?? '' : '';
+        void eventWriter.write('log-entry', {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          component: 'claude',
+          message: `[${toolName}] ${preview}`,
+        });
+      } else if (msg.type === 'assistant' && msg.message?.content) {
+        for (const block of msg.message.content) {
+          if (block.type === 'text' && block.text) {
+            const preview = block.text.split('\n')[0]?.slice(0, 200) ?? '';
+            if (preview.trim()) {
+              void eventWriter.write('log-entry', {
+                timestamp: new Date().toISOString(),
+                level: 'info',
+                component: 'claude',
+                message: preview,
+              });
+            }
+          } else if (block.type === 'tool_use' && block.name) {
+            void eventWriter.write('log-entry', {
+              timestamp: new Date().toISOString(),
+              level: 'debug',
+              component: 'claude',
+              message: `[${block.name}]`,
+            });
+          }
+        }
+      } else if (msg.type === 'result') {
+        const result = message as { is_error?: boolean; result?: string; num_turns?: number; duration_ms?: number };
+        const isError = result.is_error === true;
+        void eventWriter.write('log-entry', {
+          timestamp: new Date().toISOString(),
+          level: isError ? 'error' : 'info',
+          component: 'claude',
+          message: isError
+            ? `Command failed: ${(result.result ?? 'Unknown error').slice(0, 200)}`
+            : `Command completed (${result.num_turns ?? 0} turns, ${((result.duration_ms ?? 0) / 1000).toFixed(1)}s)`,
+        });
+      }
+    });
+
     // Wire question:pending -> persist full question data to state file
     claudeService.on('question:pending', (event: QuestionEvent) => {
       const state = stateStore.getState();
