@@ -106,7 +106,7 @@ Dashboard:
     let config;
     try {
       config = await loadConfig(projectDir, {
-        skipDiscuss: true, // autoAnswer is hardcoded — discuss can't work interactively
+        skipDiscuss: options.skipDiscuss ?? false,
         skipVerify: options.skipVerify ?? false,
         verbose: options.verbose ?? false,
         quiet: options.quiet ?? false,
@@ -138,7 +138,7 @@ Dashboard:
 
     // e. Create core components
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
-    const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: true });
+    const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: false });
 
     // Handle --resume with no state file
     let stateStore;
@@ -233,10 +233,7 @@ Dashboard:
     const eventWriter = new EventWriter(projectDir);
     const heartbeatWriter = new HeartbeatWriter(projectDir);
 
-    // Create AnswerPoller only when autoAnswer is off (questions block on human input)
-    const answerPoller = !claudeService.isRunning
-      ? new AnswerPoller(projectDir, (qId, answers) => claudeService.submitAnswer(qId, answers))
-      : null;
+    const answerPoller = new AnswerPoller(projectDir, (qId, answers) => claudeService.submitAnswer(qId, answers));
 
     // k. Create Orchestrator
     const orchestrator = new Orchestrator({
