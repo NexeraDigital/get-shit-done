@@ -106,7 +106,7 @@ Dashboard:
     let config;
     try {
       config = await loadConfig(projectDir, {
-        skipDiscuss: options.skipDiscuss ?? false,
+        skipDiscuss: true, // autoAnswer is hardcoded — discuss can't work interactively
         skipVerify: options.skipVerify ?? false,
         verbose: options.verbose ?? false,
         quiet: options.quiet ?? false,
