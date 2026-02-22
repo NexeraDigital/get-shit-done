@@ -29,13 +29,16 @@ export class StreamRenderer {
   private streamedParentIds = new Set<string>();
   private readonly verbosity: VerbosityLevel;
   private readonly output: WritableOutput;
+  private readonly suppressedTools: Set<string>;
 
   constructor(
     verbosity: VerbosityLevel = 'default',
     output?: WritableOutput,
+    suppressedTools?: Set<string>,
   ) {
     this.verbosity = verbosity;
     this.output = output ?? process.stdout;
+    this.suppressedTools = suppressedTools ?? new Set();
   }
 
   /**
@@ -113,10 +116,15 @@ export class StreamRenderer {
         if (!block) break;
 
         if (block.type === 'tool_use') {
+          const toolName = block.name ?? '';
+          if (this.suppressedTools.has(toolName)) {
+            this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '' };
+            break;
+          }
           this.stopSpinner();
-          this.currentToolBlock = { name: block.name ?? '', id: block.id ?? '', input: '' };
+          this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '' };
           this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
-          this.write(palette.toolName(`\n[${block.name}] `));
+          this.write(palette.toolName(`\n[${toolName}] `));
         } else if (block.type === 'text') {
           this.stopSpinner();
           this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
@@ -143,6 +151,10 @@ export class StreamRenderer {
 
       case 'content_block_stop': {
         if (this.currentToolBlock) {
+          if (this.suppressedTools.has(this.currentToolBlock.name)) {
+            this.currentToolBlock = null;
+            break;
+          }
           const summary = this.extractToolSummary(this.currentToolBlock.name, this.currentToolBlock.input);
           if (summary) {
             this.write(palette.dim(summary) + '\n');
@@ -195,6 +207,7 @@ export class StreamRenderer {
         this.stopSpinner();
         this.write(prefix + block.text);
       } else if (block.type === 'tool_use' && block.name) {
+        if (this.suppressedTools.has(block.name)) continue;
         this.stopSpinner();
         this.write(palette.toolName(`\n[${block.name}] `));
       }
@@ -263,6 +276,7 @@ export class StreamRenderer {
     };
 
     const toolName = msg.tool_name ?? 'unknown';
+    if (this.suppressedTools.has(toolName)) return;
     const params = msg.parameters
       ? JSON.stringify(msg.parameters).slice(0, 100)
       : '';

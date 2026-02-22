@@ -160,7 +160,7 @@ Dashboard:
     const verbosity: VerbosityLevel = config.quiet ? 'quiet' : config.verbose ? 'verbose' : 'default';
 
     // g. Create output streaming components
-    const streamRenderer = new StreamRenderer(verbosity);
+    const streamRenderer = new StreamRenderer(verbosity, undefined, new Set(['AskUserQuestion']));
     const streamLogger = new StreamLogger(join(projectDir, '.planning', 'autopilot-log'));
 
     // Wire SDK message stream to terminal renderer and log file (dual output per user decision)
@@ -292,6 +292,7 @@ Dashboard:
 
       if (msg.type === 'tool_use_summary') {
         const toolName = msg.tool_name ?? 'unknown';
+        if (toolName === 'AskUserQuestion') return;
         const params = msg.parameters ?? {};
         const summary = (params.file_path ?? params.command ?? params.pattern ?? params.query ?? params.description ?? params.skill ?? '') as string;
         const preview = typeof summary === 'string' ? summary.split('\n')[0]?.slice(0, 120) ?? '' : '';
@@ -314,6 +315,7 @@ Dashboard:
               });
             }
           } else if (block.type === 'tool_use' && block.name) {
+            if (block.name === 'AskUserQuestion') continue;
             void eventWriter.write('log-entry', {
               timestamp: new Date().toISOString(),
               level: 'debug',
