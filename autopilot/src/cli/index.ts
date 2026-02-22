@@ -437,12 +437,15 @@ Dashboard:
       notificationManager.notify(notification);
     });
 
-    // l. Resolve dashboard dist path for SPA serving
+    // l. Install ShutdownManager (created before dashboard spawn so child cleanup can register)
+    const shutdown = new ShutdownManager();
+
+    // m. Resolve dashboard dist path for SPA serving
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const dashboardDir = join(__dirname, '..', '..', 'dashboard', 'dist');
 
-    // m. Start dashboard -- either embedded (legacy) or as a separate process
+    // n. Start dashboard -- either embedded (legacy) or as a separate process
     let responseServer: ResponseServer | null = null;
 
     if (options.embeddedServer) {
@@ -468,14 +471,22 @@ Dashboard:
         },
       );
       child.unref();
+
+      // Kill detached dashboard server on shutdown
+      shutdown.register(async () => {
+        if (child.pid && !child.killed) {
+          try {
+            process.kill(child.pid);
+          } catch {
+            // Already exited -- ignore
+          }
+        }
+      });
     }
 
     if (!options.quiet) {
       console.log(`Dashboard server: http://localhost:${config.port}`);
     }
-
-    // n. Install ShutdownManager
-    const shutdown = new ShutdownManager();
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing stream logger on shutdown');
       await streamLogger.flush();
