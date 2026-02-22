@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'node:events';
 import { execFile } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
 import type { AutopilotState, PhaseState, PhaseStep } from '../types/state.js';
@@ -200,6 +200,38 @@ export class Orchestrator extends EventEmitter {
 
     // Ensure the project directory is a git repo (Claude Code requires it)
     await this.ensureGitRepo();
+
+    // Check if a previous run left a usable ROADMAP.md — reuse it instead of re-running init
+    try {
+      const existingPhases = await extractPhases(this.projectDir);
+      if (existingPhases.length > 0) {
+        this.logger.log('info', 'orchestrator', 'Reusing existing ROADMAP.md', {
+          phases: existingPhases.length,
+        });
+        const phases: PhaseState[] = existingPhases.map(toPhaseState);
+        const firstPhaseNumber = phases[0]!.number;
+        await this.stateStore.setState({
+          phases,
+          status: 'running',
+          currentPhase: firstPhaseNumber,
+        });
+        return;
+      }
+    } catch {
+      // ROADMAP.md missing or unparseable — proceed with fresh init
+    }
+
+    // Remove stale PROJECT.md/config.json so /gsd:new-project doesn't refuse
+    const projectMdPath = join(this.projectDir, '.planning', 'PROJECT.md');
+    const configJsonPath = join(this.projectDir, '.planning', 'config.json');
+    for (const staleFile of [projectMdPath, configJsonPath]) {
+      try {
+        await unlink(staleFile);
+        this.logger.log('info', 'orchestrator', `Removed stale ${staleFile}`);
+      } catch {
+        // File doesn't exist — fine
+      }
+    }
 
     // Run init command (high maxTurns: new-project spawns researchers + synthesizer + roadmapper)
     const initResult = await this.executeWithRetry(
