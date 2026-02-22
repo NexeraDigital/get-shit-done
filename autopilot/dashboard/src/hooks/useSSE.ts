@@ -149,7 +149,7 @@ export function useSSE(): void {
     // Poll status + phases every 3s to catch state changes that don't emit SSE events
     // (e.g., init completing and phases being loaded, step transitions within a phase)
     const pollTimer = setInterval(() => {
-      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchQuestions()]).then(([s, p, q]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -158,6 +158,7 @@ export function useSSE(): void {
           progress: s.progress,
         });
         st.setPhases(p.phases);
+        st.setQuestions(q.questions);
       }).catch(() => { /* ignore poll failures */ });
     }, 3000);
 
