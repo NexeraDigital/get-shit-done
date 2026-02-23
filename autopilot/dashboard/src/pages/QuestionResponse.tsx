@@ -2,13 +2,15 @@
 // Renders question markdown, option cards, freeform text input, and submit flow.
 // DASH-16: User can freely change selections and freeform text before clicking Submit.
 // After submission the form is disabled and shows Submitted state.
+// Stays on page after submit — shows next question or waits for more.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import Markdown from 'react-markdown';
 import { submitAnswer } from '../api/client.js';
 import { useDashboardStore } from '../store/index.js';
 import { OptionCard } from '../components/OptionCard.js';
+import type { QuestionEvent } from '../types/index.js';
 
 export function QuestionResponse() {
   const { questionId } = useParams();
@@ -24,7 +26,28 @@ export function QuestionResponse() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!question) {
+  // After submitting, snapshot the question so the UI survives the store removing it
+  const [snapshot, setSnapshot] = useState<QuestionEvent | null>(null);
+
+  // After submitting, if a new question appears, auto-navigate to it
+  useEffect(() => {
+    if (!submitted) return;
+    const next = questions.find((q) => q.id !== questionId);
+    if (next) {
+      // Reset form state and navigate to next question
+      setAnswers({});
+      setFreeform({});
+      setSubmitted(false);
+      setError(null);
+      setSnapshot(null);
+      navigate(`/questions/${next.id}`, { replace: true });
+    }
+  }, [submitted, questions, questionId, navigate]);
+
+  // Use live question, or snapshot after submission
+  const displayQuestion = question ?? snapshot;
+
+  if (!displayQuestion) {
     return (
       <div className="max-w-3xl mx-auto p-6">
         <div className="text-center py-12">
@@ -74,8 +97,10 @@ export function QuestionResponse() {
       for (const [key, val] of Object.entries(freeform)) {
         if (val.trim()) merged[key] = val;
       }
+      // Snapshot the question before submitting so it persists in the UI
+      setSnapshot(displayQuestion);
       await submitAnswer(questionId!, merged);
-      navigate('/');
+      setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit response');
     } finally {
@@ -95,10 +120,10 @@ export function QuestionResponse() {
       </button>
 
       {/* Phase context */}
-      {question.phase != null && (
+      {displayQuestion.phase != null && (
         <div className="text-sm text-gray-500 mb-2">
-          Phase {question.phase}
-          {question.step ? ` / ${question.step}` : ''}
+          Phase {displayQuestion.phase}
+          {displayQuestion.step ? ` / ${displayQuestion.step}` : ''}
         </div>
       )}
 
@@ -109,7 +134,7 @@ export function QuestionResponse() {
       {/* Success banner */}
       {submitted && (
         <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-6">
-          Response submitted. The build will continue.
+          Response submitted. Waiting for next question...
         </div>
       )}
 
@@ -121,7 +146,7 @@ export function QuestionResponse() {
       )}
 
       {/* Question items */}
-      {question.questions.map((q) => (
+      {displayQuestion.questions.map((q) => (
         <div
           key={q.question}
           className="border border-gray-200 rounded-lg p-6 mb-6 bg-white"
