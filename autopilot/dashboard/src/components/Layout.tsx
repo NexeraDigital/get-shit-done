@@ -1,13 +1,14 @@
 // Layout shell: shared header with nav, connection indicator, SSE hook, and initial data fetch.
 
 import { useEffect } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, Link } from 'react-router';
 import { useSSE } from '../hooks/useSSE.js';
 import { useDashboardStore } from '../store/index.js';
 import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
 
 export function Layout() {
   const connected = useDashboardStore((s) => s.connected);
+  const questions = useDashboardStore((s) => s.questions);
 
   // Establish SSE connection once for the entire app
   useSSE();
@@ -28,6 +29,9 @@ export function Layout() {
       },
     );
   }, []);
+
+  const hasQuestions = questions.length > 0;
+  const firstQuestion = hasQuestions ? questions[0]! : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,8 +84,38 @@ export function Layout() {
         </div>
       </header>
 
-      {/* Main content area (offset for fixed header) */}
-      <main className="pt-14">
+      {/* Alert bar (fixed below header) */}
+      {!connected ? (
+        <div className="fixed top-14 left-0 right-0 z-40 bg-red-50 border-b border-red-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 py-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-sm font-semibold text-red-800">
+                Disconnected from autopilot server
+              </span>
+              <span className="text-xs text-red-600 ml-auto">Reconnecting&hellip;</span>
+            </div>
+          </div>
+        </div>
+      ) : hasQuestions ? (
+        <div className="fixed top-14 left-0 right-0 z-40 bg-amber-50 border-b border-amber-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Link
+              to={`/questions/${firstQuestion!.id}`}
+              className="flex items-center gap-3 py-2 hover:bg-amber-100 transition-colors -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+            >
+              <span className="text-amber-600 text-lg" role="img" aria-label="bell">&#128276;</span>
+              <span className="text-sm font-semibold text-amber-800">
+                {questions.length} {questions.length === 1 ? 'question needs' : 'questions need'} your attention
+              </span>
+              <span className="text-xs text-amber-600 ml-auto">&rarr; Click to respond</span>
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Main content area (offset for fixed header + optional alert bar) */}
+      <main className={!connected || hasQuestions ? 'pt-24' : 'pt-14'}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Outlet />
         </div>

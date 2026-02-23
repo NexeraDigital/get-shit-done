@@ -4,7 +4,6 @@
 import { useDashboardStore } from '../store/index.js';
 import { ProgressBar } from '../components/ProgressBar.js';
 import { PhaseCard } from '../components/PhaseCard.js';
-import { QuestionBadge } from '../components/QuestionBadge.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
 import { LogStream } from '../components/LogStream.js';
 
@@ -13,7 +12,6 @@ export function Overview() {
   const progress = useDashboardStore((s) => s.progress);
   const phases = useDashboardStore((s) => s.phases);
   const currentPhase = useDashboardStore((s) => s.currentPhase);
-  const questions = useDashboardStore((s) => s.questions);
   const activities = useDashboardStore((s) => s.activities);
   const logs = useDashboardStore((s) => s.logs);
 
@@ -24,7 +22,7 @@ export function Overview() {
         <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
       </div>
 
-      {/* Middle row: Phase card (2/3) + Question badge (1/3) */}
+      {/* Middle row: Phase card (2/3) + Activity feed (1/3) */}
       <div className="lg:col-span-2">
         <PhaseCard
           phases={phases}
@@ -32,14 +30,11 @@ export function Overview() {
         />
       </div>
       <div className="lg:col-span-1">
-        <QuestionBadge questions={questions} />
-      </div>
-
-      {/* Bottom row: Activity feed (left) + Log stream (right) */}
-      <div className="lg:col-span-1">
         <ActivityFeed activities={activities} />
       </div>
-      <div className="lg:col-span-2">
+
+      {/* Bottom row: Log stream (full width) */}
+      <div className="lg:col-span-3">
         <LogStream logs={logs} collapsible={true} />
       </div>
     </div>

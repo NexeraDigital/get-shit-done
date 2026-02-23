@@ -154,6 +154,9 @@ Dashboard:
       }
     } else {
       stateStore = StateStore.createFresh(projectDir);
+      // Persist fresh state immediately to clear stale data (e.g. pending questions)
+      // from previous runs before the dashboard starts reading the state file.
+      await stateStore.setState({});
     }
 
     // f. Determine verbosity level from config
