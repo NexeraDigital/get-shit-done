@@ -16,26 +16,27 @@ export function Overview() {
   const logs = useDashboardStore((s) => s.logs);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Top row: Progress bar (full width) */}
-      <div className="lg:col-span-3">
-        <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* Progress bar (full width) */}
+      <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
 
-      {/* Middle row: Phase card (2/3) + Activity feed (1/3) */}
-      <div className="lg:col-span-2">
-        <PhaseCard
-          phases={phases}
-          currentPhase={currentPhase}
-        />
-      </div>
-      <div className="lg:col-span-1">
-        <ActivityFeed activities={activities} />
-      </div>
+      {/* Main content: Left column (Phases + Logs) | Right column (Activity feed spanning both) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column: Phases then Logs stacked */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          <PhaseCard
+            phases={phases}
+            currentPhase={currentPhase}
+          />
+          <LogStream logs={logs} collapsible={true} />
+        </div>
 
-      {/* Bottom row: Log stream (full width) */}
-      <div className="lg:col-span-3">
-        <LogStream logs={logs} collapsible={true} />
+        {/* Right column: Activity feed pinned to viewport height */}
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] flex flex-col">
+            <ActivityFeed activities={activities} />
+          </div>
+        </div>
       </div>
     </div>
   );

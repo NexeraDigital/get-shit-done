@@ -1,7 +1,7 @@
 // Layout shell: shared header with nav, connection indicator, SSE hook, and initial data fetch.
 
 import { useEffect } from 'react';
-import { NavLink, Outlet, Link } from 'react-router';
+import { NavLink, Outlet, Link, useLocation } from 'react-router';
 import { useSSE } from '../hooks/useSSE.js';
 import { useDashboardStore } from '../store/index.js';
 import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
@@ -32,7 +32,10 @@ export function Layout() {
     );
   }, []);
 
+  const location = useLocation();
+  const onQuestionPage = location.pathname.startsWith('/questions/');
   const hasQuestions = questions.length > 0;
+  const showQuestionBanner = hasQuestions && !onQuestionPage;
   const firstQuestion = hasQuestions ? questions[0]! : null;
 
   return (
@@ -117,7 +120,7 @@ export function Layout() {
             </div>
           </div>
         </div>
-      ) : hasQuestions ? (
+      ) : showQuestionBanner ? (
         <div className="fixed top-14 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-orange-500 shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
@@ -139,7 +142,7 @@ export function Layout() {
       ) : null}
 
       {/* Main content area (offset for fixed header + optional alert bar) */}
-      <main className={!connected || !autopilotAlive || hasQuestions ? 'pt-24' : 'pt-14'}>
+      <main className={!connected || !autopilotAlive || showQuestionBanner ? 'pt-24' : 'pt-14'}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Outlet />
         </div>
