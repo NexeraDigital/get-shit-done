@@ -325,6 +325,9 @@ export class Orchestrator extends EventEmitter {
 
     // Update state to mark phase as current and in-progress
     phase.status = 'in_progress';
+    if (!phase.startedAt) {
+      phase.startedAt = new Date().toISOString();
+    }
     await this.stateStore.setState({
       currentPhase: phase.number,
       status: 'running',
