@@ -59,7 +59,7 @@ export function QuestionResponse() {
         if (val.trim()) merged[key] = val;
       }
       await submitAnswer(questionId!, merged);
-      setSubmitted(true);
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit response');
     } finally {

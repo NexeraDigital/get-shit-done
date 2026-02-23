@@ -41,15 +41,51 @@ describe('StreamRenderer', () => {
       expect(output.text()).toContain('Hello world');
     });
 
-    it('writes tool name on content_block_start for tool_use', () => {
+    it('writes tool name with summary on content_block_stop', () => {
       renderer.render({
         type: 'stream_event',
         event: {
           type: 'content_block_start',
-          content_block: { type: 'tool_use', name: 'Read' },
+          content_block: { type: 'tool_use', name: 'Read', id: 'tu_r1' },
         },
       });
+      // Header is deferred until content_block_stop
+      expect(output.text()).toBe('');
+      renderer.render({
+        type: 'stream_event',
+        event: {
+          type: 'content_block_delta',
+          delta: { type: 'input_json_delta', partial_json: '{"file_path":"src/index.ts"}' },
+        },
+      });
+      renderer.render({
+        type: 'stream_event',
+        event: { type: 'content_block_stop' },
+      });
       expect(output.text()).toContain('[Read]');
+      expect(output.text()).toContain('src/index.ts');
+    });
+
+    it('suppresses tool header when there is no summary', () => {
+      renderer.render({
+        type: 'stream_event',
+        event: {
+          type: 'content_block_start',
+          content_block: { type: 'tool_use', name: 'TaskOutput', id: 'tu_to1' },
+        },
+      });
+      renderer.render({
+        type: 'stream_event',
+        event: {
+          type: 'content_block_delta',
+          delta: { type: 'input_json_delta', partial_json: '{"task_id":"abc"}' },
+        },
+      });
+      renderer.render({
+        type: 'stream_event',
+        event: { type: 'content_block_stop' },
+      });
+      expect(output.text()).toBe('');
     });
 
     it('stops spinner on text content', () => {
@@ -386,14 +422,14 @@ describe('StreamRenderer', () => {
         type: 'stream_event',
         event: { type: 'content_block_stop' },
       });
-      // Just has the tool name, no summary (graceful degradation)
-      expect(output.text()).toContain('[Bash]');
+      // With malformed JSON, no summary is extracted so header is suppressed
+      expect(output.text()).toBe('');
     });
 
-    it('shows empty summary for unknown tools', () => {
+    it('suppresses header for unknown tools with no summary', () => {
       const text = renderToolUse(renderer, output, 'CustomTool', { foo: 'bar' });
-      expect(text).toContain('[CustomTool]');
-      // No parameter summary for unknown tools — just the name
+      // Unknown tools produce no summary, so the header line is suppressed entirely
+      expect(text).not.toContain('[CustomTool]');
       expect(text).not.toContain('bar');
     });
   });

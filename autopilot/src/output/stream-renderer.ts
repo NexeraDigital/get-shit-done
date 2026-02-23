@@ -25,7 +25,7 @@ interface WritableOutput {
 export class StreamRenderer {
   private spinner: Ora | null = null;
   private readonly agentMap: Map<string, { name: string }> = new Map();
-  private currentToolBlock: { name: string; id: string; input: string } | null = null;
+  private currentToolBlock: { name: string; id: string; input: string; headerWritten: boolean } | null = null;
   private streamedParentIds = new Set<string>();
   private readonly verbosity: VerbosityLevel;
   private readonly output: WritableOutput;
@@ -118,13 +118,12 @@ export class StreamRenderer {
         if (block.type === 'tool_use') {
           const toolName = block.name ?? '';
           if (this.suppressedTools.has(toolName)) {
-            this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '' };
+            this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '', headerWritten: false };
             break;
           }
           this.stopSpinner();
-          this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '' };
+          this.currentToolBlock = { name: toolName, id: block.id ?? '', input: '', headerWritten: false };
           this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
-          this.write(palette.toolName(`\n[${toolName}] `));
         } else if (block.type === 'text') {
           this.stopSpinner();
           this.streamedParentIds.add(msg.parent_tool_use_id ?? '__root__');
@@ -157,6 +156,9 @@ export class StreamRenderer {
           }
           const summary = this.extractToolSummary(this.currentToolBlock.name, this.currentToolBlock.input);
           if (summary) {
+            if (!this.currentToolBlock.headerWritten) {
+              this.write(palette.toolName(`\n[${this.currentToolBlock.name}] `));
+            }
             this.write(palette.dim(summary) + '\n');
           }
           // For Task tools, register agent in agentMap for sub-agent prefix coloring
