@@ -365,6 +365,41 @@ export class Orchestrator extends EventEmitter {
   }
 
   // ---------------------------------------------------------------------------
+  // Private: Git commit tracking
+  // ---------------------------------------------------------------------------
+
+  private async getGitHead(): Promise<string | null> {
+    return new Promise((resolve) => {
+      execFile('git', ['rev-parse', 'HEAD'], { cwd: this.projectDir }, (err, stdout) => {
+        if (err) resolve(null);
+        else resolve(stdout.trim());
+      });
+    });
+  }
+
+  private async getNewCommits(sinceRef: string | null): Promise<string[]> {
+    if (!sinceRef) {
+      // No prior HEAD — repo was empty before; grab all commits
+      return new Promise((resolve) => {
+        execFile('git', ['log', '--format=%H'], { cwd: this.projectDir }, (err, stdout) => {
+          if (err || !stdout.trim()) resolve([]);
+          else resolve(stdout.trim().split('\n'));
+        });
+      });
+    }
+    return new Promise((resolve) => {
+      execFile(
+        'git', ['log', '--format=%H', `${sinceRef}..HEAD`],
+        { cwd: this.projectDir },
+        (err, stdout) => {
+          if (err || !stdout.trim()) resolve([]);
+          else resolve(stdout.trim().split('\n'));
+        },
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Private: Step execution wrapper
   // ---------------------------------------------------------------------------
 
@@ -378,6 +413,9 @@ export class Orchestrator extends EventEmitter {
       await this.stateStore.setState({ status: 'idle' });
       return;
     }
+
+    // Capture git HEAD before step runs
+    const headBefore = await this.getGitHead();
 
     // Emit step:started
     this.emit('step:started', { phase: phase.number, step: stepName });
@@ -404,6 +442,17 @@ export class Orchestrator extends EventEmitter {
     if (this.shutdownRequested) {
       await this.stateStore.setState({ status: 'idle' });
       return;
+    }
+
+    // Collect any new commits made during this step
+    const newCommits = await this.getNewCommits(headBefore);
+    if (newCommits.length > 0) {
+      const existing = new Set(phase.commits);
+      for (const hash of newCommits) {
+        if (!existing.has(hash)) {
+          phase.commits.push(hash);
+        }
+      }
     }
 
     // Mark step done
