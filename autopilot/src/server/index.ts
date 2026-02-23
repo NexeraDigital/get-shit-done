@@ -8,7 +8,7 @@ import { createServer, type Server } from 'node:http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApiRoutes } from './routes/api.js';
-import type { StateProvider, QuestionProvider } from './routes/api.js';
+import type { StateProvider, QuestionProvider, LivenessProvider } from './routes/api.js';
 import { setupSSE } from './routes/sse.js';
 import type { SSEDepsInProcess, SSEDepsFileTail } from './routes/sse.js';
 import { errorHandler } from './middleware/error.js';
@@ -21,6 +21,8 @@ export type SSEOptions =
 export interface ResponseServerOptions {
   stateProvider: StateProvider;
   questionProvider: QuestionProvider;
+  /** Optional liveness check for the autopilot process (standalone mode) */
+  livenessProvider?: LivenessProvider;
   /** SSE config -- if not provided, SSE is disabled */
   sseDeps?: SSEOptions;
   /** Path to dashboard/dist/ for SPA serving. */
@@ -62,6 +64,7 @@ export class ResponseServer {
 
     let stateProvider: StateProvider;
     let questionProvider: QuestionProvider;
+    let livenessProvider: LivenessProvider | undefined;
     let sseOptions: SSEOptions | undefined;
     let dashboardDir: string | undefined;
 
@@ -79,12 +82,13 @@ export class ResponseServer {
     } else {
       stateProvider = opts.stateProvider;
       questionProvider = opts.questionProvider;
+      livenessProvider = opts.livenessProvider;
       sseOptions = opts.sseDeps;
       dashboardDir = opts.dashboardDir;
     }
 
     // Mount REST API routes at /api
-    const apiRouter = createApiRoutes({ stateProvider, questionProvider });
+    const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider });
     this.app.use('/api', apiRouter);
 
     // Mount SSE endpoint and wire events (if deps provided)

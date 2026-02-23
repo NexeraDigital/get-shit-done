@@ -43,6 +43,7 @@ program
     const server = new ResponseServer({
       stateProvider: stateReader,
       questionProvider,
+      livenessProvider: stateReader,
       sseDeps: {
         mode: 'file-tail' as const,
         eventTailer,

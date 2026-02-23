@@ -8,6 +8,7 @@ import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
 
 export function Layout() {
   const connected = useDashboardStore((s) => s.connected);
+  const autopilotAlive = useDashboardStore((s) => s.autopilotAlive);
   const questions = useDashboardStore((s) => s.questions);
 
   // Establish SSE connection once for the entire app
@@ -24,6 +25,7 @@ export function Layout() {
           currentStep: statusRes.currentStep,
           progress: statusRes.progress,
         });
+        store.setAutopilotAlive(statusRes.alive);
         store.setPhases(phasesRes.phases);
         store.setQuestions(questionsRes.questions);
       },
@@ -46,9 +48,9 @@ export function Layout() {
               </h1>
               <span
                 className={`w-2 h-2 rounded-full ${
-                  connected ? 'bg-green-400' : 'bg-red-400'
+                  !connected ? 'bg-red-400' : !autopilotAlive ? 'bg-amber-400' : 'bg-green-400'
                 }`}
-                title={connected ? 'Connected' : 'Disconnected'}
+                title={!connected ? 'Disconnected' : !autopilotAlive ? 'Autopilot stopped' : 'Connected'}
               />
             </div>
 
@@ -100,6 +102,21 @@ export function Layout() {
             </div>
           </div>
         </div>
+      ) : !autopilotAlive ? (
+        <div className="fixed top-14 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-amber-400 shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 py-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+              </span>
+              <span className="text-sm font-medium text-white">
+                Autopilot process has stopped
+              </span>
+              <span className="text-xs text-amber-100 ml-auto">Dashboard still connected</span>
+            </div>
+          </div>
+        </div>
       ) : hasQuestions ? (
         <div className="fixed top-14 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-orange-500 shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,7 +139,7 @@ export function Layout() {
       ) : null}
 
       {/* Main content area (offset for fixed header + optional alert bar) */}
-      <main className={!connected || hasQuestions ? 'pt-24' : 'pt-14'}>
+      <main className={!connected || !autopilotAlive || hasQuestions ? 'pt-24' : 'pt-14'}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Outlet />
         </div>

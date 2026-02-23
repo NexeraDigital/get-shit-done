@@ -21,6 +21,7 @@ export interface DashboardState {
   logs: LogEntry[];
   activities: ActivityItem[];
   connected: boolean;
+  autopilotAlive: boolean;
 
   // Actions
   setStatus: (
@@ -33,6 +34,7 @@ export interface DashboardState {
   addLog: (entry: LogEntry) => void;
   addActivity: (item: ActivityItem) => void;
   setConnected: (connected: boolean) => void;
+  setAutopilotAlive: (alive: boolean) => void;
   updatePhase: (phaseNumber: number, patch: Partial<PhaseState>) => void;
 }
 
@@ -47,6 +49,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   logs: [],
   activities: [],
   connected: false,
+  autopilotAlive: true,
 
   // Actions
   setStatus: (patch) => set((state) => ({ ...state, ...patch })),
@@ -66,6 +69,8 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
     })),
 
   setConnected: (connected) => set({ connected }),
+
+  setAutopilotAlive: (alive) => set({ autopilotAlive: alive }),
 
   updatePhase: (phaseNumber, patch) =>
     set((state) => ({

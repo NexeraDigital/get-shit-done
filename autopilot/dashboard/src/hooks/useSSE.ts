@@ -24,6 +24,7 @@ async function rehydrate(): Promise<void> {
       currentStep: statusRes.currentStep,
       progress: statusRes.progress,
     });
+    store.setAutopilotAlive(statusRes.alive);
     store.setPhases(phasesRes.phases);
     store.setQuestions(questionsRes.questions);
   } catch {
@@ -73,6 +74,7 @@ export function useSSE(): void {
           currentStep: s.currentStep,
           progress: s.progress,
         });
+        st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
       });
     });
@@ -93,6 +95,7 @@ export function useSSE(): void {
           currentStep: s.currentStep,
           progress: s.progress,
         });
+        st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
       });
     });
@@ -107,6 +110,7 @@ export function useSSE(): void {
           currentStep: s.currentStep,
           progress: s.progress,
         });
+        st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
       });
     });
@@ -151,12 +155,14 @@ export function useSSE(): void {
       };
       useDashboardStore.getState().addActivity(activity);
       void fetchStatus().then((s) => {
-        useDashboardStore.getState().setStatus({
+        const st = useDashboardStore.getState();
+        st.setStatus({
           status: s.status,
           currentPhase: s.currentPhase,
           currentStep: s.currentStep,
           progress: s.progress,
         });
+        st.setAutopilotAlive(s.alive);
       });
     });
 
@@ -171,6 +177,7 @@ export function useSSE(): void {
           currentStep: s.currentStep,
           progress: s.progress,
         });
+        st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
         st.setQuestions(q.questions);
       }).catch(() => { /* ignore poll failures */ });

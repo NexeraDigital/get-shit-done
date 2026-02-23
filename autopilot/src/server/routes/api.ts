@@ -18,9 +18,15 @@ export interface QuestionProvider {
   submitAnswer(questionId: string, answers: Record<string, string>): boolean;
 }
 
+/** Provides autopilot process liveness check */
+export interface LivenessProvider {
+  isAlive(): Promise<boolean>;
+}
+
 export interface ApiRouteDeps {
   stateProvider: StateProvider;
   questionProvider: QuestionProvider;
+  livenessProvider?: LivenessProvider;
 }
 
 /**
@@ -48,7 +54,7 @@ export function computeProgress(state: Readonly<AutopilotState>): number {
  * @returns Express Router mounted at /api by the ResponseServer
  */
 export function createApiRoutes(deps: ApiRouteDeps): Router {
-  const { stateProvider, questionProvider } = deps;
+  const { stateProvider, questionProvider, livenessProvider } = deps;
   const router = Router();
 
   // DASH-08: Health check
@@ -57,8 +63,9 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
   });
 
   // DASH-02: Status with progress percentage
-  router.get('/status', (_req: Request, res: Response) => {
+  router.get('/status', async (_req: Request, res: Response) => {
     const state = stateProvider.getState();
+    const alive = livenessProvider ? await livenessProvider.isAlive() : true;
     res.json({
       status: state.status,
       currentPhase: state.currentPhase,
@@ -66,6 +73,7 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       progress: computeProgress(state),
       startedAt: state.startedAt,
       lastUpdatedAt: state.lastUpdatedAt,
+      alive,
     });
   });
 
