@@ -41,7 +41,7 @@ const TYPE_COLORS: Record<ActivityItem['type'], string> = {
 export function ActivityFeed({ activities }: ActivityFeedProps) {
   if (activities.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 h-full">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">
           Recent Activity
         </h3>
@@ -51,11 +51,11 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-6 h-full flex flex-col">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">
         Recent Activity
       </h3>
-      <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
+      <div className="divide-y divide-gray-100 overflow-y-auto flex-1">
         {activities.map((activity, i) => (
           <div key={`${activity.timestamp}-${String(i)}`} className="flex items-start gap-3 py-2">
             <span
