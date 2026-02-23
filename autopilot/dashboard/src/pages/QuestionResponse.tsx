@@ -4,7 +4,7 @@
 // After submission the form is disabled and shows Submitted state.
 // Stays on page after submit — shows next question or waits for more.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import Markdown from 'react-markdown';
 import { submitAnswer } from '../api/client.js';
@@ -29,11 +29,20 @@ export function QuestionResponse() {
   // After submitting, snapshot the question so the UI survives the store removing it
   const [snapshot, setSnapshot] = useState<QuestionEvent | null>(null);
 
-  // After submitting, if a new question appears, auto-navigate to it
+  // After submitting, if a new question appears, auto-navigate to it.
+  // If all questions are answered (current removed, none remaining), wait for the
+  // autopilot to potentially send another question before returning to overview.
+  const overviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!submitted) return;
     const next = questions.find((q) => q.id !== questionId);
     if (next) {
+      // New question arrived -- cancel any pending overview navigation
+      if (overviewTimerRef.current) {
+        clearTimeout(overviewTimerRef.current);
+        overviewTimerRef.current = null;
+      }
       // Reset form state and navigate to next question
       setAnswers({});
       setFreeform({});
@@ -41,8 +50,29 @@ export function QuestionResponse() {
       setError(null);
       setSnapshot(null);
       navigate(`/questions/${next.id}`, { replace: true });
+    } else if (!questions.find((q) => q.id === questionId) && !overviewTimerRef.current) {
+      // Current question was removed and no others remain --
+      // wait 10s for a new question before going back to overview.
+      // Re-check the store at fire time in case questions arrived between renders.
+      overviewTimerRef.current = setTimeout(() => {
+        overviewTimerRef.current = null;
+        const current = useDashboardStore.getState().questions;
+        if (current.length > 0) {
+          // Questions exist -- navigate to the first one
+          navigate(`/questions/${current[0]!.id}`, { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }, 10_000);
     }
   }, [submitted, questions, questionId, navigate]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (overviewTimerRef.current) clearTimeout(overviewTimerRef.current);
+    };
+  }, []);
 
   // Use live question, or snapshot after submission
   const displayQuestion = question ?? snapshot;
