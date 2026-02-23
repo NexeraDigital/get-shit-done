@@ -51,6 +51,18 @@ export function extractPhasesFromContent(content: string): RoadmapPhase[] {
     });
   }
 
+  // Fallback: parse heading-format phases (## Phase N: Name)
+  if (phases.length === 0) {
+    const headingPattern = /^#{1,3} Phase (\d+): (.+)/gm;
+    while ((match = headingPattern.exec(content)) !== null) {
+      phases.push({
+        number: parseInt(match[1]!, 10),
+        name: match[2]!.trim(),
+        completed: false,
+      });
+    }
+  }
+
   return phases;
 }
 
@@ -219,6 +231,14 @@ export class Orchestrator extends EventEmitter {
       }
     } catch {
       // ROADMAP.md missing or unparseable — proceed with fresh init
+    }
+
+    // No usable ROADMAP.md -- a PRD is required to initialize from scratch
+    if (!prdPath) {
+      throw new Error(
+        'No PRD provided and no existing ROADMAP.md found in .planning/. ' +
+        'Provide --prd <path> to initialize, or ensure .planning/ROADMAP.md exists.',
+      );
     }
 
     // Remove stale PROJECT.md/config.json so /gsd:new-project doesn't refuse

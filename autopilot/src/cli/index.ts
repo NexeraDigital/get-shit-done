@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { resolve } from 'node:path';
-import { access } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -38,15 +38,15 @@ const program = new Command();
 
 program
   .name('gsd-autopilot')
-  .description('Autonomous GSD workflow orchestrator -- turns a PRD into a built project')
+  .description('Autonomous GSD workflow orchestrator')
   .version('0.1.0')
   .showHelpAfterError('(run gsd-autopilot --help for usage information)')
   .addHelpText('after', `
 Examples:
-  $ gsd-autopilot --prd ./idea.md
-  $ gsd-autopilot --resume
-  $ gsd-autopilot --prd ./spec.md --notify teams --webhook-url https://...
-  $ gsd-autopilot --prd ./plan.md --phases 1-3,5 --depth comprehensive
+  $ gsd-autopilot --prd ./idea.md           # New project from PRD
+  $ gsd-autopilot                            # Run with existing .planning/
+  $ gsd-autopilot --resume                   # Resume from last checkpoint
+  $ gsd-autopilot --prd ./spec.md --phases 1-3,5
 
 Dashboard:
   http://localhost:3847 (configurable with --port)
@@ -83,14 +83,30 @@ Dashboard:
   }) => {
     // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
-      // No args provided -- launch interactive setup wizard (per user decision)
-      const wizardResult = await runSetupWizard();
-      options.prd = wizardResult.prdPath;
-      options.notify = wizardResult.notify;
-      options.model = wizardResult.model;
-      options.depth = wizardResult.depth;
-      if (wizardResult.webhookUrl) {
-        options.webhookUrl = wizardResult.webhookUrl;
+      // Check if existing .planning/ROADMAP.md has phases -- no PRD needed
+      const projectDir = process.cwd();
+      let hasExistingPlanning = false;
+      try {
+        const roadmapPath = join(projectDir, '.planning', 'ROADMAP.md');
+        const content = await readFile(roadmapPath, 'utf-8');
+        // Quick check: does it contain phase entries?
+        // Match both checkbox format (- [ ] **Phase N:) and heading format (## Phase N:)
+        hasExistingPlanning = /^- \[[ x]\] \*\*Phase \d+:/m.test(content)
+          || /^#{1,3} Phase \d+:/m.test(content);
+      } catch {
+        // ROADMAP.md doesn't exist
+      }
+
+      if (!hasExistingPlanning) {
+        // No existing planning -- launch interactive setup wizard
+        const wizardResult = await runSetupWizard();
+        options.prd = wizardResult.prdPath;
+        options.notify = wizardResult.notify;
+        options.model = wizardResult.model;
+        options.depth = wizardResult.depth;
+        if (wizardResult.webhookUrl) {
+          options.webhookUrl = wizardResult.webhookUrl;
+        }
       }
     }
 

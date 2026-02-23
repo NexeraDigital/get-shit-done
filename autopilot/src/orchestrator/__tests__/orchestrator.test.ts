@@ -531,4 +531,22 @@ describe('extractPhasesFromContent', () => {
     const phases = extractPhasesFromContent('# Just a heading');
     expect(phases).toEqual([]);
   });
+
+  it('parses phases from heading-format ROADMAP.md', () => {
+    const content = `# ROADMAP: Hello World CLI
+
+## Phase 1: Hello World (Core Greeting)
+
+**Goal:** Users can run the CLI and receive a customized greeting.
+
+## Phase 2: CLI Polish (Help & Error Handling)
+
+**Goal:** Users have clear guidance on CLI usage.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases).toHaveLength(2);
+    expect(phases[0]).toEqual({ number: 1, name: 'Hello World (Core Greeting)', completed: false });
+    expect(phases[1]).toEqual({ number: 2, name: 'CLI Polish (Help & Error Handling)', completed: false });
+  });
 });
