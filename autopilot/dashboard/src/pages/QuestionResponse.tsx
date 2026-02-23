@@ -17,7 +17,8 @@ export function QuestionResponse() {
   const question = questions.find((q) => q.id === questionId);
 
   // Local form state -- user can change answers before submitting (DASH-16)
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Multi-select questions store arrays; single-select stores single strings.
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [freeform, setFreeform] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -38,9 +39,20 @@ export function QuestionResponse() {
     );
   }
 
-  const handleSelectOption = (questionText: string, label: string) => {
+  const handleSelectOption = (questionText: string, label: string, multiSelect: boolean) => {
     if (submitted || submitting) return;
-    setAnswers((prev) => ({ ...prev, [questionText]: label }));
+    if (multiSelect) {
+      setAnswers((prev) => {
+        const current = prev[questionText];
+        const selected = Array.isArray(current) ? current : [];
+        const next = selected.includes(label)
+          ? selected.filter((l) => l !== label)
+          : [...selected, label];
+        return { ...prev, [questionText]: next };
+      });
+    } else {
+      setAnswers((prev) => ({ ...prev, [questionText]: label }));
+    }
   };
 
   const handleFreeformChange = (questionText: string, value: string) => {
@@ -54,7 +66,11 @@ export function QuestionResponse() {
     try {
       // Merge option selections with freeform text.
       // Freeform takes priority if non-empty.
-      const merged: Record<string, string> = { ...answers };
+      // Multi-select arrays are joined to comma-separated strings for the API.
+      const merged: Record<string, string> = {};
+      for (const [key, val] of Object.entries(answers)) {
+        merged[key] = Array.isArray(val) ? val.join(', ') : val;
+      }
       for (const [key, val] of Object.entries(freeform)) {
         if (val.trim()) merged[key] = val;
       }
@@ -125,16 +141,22 @@ export function QuestionResponse() {
           {/* Option cards grid */}
           {q.options.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              {q.options.map((opt) => (
-                <OptionCard
-                  key={opt.label}
-                  label={opt.label}
-                  description={opt.description}
-                  selected={answers[q.question] === opt.label}
-                  disabled={submitted || submitting}
-                  onClick={() => { handleSelectOption(q.question, opt.label); }}
-                />
-              ))}
+              {q.options.map((opt) => {
+                const ans = answers[q.question];
+                const isSelected = Array.isArray(ans)
+                  ? ans.includes(opt.label)
+                  : ans === opt.label;
+                return (
+                  <OptionCard
+                    key={opt.label}
+                    label={opt.label}
+                    description={opt.description}
+                    selected={isSelected}
+                    disabled={submitted || submitting}
+                    onClick={() => { handleSelectOption(q.question, opt.label, q.multiSelect); }}
+                  />
+                );
+              })}
             </div>
           )}
 
