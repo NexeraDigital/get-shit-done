@@ -169,3 +169,12 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
 | 7. CLI Polish and Distribution | 0/3 | Not started | - |
+
+### Phase 8: Autopilot should be able to be executed by using a claude command
+
+**Goal:** [To be planned]
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8 to break down)

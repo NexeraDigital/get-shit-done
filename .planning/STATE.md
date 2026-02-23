@@ -138,6 +138,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 03.1 inserted after Phase 3: Display claude console output to parent node process so users can see whats happening (URGENT)
+- Phase 8 added: Autopilot should be able to be executed by using a claude command
 
 ### Pending Todos
 
