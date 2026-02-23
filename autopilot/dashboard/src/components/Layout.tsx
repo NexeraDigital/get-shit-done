@@ -86,29 +86,36 @@ export function Layout() {
 
       {/* Alert bar (fixed below header) */}
       {!connected ? (
-        <div className="fixed top-14 left-0 right-0 z-40 bg-red-50 border-b border-red-200 shadow-sm">
+        <div className="fixed top-14 left-0 right-0 z-40 bg-gradient-to-r from-red-600 to-red-500 shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm font-semibold text-red-800">
+            <div className="flex items-center gap-3 py-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-300 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+              </span>
+              <span className="text-sm font-medium text-white">
                 Disconnected from autopilot server
               </span>
-              <span className="text-xs text-red-600 ml-auto">Reconnecting&hellip;</span>
+              <span className="text-xs text-red-200 ml-auto">Reconnecting&hellip;</span>
             </div>
           </div>
         </div>
       ) : hasQuestions ? (
-        <div className="fixed top-14 left-0 right-0 z-40 bg-amber-50 border-b border-amber-200 shadow-sm">
+        <div className="fixed top-14 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-orange-500 shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
               to={`/questions/${firstQuestion!.id}`}
-              className="flex items-center gap-3 py-2 hover:bg-amber-100 transition-colors -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+              className="flex items-center gap-3 py-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 group"
             >
-              <span className="text-amber-600 text-lg" role="img" aria-label="bell">&#128276;</span>
-              <span className="text-sm font-semibold text-amber-800">
-                {questions.length} {questions.length === 1 ? 'question needs' : 'questions need'} your attention
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm">
+                <span className="text-white text-xs font-bold">{questions.length}</span>
               </span>
-              <span className="text-xs text-amber-600 ml-auto">&rarr; Click to respond</span>
+              <span className="text-sm font-medium text-white">
+                {questions.length === 1 ? 'question needs' : 'questions need'} your attention
+              </span>
+              <span className="text-xs text-white/70 ml-auto group-hover:text-white transition-colors">
+                Click to respond &rarr;
+              </span>
             </Link>
           </div>
         </div>
