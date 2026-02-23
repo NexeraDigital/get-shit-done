@@ -102,6 +102,9 @@ export function setupSSE(deps: SSEDeps): {
     orchestrator.on('phase:completed', (data: unknown) =>
       broadcast('phase-completed', data),
     );
+    orchestrator.on('step:completed', (data: unknown) =>
+      broadcast('step-completed', data),
+    );
     orchestrator.on('build:complete', () => broadcast('build-complete', {}));
     orchestrator.on('error:escalation', (data: unknown) =>
       broadcast('error', data),

@@ -7,7 +7,7 @@ import { execFile } from 'node:child_process';
 import { readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
-import type { AutopilotState, PhaseState, PhaseStep } from '../types/state.js';
+import type { AutopilotState, CommitInfo, PhaseState, PhaseStep } from '../types/state.js';
 import type { CommandResult } from '../claude/types.js';
 import type { StateStore } from '../state/index.js';
 import type { ClaudeService } from '../claude/index.js';
@@ -377,23 +377,31 @@ export class Orchestrator extends EventEmitter {
     });
   }
 
-  private async getNewCommits(sinceRef: string | null): Promise<string[]> {
+  private async getNewCommits(sinceRef: string | null): Promise<CommitInfo[]> {
+    const SEP = '<<GSD_SEP>>';
+    const format = `%H${SEP}%s`;
+    const parseOutput = (stdout: string): CommitInfo[] =>
+      stdout.trim().split('\n').filter(Boolean).map((line) => {
+        const [hash = '', message = ''] = line.split(SEP);
+        return { hash, message };
+      });
+
     if (!sinceRef) {
       // No prior HEAD — repo was empty before; grab all commits
       return new Promise((resolve) => {
-        execFile('git', ['log', '--format=%H'], { cwd: this.projectDir }, (err, stdout) => {
+        execFile('git', ['log', `--format=${format}`], { cwd: this.projectDir }, (err, stdout) => {
           if (err || !stdout.trim()) resolve([]);
-          else resolve(stdout.trim().split('\n'));
+          else resolve(parseOutput(stdout));
         });
       });
     }
     return new Promise((resolve) => {
       execFile(
-        'git', ['log', '--format=%H', `${sinceRef}..HEAD`],
+        'git', ['log', `--format=${format}`, `${sinceRef}..HEAD`],
         { cwd: this.projectDir },
         (err, stdout) => {
           if (err || !stdout.trim()) resolve([]);
-          else resolve(stdout.trim().split('\n'));
+          else resolve(parseOutput(stdout));
         },
       );
     });
@@ -447,10 +455,10 @@ export class Orchestrator extends EventEmitter {
     // Collect any new commits made during this step
     const newCommits = await this.getNewCommits(headBefore);
     if (newCommits.length > 0) {
-      const existing = new Set(phase.commits);
-      for (const hash of newCommits) {
-        if (!existing.has(hash)) {
-          phase.commits.push(hash);
+      const existing = new Set(phase.commits.map((c) => c.hash));
+      for (const commit of newCommits) {
+        if (!existing.has(commit.hash)) {
+          phase.commits.push(commit);
         }
       }
     }

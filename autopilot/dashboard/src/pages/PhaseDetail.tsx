@@ -159,9 +159,10 @@ export function PhaseDetail() {
             <p className="text-sm text-gray-400">No commits recorded</p>
           ) : (
             <ul className="space-y-2">
-              {phase.commits.map((hash) => (
-                <li key={hash} className="font-mono text-sm text-gray-700">
-                  {hash}
+              {phase.commits.map((commit) => (
+                <li key={commit.hash} className="text-sm flex items-baseline gap-2">
+                  <code className="text-xs text-gray-400 shrink-0">{commit.hash.slice(0, 7)}</code>
+                  <span className="text-gray-700">{commit.message || commit.hash}</span>
                 </li>
               ))}
             </ul>

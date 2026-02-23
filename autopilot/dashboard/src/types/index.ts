@@ -26,6 +26,11 @@ export type PhaseStatus =
   | 'failed'
   | 'skipped';
 
+export type CommitInfo = {
+  hash: string;
+  message: string;
+};
+
 export type PhaseState = {
   number: number;
   name: string;
@@ -38,7 +43,7 @@ export type PhaseState = {
   };
   startedAt?: string;
   completedAt?: string;
-  commits: string[];
+  commits: CommitInfo[];
   gapIterations: number;
 };
 

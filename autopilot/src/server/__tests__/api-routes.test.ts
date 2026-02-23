@@ -24,7 +24,7 @@ const fakeState: AutopilotState = {
       name: 'Foundation',
       status: 'completed',
       steps: { discuss: 'done', plan: 'done', execute: 'done', verify: 'done' },
-      commits: ['abc123'],
+      commits: [{ hash: 'abc123', message: 'initial commit' }],
       gapIterations: 0,
       startedAt: '2026-01-01T00:00:00Z',
       completedAt: '2026-01-01T01:00:00Z',

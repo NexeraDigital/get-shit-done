@@ -47,7 +47,13 @@ const PhaseStateSchema = z.object({
   }),
   startedAt: z.string().optional(),
   completedAt: z.string().optional(),
-  commits: z.array(z.string()),
+  commits: z.array(
+    z.union([
+      z.object({ hash: z.string(), message: z.string() }),
+      // Backwards compat: migrate bare string hashes from older state files
+      z.string().transform((hash) => ({ hash, message: '' })),
+    ]),
+  ),
   gapIterations: z.number(),
 });
 

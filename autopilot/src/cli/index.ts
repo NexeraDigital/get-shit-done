@@ -265,6 +265,9 @@ Dashboard:
     orchestrator.on('phase:completed', (data: unknown) => {
       void eventWriter.write('phase-completed', data);
     });
+    orchestrator.on('step:completed', (data: unknown) => {
+      void eventWriter.write('step-completed', data);
+    });
     orchestrator.on('build:complete', () => {
       void eventWriter.write('build-complete', {});
     });
@@ -284,10 +287,18 @@ Dashboard:
     // Wire SDK messages to EventWriter as log-entry events for dashboard live logs.
     // Converts meaningful message types (tool use, assistant text) to LogEntry format.
     // Skips noisy stream_event text deltas to prevent log bloat.
+    // Track tool_use IDs already logged from assistant messages to avoid duplicates with tool_use_summary
+    const loggedToolUseIds = new Set<string>();
+
     claudeService.on('message', (message: unknown) => {
-      const msg = message as { type?: string; subtype?: string; tool_name?: string; parameters?: Record<string, unknown>; message?: { content?: Array<{ type?: string; text?: string; name?: string }> }; parent_tool_use_id?: string | null; event?: { type?: string; content_block?: { type?: string; name?: string }; delta?: { type?: string } } };
+      const msg = message as { type?: string; subtype?: string; tool_name?: string; tool_use_id?: string; parameters?: Record<string, unknown>; message?: { content?: Array<{ type?: string; text?: string; name?: string; id?: string }> }; parent_tool_use_id?: string | null; event?: { type?: string; content_block?: { type?: string; name?: string }; delta?: { type?: string } } };
 
       if (msg.type === 'tool_use_summary') {
+        // Skip if already logged from assistant message
+        if (msg.tool_use_id && loggedToolUseIds.has(msg.tool_use_id)) {
+          loggedToolUseIds.delete(msg.tool_use_id);
+          return;
+        }
         const toolName = msg.tool_name ?? 'unknown';
         if (toolName === 'AskUserQuestion') return;
         const params = msg.parameters ?? {};
@@ -297,7 +308,7 @@ Dashboard:
           timestamp: new Date().toISOString(),
           level: 'info',
           component: 'claude',
-          message: `[${toolName}] ${preview}`,
+          message: `[${toolName}] ${preview}`.trimEnd(),
         });
       } else if (msg.type === 'assistant' && msg.message?.content) {
         for (const block of msg.message.content) {
@@ -313,11 +324,15 @@ Dashboard:
             }
           } else if (block.type === 'tool_use' && block.name) {
             if (block.name === 'AskUserQuestion') continue;
+            const input = (block as { input?: Record<string, unknown> }).input ?? {};
+            const summary = (input.file_path ?? input.command ?? input.pattern ?? input.query ?? input.description ?? input.skill ?? '') as string;
+            const preview = typeof summary === 'string' ? summary.split('\n')[0]?.slice(0, 120) ?? '' : '';
+            if (block.id) loggedToolUseIds.add(block.id);
             void eventWriter.write('log-entry', {
               timestamp: new Date().toISOString(),
-              level: 'debug',
+              level: 'info',
               component: 'claude',
-              message: `[${block.name}]`,
+              message: `[${block.name}] ${preview}`.trimEnd(),
             });
           }
         }
@@ -350,13 +365,24 @@ Dashboard:
       void stateStore.setState({ pendingQuestions });
     });
 
-    // Wire question:answered -> update state file
+    // Wire question:answered -> update state file + log selected answers
     claudeService.on('question:answered', ({ id, answers }: { id: string; answers: Record<string, string> }) => {
       const state = stateStore.getState();
       const pendingQuestions = state.pendingQuestions.map(q =>
         q.id === id ? { ...q, answeredAt: new Date().toISOString(), answers } : q,
       );
       void stateStore.setState({ pendingQuestions });
+
+      // Log each answered question with the selected option
+      for (const [question, answer] of Object.entries(answers)) {
+        const short = question.length > 80 ? question.slice(0, 77) + '...' : question;
+        void eventWriter.write('log-entry', {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          component: 'claude',
+          message: `[Answer] ${short} -> ${answer}`,
+        });
+      }
     });
 
     // Wire question:pending -> notification dispatch + reminder

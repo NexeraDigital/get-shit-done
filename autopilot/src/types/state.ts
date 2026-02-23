@@ -50,6 +50,11 @@ export interface PendingQuestion {
   questionItems?: QuestionItemState[];
 }
 
+export interface CommitInfo {
+  hash: string;
+  message: string;
+}
+
 export interface PhaseState {
   number: number;
   name: string;
@@ -62,7 +67,7 @@ export interface PhaseState {
   };
   startedAt?: string;
   completedAt?: string;
-  commits: string[];
+  commits: CommitInfo[];
   gapIterations: number;
 }
 

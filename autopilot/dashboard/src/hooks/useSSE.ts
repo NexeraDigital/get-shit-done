@@ -97,6 +97,20 @@ export function useSSE(): void {
       });
     });
 
+    // Step completed — refresh phases to pick up new commits immediately
+    es.addEventListener('step-completed', () => {
+      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+        const st = useDashboardStore.getState();
+        st.setStatus({
+          status: s.status,
+          currentPhase: s.currentPhase,
+          currentStep: s.currentStep,
+          progress: s.progress,
+        });
+        st.setPhases(p.phases);
+      });
+    });
+
     // Questions
     es.addEventListener('question-pending', (e: MessageEvent) => {
       const data = JSON.parse(e.data as string) as { id?: string };
