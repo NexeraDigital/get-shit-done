@@ -211,7 +211,10 @@ export class StreamRenderer {
       } else if (block.type === 'tool_use' && block.name) {
         if (this.suppressedTools.has(block.name)) continue;
         this.stopSpinner();
-        this.write(palette.toolName(`\n[${block.name}] `));
+        const rawInput = (block as { input?: unknown }).input;
+        const inputJson = rawInput ? JSON.stringify(rawInput) : '';
+        const summary = this.extractToolSummary(block.name, inputJson);
+        this.write(palette.toolName(`\n[${block.name}]`) + (summary ? ' ' + palette.dim(summary) : '') + '\n');
       }
     }
   }

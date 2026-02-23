@@ -238,6 +238,20 @@ describe('StreamRenderer', () => {
         type: 'assistant',
         message: {
           content: [
+            { type: 'tool_use', name: 'Bash', input: { command: 'git status' } },
+          ],
+        },
+      });
+
+      expect(output.text()).toContain('[Bash]');
+      expect(output.text()).toContain('git status');
+    });
+
+    it('renders tool_use without summary when input is missing', () => {
+      renderer.render({
+        type: 'assistant',
+        message: {
+          content: [
             { type: 'tool_use', name: 'Bash' },
           ],
         },
