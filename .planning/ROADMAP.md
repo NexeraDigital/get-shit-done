@@ -218,3 +218,15 @@ Plans:
 - [x] 09-01-PLAN.md -- ActivityStore persistence class and GET /api/activities REST endpoint
 - [x] 09-02-PLAN.md -- Wire ActivityStore into orchestrator, CLI, and standalone server for server-side activity creation
 - [x] 09-03-PLAN.md -- Dashboard: updated types, server-sourced activities via REST, enhanced ActivityFeed with time formatting, Load more, and visual styling
+
+### Phase 10: Add GSD Milestone support to autopilot and dashboard
+
+**Goal:** Make the autopilot server and dashboard milestone-aware — surface the current active milestone identity in the PhaseCard header, display milestone-scoped progress, handle milestone state transitions (shipped, no-active), and provide a victory screen when a milestone completes
+**Depends on:** Phase 9
+**Plans:** 4 plans
+
+Plans:
+- [ ] 10-01-PLAN.md -- Milestone types and markdown parser (TDD)
+- [ ] 10-02-PLAN.md -- API endpoint and server wiring (MilestoneProvider, /api/milestones)
+- [ ] 10-03-PLAN.md -- Dashboard types, store, API client, PhaseCard milestone header
+- [ ] 10-04-PLAN.md -- VictoryScreen component and Overview page milestone lifecycle
