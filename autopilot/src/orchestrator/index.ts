@@ -28,6 +28,8 @@ interface RoadmapPhase {
   number: number;
   name: string;
   completed: boolean;
+  inserted: boolean;
+  dependsOn: string | null;
 }
 
 /**
@@ -35,35 +37,112 @@ interface RoadmapPhase {
  *
  * Pure function -- no I/O. Exported for testability.
  *
+ * Merges checklist-based phases with heading-based phases:
+ * - Checklist phases provide completion status (authoritative)
+ * - Heading phases provide metadata: inserted flag, dependsOn
+ * - Phases appearing in both sources are merged
+ * - Heading-only phases default to completed: false
+ *
  * @param content - Raw ROADMAP.md content string
- * @returns Array of parsed phase entries
+ * @returns Array of parsed phase entries sorted numerically
  */
 export function extractPhasesFromContent(content: string): RoadmapPhase[] {
   const phases: RoadmapPhase[] = [];
-  const phasePattern = /^- \[([ x])\] \*\*Phase (\d+): (.+?)\*\*/gm;
-  let match;
 
+  // Step 1: Parse checklist entries
+  const phasePattern = /^- \[([ x])\] \*\*Phase (\d+(?:\.\d+)?): (.+?)\*\*/gm;
+  let match;
   while ((match = phasePattern.exec(content)) !== null) {
     phases.push({
-      number: parseInt(match[2]!, 10),
+      number: parseFloat(match[2]!),
       name: match[3]!,
       completed: match[1] === 'x',
+      inserted: false,
+      dependsOn: null,
     });
   }
 
-  // Fallback: parse heading-format phases (## Phase N: Name)
-  if (phases.length === 0) {
-    const headingPattern = /^#{1,3} Phase (\d+): (.+)/gm;
-    while ((match = headingPattern.exec(content)) !== null) {
+  // Step 2: Parse heading entries UNCONDITIONALLY and merge metadata
+  const headingPattern = /^#{1,3} Phase (\d+(?:\.\d+)?): (.+?)(\s+\(INSERTED\))?$/gm;
+  while ((match = headingPattern.exec(content)) !== null) {
+    const phaseNumber = parseFloat(match[1]!);
+    const phaseName = match[2]!.trim();
+    const hasInsertedMarker = !!match[3];
+
+    // Check if phase already exists from checklist
+    const existingPhase = phases.find(p => p.number === phaseNumber);
+
+    if (existingPhase) {
+      // Merge metadata into existing checklist phase
+      existingPhase.inserted = hasInsertedMarker;
+      existingPhase.dependsOn = extractDependsOn(content, phaseNumber);
+    } else {
+      // New heading-only phase
       phases.push({
-        number: parseInt(match[1]!, 10),
-        name: match[2]!.trim(),
+        number: phaseNumber,
+        name: phaseName,
         completed: false,
+        inserted: hasInsertedMarker,
+        dependsOn: extractDependsOn(content, phaseNumber),
       });
     }
   }
 
+  // Step 3: Sort phases numerically
+  phases.sort((a, b) => a.number - b.number);
+
   return phases;
+}
+
+/**
+ * Extracts the "Depends on:" value from a phase's heading block.
+ *
+ * @param content - Full ROADMAP.md content
+ * @param phaseNumber - Phase number to extract dependency for
+ * @returns Depends on value or null if not found
+ */
+function extractDependsOn(content: string, phaseNumber: number): string | null {
+  // Build regex pattern that matches both "3.1" and "03.1" formats
+  const parts = String(phaseNumber).split('.');
+  let numberPattern: string;
+  if (parts.length === 1) {
+    // Integer phase: match with or without leading zero
+    numberPattern = `0?${parts[0]}`;
+  } else {
+    // Decimal phase: match "3.1" or "03.1"
+    numberPattern = `0?${parts[0]}\\.${parts[1]}`;
+  }
+
+  // Find the phase heading line and extract the block content line-by-line
+  const lines = content.split('\n');
+  const headingPattern = new RegExp(`^#{1,3} Phase ${numberPattern}:`);
+
+  let inTargetPhase = false;
+  const blockLines: string[] = [];
+
+  for (const line of lines) {
+    if (headingPattern.test(line)) {
+      inTargetPhase = true;
+      continue; // Skip the heading line itself
+    }
+
+    if (inTargetPhase) {
+      // Stop at the next phase heading
+      if (/^#{1,3} Phase/.test(line)) {
+        break;
+      }
+      blockLines.push(line);
+    }
+  }
+
+  if (blockLines.length === 0) return null;
+
+  const blockContent = blockLines.join('\n');
+
+  // Look for "**Depends on:** value" line
+  const dependsOnPattern = /^\*\*Depends on:\*\*\s*(.+?)$/m;
+  const dependsMatch = dependsOnPattern.exec(blockContent);
+  return dependsMatch ? dependsMatch[1]!.trim() : null;
 }
 
 /**
@@ -94,6 +173,8 @@ function toPhaseState(rp: RoadmapPhase): PhaseState {
     },
     commits: [],
     gapIterations: 0,
+    inserted: rp.inserted,
+    dependsOn: rp.dependsOn,
   };
 }
 

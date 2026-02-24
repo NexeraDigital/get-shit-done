@@ -69,6 +69,8 @@ export interface PhaseState {
   completedAt?: string;
   commits: CommitInfo[];
   gapIterations: number;
+  inserted?: boolean;
+  dependsOn?: string | null;
 }
 
 export interface AutopilotState {

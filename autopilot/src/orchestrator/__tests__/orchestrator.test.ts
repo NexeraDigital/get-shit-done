@@ -522,9 +522,9 @@ describe('extractPhasesFromContent', () => {
     const phases = extractPhasesFromContent(content);
 
     expect(phases).toHaveLength(3);
-    expect(phases[0]).toEqual({ number: 1, name: 'Foundation', completed: true });
-    expect(phases[1]).toEqual({ number: 2, name: 'Integration', completed: false });
-    expect(phases[2]).toEqual({ number: 3, name: 'Orchestrator', completed: false });
+    expect(phases[0]).toEqual({ number: 1, name: 'Foundation', completed: true, inserted: false, dependsOn: null });
+    expect(phases[1]).toEqual({ number: 2, name: 'Integration', completed: false, inserted: false, dependsOn: null });
+    expect(phases[2]).toEqual({ number: 3, name: 'Orchestrator', completed: false, inserted: false, dependsOn: null });
   });
 
   it('returns empty array for content with no phases', () => {
@@ -546,7 +546,173 @@ describe('extractPhasesFromContent', () => {
     const phases = extractPhasesFromContent(content);
 
     expect(phases).toHaveLength(2);
-    expect(phases[0]).toEqual({ number: 1, name: 'Hello World (Core Greeting)', completed: false });
-    expect(phases[1]).toEqual({ number: 2, name: 'CLI Polish (Help & Error Handling)', completed: false });
+    expect(phases[0]).toEqual({ number: 1, name: 'Hello World (Core Greeting)', completed: false, inserted: false, dependsOn: null });
+    expect(phases[1]).toEqual({ number: 2, name: 'CLI Polish (Help & Error Handling)', completed: false, inserted: false, dependsOn: null });
+  });
+
+  it('parses decimal phases from checkbox-format ROADMAP.md', () => {
+    const content = `# Roadmap
+
+- [x] **Phase 6: Dashboard**
+- [ ] **Phase 06.1: Browser Notifications**
+- [ ] **Phase 7: Polish**
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases).toHaveLength(3);
+    expect(phases[0]).toEqual({ number: 6, name: 'Dashboard', completed: true, inserted: false, dependsOn: null });
+    expect(phases[1]).toEqual({ number: 6.1, name: 'Browser Notifications', completed: false, inserted: false, dependsOn: null });
+    expect(phases[2]).toEqual({ number: 7, name: 'Polish', completed: false, inserted: false, dependsOn: null });
+  });
+
+  it('parses decimal phases from heading-format ROADMAP.md', () => {
+    const content = `# ROADMAP
+
+### Phase 03.1: Display Output
+
+**Goal:** Show formatted output.
+
+### Phase 04: Final Polish
+
+**Goal:** Polish everything.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases).toHaveLength(2);
+    expect(phases[0]).toEqual({ number: 3.1, name: 'Display Output', completed: false, inserted: false, dependsOn: null });
+    expect(phases[1]).toEqual({ number: 4, name: 'Final Polish', completed: false, inserted: false, dependsOn: null });
+  });
+
+  // -------------------------------------------------------------------------
+  // NEW TESTS - TDD RED PHASE
+  // -------------------------------------------------------------------------
+
+  it('merges checklist and heading-only phases', () => {
+    const content = `# Roadmap
+
+- [x] **Phase 1: Foundation**
+- [ ] **Phase 2: Integration**
+- [ ] **Phase 3: Orchestrator**
+
+### Phase 3.1: Display Output (INSERTED)
+
+**Goal:** Show output.
+
+### Phase 06.1: Browser Notifications
+
+**Goal:** Add browser notifications.
+
+### Phase 8: Autopilot Command Integration
+
+**Goal:** Enable autopilot via slash command.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases).toHaveLength(6); // 3 checklist + 3 heading-only
+    expect(phases.find(p => p.number === 3.1)).toBeDefined();
+    expect(phases.find(p => p.number === 6.1)).toBeDefined();
+    expect(phases.find(p => p.number === 8)).toBeDefined();
+
+    // Heading-only phases should have completed: false
+    expect(phases.find(p => p.number === 3.1)?.completed).toBe(false);
+    expect(phases.find(p => p.number === 6.1)?.completed).toBe(false);
+    expect(phases.find(p => p.number === 8)?.completed).toBe(false);
+
+    // Checklist phases should retain their completion status
+    expect(phases.find(p => p.number === 1)?.completed).toBe(true);
+    expect(phases.find(p => p.number === 2)?.completed).toBe(false);
+    expect(phases.find(p => p.number === 3)?.completed).toBe(false);
+  });
+
+  it('extracts inserted flag from (INSERTED) marker', () => {
+    const content = `# Roadmap
+
+- [ ] **Phase 3: Core**
+
+### Phase 03.2: Add Sub phase support (INSERTED)
+
+**Goal:** Fix extraction.
+
+### Phase 4: Server
+
+**Goal:** Add server.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases.find(p => p.number === 3.2)?.inserted).toBe(true);
+    expect(phases.find(p => p.number === 3)?.inserted).toBe(false);
+    expect(phases.find(p => p.number === 4)?.inserted).toBe(false);
+  });
+
+  it('extracts dependsOn from heading section', () => {
+    const content = `# Roadmap
+
+### Phase 03.1: Display Output (INSERTED)
+
+**Goal:** Stream output
+**Depends on:** Phase 3
+
+### Phase 06.1: Browser Notifications
+
+**Goal:** Browser alerts
+**Depends on:** Phase 6
+
+### Phase 4: Server
+
+**Goal:** Add server.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    expect(phases.find(p => p.number === 3.1)?.dependsOn).toBe('Phase 3');
+    expect(phases.find(p => p.number === 6.1)?.dependsOn).toBe('Phase 6');
+    expect(phases.find(p => p.number === 4)?.dependsOn).toBe(null);
+  });
+
+  it('merges heading metadata into checklist phases', () => {
+    const content = `# Roadmap
+
+- [x] **Phase 3: Core Orchestrator**
+
+### Phase 3: Core Orchestrator (INSERTED)
+
+**Goal:** Phase sequencing
+**Depends on:** Phase 2
+`;
+    const phases = extractPhasesFromContent(content);
+
+    const phase3 = phases.find(p => p.number === 3);
+    expect(phase3).toBeDefined();
+    expect(phase3?.completed).toBe(true); // from checklist (authoritative)
+    expect(phase3?.inserted).toBe(true);  // from heading metadata
+    expect(phase3?.dependsOn).toBe('Phase 2'); // from heading metadata
+  });
+
+  it('sorts phases numerically after merge', () => {
+    const content = `# Roadmap
+
+- [x] **Phase 7: Polish**
+- [ ] **Phase 3: Core**
+- [x] **Phase 1: Foundation**
+
+### Phase 8: Autopilot Command
+
+**Goal:** Enable slash command.
+
+### Phase 3.2: Sub phase support (INSERTED)
+
+**Goal:** Fix extraction.
+
+### Phase 3.1: Display Output (INSERTED)
+
+**Goal:** Stream output.
+
+### Phase 06.1: Browser Notifications
+
+**Goal:** Browser alerts.
+`;
+    const phases = extractPhasesFromContent(content);
+
+    const numbers = phases.map(p => p.number);
+    expect(numbers).toEqual([1, 3, 3.1, 3.2, 6.1, 7, 8]);
   });
 });
