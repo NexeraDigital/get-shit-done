@@ -5,6 +5,8 @@ import { NavLink, Outlet, Link, useLocation } from 'react-router';
 import { useSSE } from '../hooks/useSSE.js';
 import { useDashboardStore } from '../store/index.js';
 import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
+import { NotificationToggle } from './NotificationToggle.js';
+import { useBadgeCount } from '../hooks/useBadgeCount.js';
 
 export function Layout() {
   const connected = useDashboardStore((s) => s.connected);
@@ -13,6 +15,9 @@ export function Layout() {
 
   // Establish SSE connection once for the entire app
   useSSE();
+
+  // Update browser badge with pending question count
+  useBadgeCount();
 
   // Load initial data on mount
   useEffect(() => {
@@ -84,6 +89,7 @@ export function Layout() {
               >
                 Logs
               </NavLink>
+              <NotificationToggle />
             </nav>
           </div>
         </div>
