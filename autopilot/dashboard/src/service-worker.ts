@@ -20,6 +20,13 @@ self.addEventListener('push', (event) => {
     self.clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then((clients) => {
+        const clientInfo = clients.map((c) => ({
+          url: c.url,
+          visibilityState: c.visibilityState,
+          focused: c.focused,
+        }));
+        console.log('[SW] Push received:', title, '| clients:', JSON.stringify(clientInfo));
+
         // If any dashboard window is visible, user already sees live SSE updates
         const hasVisibleClient = clients.some(
           (client) =>
@@ -27,8 +34,12 @@ self.addEventListener('push', (event) => {
             client.visibilityState === 'visible'
         );
 
-        if (hasVisibleClient) return;
+        if (hasVisibleClient) {
+          console.log('[SW] Suppressed notification — dashboard is visible');
+          return;
+        }
 
+        console.log('[SW] Showing notification:', title);
         return self.registration.showNotification(title, {
           body,
           icon: icon || '/icon-192.png',
