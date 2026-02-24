@@ -4,7 +4,7 @@
 
 const CLI_PATH = '__CLI_PATH__';
 
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -85,6 +85,9 @@ async function handleLaunch(branch, projectDir, args) {
 
   // 3. Assign port
   const port = await assignPort(branch, projectDir);
+
+  // 3b. Kill any stale process on that port (e.g. orphaned dashboard from a previous run)
+  killProcessOnPort(port);
 
   // 4. Build spawn args
   const spawnArgs = [CLI_PATH, '--port', String(port), ...args];
@@ -271,6 +274,35 @@ function checkHealth(port) {
 
     req.end();
   });
+}
+
+/**
+ * Kill any process listening on the given port (Windows).
+ * Silently does nothing if the port is free or the kill fails.
+ */
+function killProcessOnPort(port) {
+  try {
+    const output = execSync(`netstat -ano | findstr "LISTENING" | findstr ":${port} "`, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    const pids = new Set();
+    for (const line of output.trim().split('\n')) {
+      const parts = line.trim().split(/\s+/);
+      const pid = parts[parts.length - 1];
+      if (pid && /^\d+$/.test(pid) && pid !== '0') pids.add(pid);
+    }
+    for (const pid of pids) {
+      try {
+        execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
+        console.log(`  Killed stale process ${pid} on port ${port}`);
+      } catch {
+        // Access denied or already gone — ignore
+      }
+    }
+  } catch {
+    // Port is free — nothing to kill
+  }
 }
 
 // Run main
