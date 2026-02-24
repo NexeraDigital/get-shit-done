@@ -130,6 +130,9 @@ async function handleLaunch(branch, projectDir, args) {
   }
 
   console.log(`Dashboard: http://localhost:${port}`);
+
+  // Open dashboard in default browser so the service worker registers for push notifications
+  spawn('start', ['', `http://localhost:${port}`], { shell: true, stdio: 'ignore' }).unref();
 }
 
 /**
