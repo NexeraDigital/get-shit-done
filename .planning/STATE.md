@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 7 of 7 (CLI Polish and Distribution) -- IN PROGRESS
-Plan: 3 of 3 in current phase (07-01, 07-02 complete)
-Status: Executing Phase 7
-Last activity: 2026-02-18 -- Completed 07-02 Interactive Setup Wizard (2 tasks, 5 files)
+Phase: 8 of 8 (Autopilot Claude Command Integration) -- IN PROGRESS
+Plan: 1 of 3 in current phase (08-01 complete)
+Status: Executing Phase 8
+Last activity: 2026-02-23 -- Completed 08-01 Port Manager (1 TDD task, 2 files)
 
-Progress: [█████████░] ~97%
+Progress: [█████████░] ~98%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 3.3min
-- Total execution time: ~1.4 hours
+- Total execution time: ~1.5 hours
 
 **By Phase:**
 
@@ -35,10 +35,11 @@ Progress: [█████████░] ~97%
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
 | 06-notification-system | 3/3 | 8min | 2.7min |
 | 07-cli-polish-and-distribution | 2/3 | 10min | 5min |
+| 08-autopilot-claude-command | 1/3 | 8min | 8min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (2min), 06-03 (3min), 07-01 (6min), 07-02 (4min)
-- Trend: Fast pace continues in Phase 7
+- Last 5 plans: 06-03 (3min), 07-01 (6min), 07-02 (4min), 08-01 (8min)
+- Trend: Steady pace in Phase 8 TDD work
 
 *Updated after each plan completion*
 
@@ -134,6 +135,11 @@ Recent decisions affecting current work:
 - [07-02]: Use @inquirer/prompts over inquirer.js classic for ESM-native, tree-shakeable prompts
 - [07-02]: Exclude prdPath from saved config (project-specific, not a user preference)
 - [07-02]: Wizard feeds options into normal CLI flow (no separate execution path)
+- [08-01]: SHA-256 hash (first 8 hex chars) for deterministic branch-to-port mapping (base 3847 + hash % 1000)
+- [08-01]: Linear probing for port collision resolution (increment until free port found in range [3847, 4846])
+- [08-01]: Port reuse from state file if still available, falls back to hash + collision detection
+- [08-01]: Node.js built-in test runner (node:test) for standalone .js modules outside TypeScript build
+- [08-01]: Plain JavaScript (not TypeScript) for ~/.claude/skills/ modules that run without compilation
 
 ### Roadmap Evolution
 
@@ -151,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Completed 07-02-PLAN.md (Interactive setup wizard, 2 tasks, 5 files)
+Last session: 2026-02-23
+Stopped at: Completed 08-01-PLAN.md (Port manager with TDD, 1 task, 2 files)
 Resume file: None
