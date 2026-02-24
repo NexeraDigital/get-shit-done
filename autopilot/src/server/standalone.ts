@@ -15,6 +15,7 @@ import { ActivityStore } from '../activity/index.js';
 import { loadVAPIDKeys } from './push/vapid.js';
 import { SubscriptionStore } from './push/subscription-store.js';
 import { PushNotificationManager } from './push/manager.js';
+import { parseMilestoneData } from '../milestone/parser.js';
 
 const program = new Command();
 
@@ -48,6 +49,13 @@ program
     const vapidKeys = await loadVAPIDKeys(planningDir);
     const pushManager = new PushNotificationManager(vapidKeys, subscriptionStore);
 
+    // Create milestone provider
+    const milestoneProvider = {
+      getMilestones() {
+        return parseMilestoneData(planningDir);
+      },
+    };
+
     // Resolve dashboard dist path
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
@@ -65,6 +73,7 @@ program
       },
       dashboardDir: existsSync(dashboardDir) ? dashboardDir : undefined,
       activityProvider: activityStore,
+      milestoneProvider,
       pushManager,
       subscriptionStore,
       vapidPublicKey: vapidKeys.publicKey,

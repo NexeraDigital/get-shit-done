@@ -8,7 +8,7 @@ import { createServer, type Server } from 'node:http';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApiRoutes } from './routes/api.js';
-import type { StateProvider, QuestionProvider, LivenessProvider } from './routes/api.js';
+import type { StateProvider, QuestionProvider, LivenessProvider, MilestoneProvider } from './routes/api.js';
 import { setupSSE } from './routes/sse.js';
 import type { SSEDepsInProcess, SSEDepsFileTail } from './routes/sse.js';
 import { errorHandler } from './middleware/error.js';
@@ -33,6 +33,8 @@ export interface ResponseServerOptions {
   dashboardDir?: string;
   /** Optional activity provider for activity feed */
   activityProvider?: import('./routes/api.js').ActivityProvider;
+  /** Optional milestone data provider */
+  milestoneProvider?: MilestoneProvider;
   /** Optional push notification manager (if already created) */
   pushManager?: PushNotificationManager;
   /** Optional subscription store (required if pushManager provided) */
@@ -82,6 +84,7 @@ export class ResponseServer {
     let sseOptions: SSEOptions | undefined;
     let dashboardDir: string | undefined;
     let activityProvider: import('./routes/api.js').ActivityProvider | undefined;
+    let milestoneProvider: MilestoneProvider | undefined;
     let pushManagerProvided: PushNotificationManager | undefined;
     let subscriptionStore: SubscriptionStore | undefined;
     let vapidPublicKey: string | undefined;
@@ -105,6 +108,7 @@ export class ResponseServer {
       sseOptions = opts.sseDeps;
       dashboardDir = opts.dashboardDir;
       activityProvider = opts.activityProvider;
+      milestoneProvider = opts.milestoneProvider;
       pushManagerProvided = opts.pushManager;
       subscriptionStore = opts.subscriptionStore;
       vapidPublicKey = opts.vapidPublicKey;
@@ -116,7 +120,7 @@ export class ResponseServer {
     }
 
     // Mount REST API routes at /api
-    const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider, activityProvider });
+    const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider, activityProvider, milestoneProvider });
     this.app.use('/api', apiRouter);
 
     // Mount push routes at /api/push if push infrastructure was provided
