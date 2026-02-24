@@ -13,6 +13,7 @@ export function Layout() {
   const connected = useDashboardStore((s) => s.connected);
   const autopilotAlive = useDashboardStore((s) => s.autopilotAlive);
   const questions = useDashboardStore((s) => s.questions);
+  const projectName = useDashboardStore((s) => s.projectName);
 
   // Establish SSE connection once for the entire app
   useSSE();
@@ -22,6 +23,11 @@ export function Layout() {
 
   // Play notification sound when questions arrive (if tab is open)
   useNotificationSound();
+
+  // Update browser tab title with project name
+  useEffect(() => {
+    document.title = projectName ? `${projectName} - GSD Autopilot` : 'GSD Autopilot';
+  }, [projectName]);
 
   // Load initial data on mount
   useEffect(() => {
@@ -33,6 +39,7 @@ export function Layout() {
           currentPhase: statusRes.currentPhase,
           currentStep: statusRes.currentStep,
           progress: statusRes.progress,
+          projectName: statusRes.projectName ?? '',
         });
         store.setAutopilotAlive(statusRes.alive);
         store.setPhases(phasesRes.phases);

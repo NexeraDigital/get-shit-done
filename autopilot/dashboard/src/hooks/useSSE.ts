@@ -24,6 +24,7 @@ async function rehydrate(): Promise<void> {
       currentPhase: statusRes.currentPhase,
       currentStep: statusRes.currentStep,
       progress: statusRes.progress,
+      projectName: statusRes.projectName ?? '',
     });
     store.setAutopilotAlive(statusRes.alive);
     store.setPhases(phasesRes.phases);

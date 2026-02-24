@@ -2,6 +2,7 @@
 // Creates an Express Router with health, status, phases, and questions endpoints.
 // All routes delegate to injected services -- no direct state mutation.
 
+import { basename } from 'node:path';
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { AutopilotState } from '../../types/state.js';
@@ -80,6 +81,7 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       startedAt: state.startedAt,
       lastUpdatedAt: state.lastUpdatedAt,
       alive,
+      projectName: basename(process.cwd()),
     });
   });
 
