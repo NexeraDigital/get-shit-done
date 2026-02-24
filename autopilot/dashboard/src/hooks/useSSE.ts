@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '../store/index.js';
-import { fetchStatus, fetchPhases, fetchQuestions, fetchActivities } from '../api/client.js';
+import { fetchStatus, fetchPhases, fetchQuestions, fetchActivities, fetchMilestones } from '../api/client.js';
 import type { LogEntry } from '../types/index.js';
 
 /**
@@ -13,11 +13,12 @@ import type { LogEntry } from '../types/index.js';
 async function rehydrate(): Promise<void> {
   const store = useDashboardStore.getState();
   try {
-    const [statusRes, phasesRes, questionsRes, activitiesRes] = await Promise.all([
+    const [statusRes, phasesRes, questionsRes, activitiesRes, milestonesRes] = await Promise.all([
       fetchStatus(),
       fetchPhases(),
       fetchQuestions(),
       fetchActivities(),
+      fetchMilestones().catch(() => ({ current: null, shipped: [] })),
     ]);
     store.setStatus({
       status: statusRes.status,
@@ -31,6 +32,7 @@ async function rehydrate(): Promise<void> {
     store.setPhases(phasesRes.phases);
     store.setQuestions(questionsRes.questions);
     store.setActivities(activitiesRes.activities);
+    store.setMilestones(milestonesRes.current, milestonesRes.shipped);
   } catch {
     // Rehydration failure is non-fatal -- SSE events will still update state
   }
@@ -132,7 +134,10 @@ export function useSSE(): void {
 
     // Build complete
     es.addEventListener('build-complete', () => {
-      void Promise.all([fetchStatus(), fetchActivities()]).then(([s, a]) => {
+      void Promise.all([
+        fetchStatus(), fetchActivities(),
+        fetchMilestones().catch(() => ({ current: null, shipped: [] })),
+      ]).then(([s, a, m]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -142,13 +147,17 @@ export function useSSE(): void {
         });
         st.setAutopilotAlive(s.alive);
         st.setActivities(a.activities);
+        st.setMilestones(m.current, m.shipped);
       });
     });
 
     // Poll status + phases every 3s to catch state changes that don't emit SSE events
     // (e.g., init completing and phases being loaded, step transitions within a phase)
     const pollTimer = setInterval(() => {
-      void Promise.all([fetchStatus(), fetchPhases(), fetchQuestions(), fetchActivities()]).then(([s, p, q, a]) => {
+      void Promise.all([
+        fetchStatus(), fetchPhases(), fetchQuestions(), fetchActivities(),
+        fetchMilestones().catch(() => ({ current: null, shipped: [] })),
+      ]).then(([s, p, q, a, m]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -160,6 +169,7 @@ export function useSSE(): void {
         st.setPhases(p.phases);
         st.setQuestions(q.questions);
         st.setActivities(a.activities);
+        st.setMilestones(m.current, m.shipped);
       }).catch(() => { /* ignore poll failures */ });
     }, 3000);
 

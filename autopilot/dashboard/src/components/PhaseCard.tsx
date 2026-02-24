@@ -3,6 +3,7 @@
 // During init (no phases yet), shows an "Initializing" state.
 
 import { Link } from 'react-router';
+import { useDashboardStore } from '../store/index.js';
 import type { PhaseState, PhaseStep } from '../types/index.js';
 
 interface PhaseCardProps {
@@ -104,6 +105,8 @@ function PhaseRow({ phase, isCurrent }: {
 }
 
 export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
+  const currentMilestone = useDashboardStore((s) => s.currentMilestone);
+
   if (phases.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
@@ -126,7 +129,18 @@ export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
   return (
     <div className="rounded-lg border border-gray-200 shadow-sm p-6 bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">Phases</h3>
+        {currentMilestone ? (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700">
+              {currentMilestone.version} {currentMilestone.name} — Phases
+            </h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Milestone {currentMilestone.phasesCompleted} of {currentMilestone.phaseCount} phases complete
+            </p>
+          </div>
+        ) : (
+          <h3 className="text-sm font-semibold text-gray-700">Phases</h3>
+        )}
         <span className="text-xs text-gray-400">
           {completedCount}/{totalCount} complete
         </span>
