@@ -12,6 +12,10 @@ import type { StateProvider, QuestionProvider, LivenessProvider } from './routes
 import { setupSSE } from './routes/sse.js';
 import type { SSEDepsInProcess, SSEDepsFileTail } from './routes/sse.js';
 import { errorHandler } from './middleware/error.js';
+import { loadVAPIDKeys } from './push/vapid.js';
+import { SubscriptionStore } from './push/subscription-store.js';
+import { PushNotificationManager } from './push/manager.js';
+import { createPushRoutes } from './routes/push.js';
 
 /** SSE options without the app (it's provided by the server) */
 export type SSEOptions =
@@ -29,6 +33,12 @@ export interface ResponseServerOptions {
   dashboardDir?: string;
   /** Optional activity provider for activity feed */
   activityProvider?: import('./routes/api.js').ActivityProvider;
+  /** Optional push notification manager (if already created) */
+  pushManager?: PushNotificationManager;
+  /** Optional subscription store (required if pushManager provided) */
+  subscriptionStore?: SubscriptionStore;
+  /** Optional VAPID public key (required if pushManager provided) */
+  vapidPublicKey?: string;
 }
 
 /** Legacy options shape -- kept for backwards compatibility with existing callers */
@@ -58,6 +68,7 @@ export class ResponseServer {
   private server: Server | null = null;
   private readonly app: Express;
   private closeAllSSE: (() => void) | null = null;
+  private pushManager: PushNotificationManager | null = null;
 
   constructor(opts: ResponseServerOptions | ResponseServerOptionsLegacy) {
     this.app = express();
@@ -71,6 +82,9 @@ export class ResponseServer {
     let sseOptions: SSEOptions | undefined;
     let dashboardDir: string | undefined;
     let activityProvider: import('./routes/api.js').ActivityProvider | undefined;
+    let pushManagerProvided: PushNotificationManager | undefined;
+    let subscriptionStore: SubscriptionStore | undefined;
+    let vapidPublicKey: string | undefined;
 
     if (isLegacy(opts)) {
       // Legacy path: map old prop names to new interfaces
@@ -91,11 +105,25 @@ export class ResponseServer {
       sseOptions = opts.sseDeps;
       dashboardDir = opts.dashboardDir;
       activityProvider = opts.activityProvider;
+      pushManagerProvided = opts.pushManager;
+      subscriptionStore = opts.subscriptionStore;
+      vapidPublicKey = opts.vapidPublicKey;
+    }
+
+    // Store pushManager if provided
+    if (pushManagerProvided) {
+      this.pushManager = pushManagerProvided;
     }
 
     // Mount REST API routes at /api
     const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider, activityProvider });
     this.app.use('/api', apiRouter);
+
+    // Mount push routes at /api/push if push infrastructure was provided
+    if (subscriptionStore && vapidPublicKey) {
+      const pushRouter = createPushRoutes({ subscriptionStore, vapidPublicKey });
+      this.app.use('/api/push', pushRouter);
+    }
 
     // Mount SSE endpoint and wire events (if deps provided)
     if (sseOptions) {
@@ -111,12 +139,61 @@ export class ResponseServer {
           next();
           return;
         }
-        res.sendFile(join(dashboardDir!, 'index.html'));
+        res.sendFile(join(dashboardDir, 'index.html'));
       });
     }
 
     // Error handling middleware (must be last)
     this.app.use(errorHandler);
+  }
+
+  /**
+   * Initializes push notification infrastructure with VAPID keys.
+   * This is a helper method for in-process mode that creates and wires pushManager
+   * after construction. For standalone mode, pass pushManager via constructor options instead.
+   *
+   * @param planningDir - Path to the .planning/ directory for VAPID key storage
+   * @returns PushNotificationManager instance for wiring to event sources
+   */
+  async initPush(planningDir: string): Promise<PushNotificationManager> {
+    // Create subscription store
+    const subscriptionStore = new SubscriptionStore();
+
+    // Load or generate VAPID keys
+    const vapidKeys = await loadVAPIDKeys(planningDir);
+
+    // Create push notification manager
+    this.pushManager = new PushNotificationManager(vapidKeys, subscriptionStore);
+
+    // Mount push routes by inserting before error handler
+    const pushRouter = createPushRoutes({
+      subscriptionStore,
+      vapidPublicKey: vapidKeys.publicKey,
+    });
+
+    // Insert routes before error handler (which should be last)
+    const middlewareStack = (this.app as any)._router.stack;
+    const errorHandlerIndex = middlewareStack.findIndex(
+      (layer: any) => layer.name === 'errorHandler' || (layer.handle && layer.handle.length === 4)
+    );
+
+    if (errorHandlerIndex !== -1) {
+      // Insert push router before error handler
+      middlewareStack.splice(errorHandlerIndex, 0, ...pushRouter.stack);
+    } else {
+      // Fallback: just append if error handler not found
+      this.app.use('/api/push', pushRouter);
+    }
+
+    return this.pushManager;
+  }
+
+  /**
+   * Returns the PushNotificationManager instance for wiring to SSE events.
+   * Returns null if initPush() has not been called.
+   */
+  getPushManager(): PushNotificationManager | null {
+    return this.pushManager;
   }
 
   /**

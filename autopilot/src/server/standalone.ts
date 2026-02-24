@@ -12,6 +12,9 @@ import { AnswerWriter } from '../ipc/answer-writer.js';
 import { FileQuestionProvider } from '../ipc/file-question-provider.js';
 import { ResponseServer } from './index.js';
 import { ActivityStore } from '../activity/index.js';
+import { loadVAPIDKeys } from './push/vapid.js';
+import { SubscriptionStore } from './push/subscription-store.js';
+import { PushNotificationManager } from './push/manager.js';
 
 const program = new Command();
 
@@ -39,12 +42,18 @@ program
     stateReader.start();
     await eventTailer.start();
 
+    // Initialize push notification infrastructure
+    const planningDir = join(projectDir, '.planning');
+    const subscriptionStore = new SubscriptionStore();
+    const vapidKeys = await loadVAPIDKeys(planningDir);
+    const pushManager = new PushNotificationManager(vapidKeys, subscriptionStore);
+
     // Resolve dashboard dist path
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const dashboardDir = join(__dirname, '..', '..', 'dashboard', 'dist');
 
-    // Create and start the server
+    // Create the server with push manager wired to SSE
     const server = new ResponseServer({
       stateProvider: stateReader,
       questionProvider,
@@ -52,13 +61,18 @@ program
       sseDeps: {
         mode: 'file-tail' as const,
         eventTailer,
+        pushManager,
       },
       dashboardDir: existsSync(dashboardDir) ? dashboardDir : undefined,
       activityProvider: activityStore,
+      pushManager,
+      subscriptionStore,
+      vapidPublicKey: vapidKeys.publicKey,
     });
 
     await server.start(port);
     console.log(`Dashboard server: http://localhost:${port}`);
+    console.log(`Push notifications: enabled`);
     console.log(`Watching project: ${projectDir}`);
 
     // Graceful shutdown

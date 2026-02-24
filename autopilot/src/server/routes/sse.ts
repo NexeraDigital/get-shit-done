@@ -11,6 +11,11 @@ interface EventSource {
   on(event: string, listener: (...args: any[]) => void): unknown;
 }
 
+/** Minimal PushManager interface for sending notifications */
+interface PushManager {
+  sendToAll(payload: unknown): Promise<void>;
+}
+
 /** In-process mode: wires to live EventEmitter instances */
 export interface SSEDepsInProcess {
   mode: 'in-process';
@@ -20,6 +25,7 @@ export interface SSEDepsInProcess {
   logger: EventSource & {
     getRecentEntries(): unknown[];
   };
+  pushManager?: PushManager;
 }
 
 /** File-tail mode: reads from an EventTailer that emits 'event' events */
@@ -29,6 +35,7 @@ export interface SSEDepsFileTail {
   eventTailer: EventSource & {
     getRecentEvents(): Array<{ event: string; data: unknown }>;
   };
+  pushManager?: PushManager;
 }
 
 export type SSEDeps = SSEDepsInProcess | SSEDepsFileTail;
@@ -94,7 +101,7 @@ export function setupSSE(deps: SSEDeps): {
 
   // Wire events based on mode
   if (deps.mode === 'in-process') {
-    const { orchestrator, claudeService, logger } = deps;
+    const { orchestrator, claudeService, logger, pushManager } = deps;
 
     orchestrator.on('phase:started', (data: unknown) =>
       broadcast('phase-started', data),
@@ -118,10 +125,262 @@ export function setupSSE(deps: SSEDeps): {
     );
 
     logger.on('entry', (entry: unknown) => broadcast('log-entry', entry));
+
+    // Wire push notifications if pushManager is provided
+    if (pushManager) {
+      const pm = pushManager;
+
+      // Question grouping: debounce rapid-fire questions into a single notification
+      let questionDebounceTimer: NodeJS.Timeout | null = null;
+      let pendingQuestionCount = 0;
+
+      claudeService.on('question:pending', (data: unknown) => {
+        // Increment pending count
+        pendingQuestionCount++;
+
+        // Clear any existing timer
+        if (questionDebounceTimer) {
+          clearTimeout(questionDebounceTimer);
+        }
+
+        // Set new debounce timer (500ms)
+        questionDebounceTimer = setTimeout(() => {
+          if (pendingQuestionCount === 1) {
+            // Single question notification
+            const questionText =
+              data &&
+              typeof data === 'object' &&
+              'text' in data &&
+              typeof data.text === 'string'
+                ? data.text
+                : 'A question needs your input';
+
+            const questionId =
+              data &&
+              typeof data === 'object' &&
+              'id' in data &&
+              typeof data.id === 'string'
+                ? data.id
+                : '';
+
+            void pm.sendToAll({
+              title: 'GSD Autopilot: Question needs your input',
+              body:
+                questionText.length > 100
+                  ? questionText.slice(0, 97) + '...'
+                  : questionText,
+              tag: 'gsd-question',
+              url: questionId ? `/questions/${questionId}` : '/questions',
+              requireInteraction: true,
+              silent: false,
+            });
+          } else {
+            // Multiple questions notification
+            void pm.sendToAll({
+              title: 'GSD Autopilot: Questions need your input',
+              body: `${pendingQuestionCount} questions are waiting for your response`,
+              tag: 'gsd-question',
+              url: '/questions',
+              requireInteraction: true,
+              silent: false,
+            });
+          }
+
+          // Reset counter
+          pendingQuestionCount = 0;
+          questionDebounceTimer = null;
+        }, 500);
+      });
+
+      // Error escalation notification
+      orchestrator.on('error:escalation', (data: unknown) => {
+        const errorMessage =
+          data &&
+          typeof data === 'object' &&
+          ('error' in data || 'message' in data)
+            ? String('error' in data ? (data as any).error : (data as any).message)
+            : 'An error needs attention';
+
+        const phaseNumber =
+          data &&
+          typeof data === 'object' &&
+          'phase' in data &&
+          typeof (data as any).phase === 'number'
+            ? String((data as any).phase)
+            : '';
+
+        void pm.sendToAll({
+          title: 'GSD Autopilot: Error needs attention',
+          body: errorMessage,
+          tag: 'gsd-error',
+          url: phaseNumber ? `/phases/${phaseNumber}` : '/',
+          requireInteraction: true,
+          silent: true,
+        });
+      });
+
+      // Phase completed notification
+      orchestrator.on('phase:completed', (data: unknown) => {
+        const phaseName =
+          data &&
+          typeof data === 'object' &&
+          'name' in data &&
+          typeof (data as any).name === 'string'
+            ? (data as any).name
+            : 'Phase completed';
+
+        void pm.sendToAll({
+          title: 'GSD Autopilot: Phase completed',
+          body: phaseName,
+          tag: 'gsd-phase-complete',
+          url: '/',
+          requireInteraction: false,
+          silent: true,
+        });
+      });
+
+      // Build complete notification
+      orchestrator.on('build:complete', (data: unknown) => {
+        let bodyText = 'All phases completed successfully!';
+
+        // Try to extract summary stats if available
+        if (data && typeof data === 'object') {
+          const phaseCount =
+            'phasesCompleted' in data && typeof (data as any).phasesCompleted === 'number'
+              ? (data as any).phasesCompleted
+              : null;
+          const duration =
+            'duration' in data && typeof (data as any).duration === 'string'
+              ? (data as any).duration
+              : null;
+
+          if (phaseCount !== null && duration !== null) {
+            bodyText = `${phaseCount} phases completed in ${duration}`;
+          } else if (phaseCount !== null) {
+            bodyText = `${phaseCount} phases completed`;
+          }
+        }
+
+        void pm.sendToAll({
+          title: 'GSD Autopilot: Build complete!',
+          body: bodyText,
+          tag: 'gsd-build-complete',
+          url: '/',
+          requireInteraction: false,
+          silent: true,
+        });
+      });
+    }
   } else {
     // File-tail mode: EventTailer emits 'event' with { event, data }
-    deps.eventTailer.on('event', (evt: { event: string; data: unknown }) => {
+    const { eventTailer, pushManager } = deps;
+
+    eventTailer.on('event', (evt: { event: string; data: unknown }) => {
       broadcast(evt.event, evt.data);
+
+      // Wire push notifications for file-tail mode
+      if (pushManager) {
+        const pm = pushManager;
+
+        if (evt.event === 'question-pending') {
+          const questionText =
+            evt.data &&
+            typeof evt.data === 'object' &&
+            'text' in evt.data &&
+            typeof evt.data.text === 'string'
+              ? evt.data.text
+              : 'A question needs your input';
+
+          const questionId =
+            evt.data &&
+            typeof evt.data === 'object' &&
+            'id' in evt.data &&
+            typeof evt.data.id === 'string'
+              ? evt.data.id
+              : '';
+
+          void pm.sendToAll({
+            title: 'GSD Autopilot: Question needs your input',
+            body:
+              questionText.length > 100
+                ? questionText.slice(0, 97) + '...'
+                : questionText,
+            tag: 'gsd-question',
+            url: questionId ? `/questions/${questionId}` : '/questions',
+            requireInteraction: true,
+            silent: false,
+          });
+        } else if (evt.event === 'error') {
+          const errorMessage =
+            evt.data &&
+            typeof evt.data === 'object' &&
+            ('error' in evt.data || 'message' in evt.data)
+              ? String('error' in evt.data ? (evt.data as any).error : (evt.data as any).message)
+              : 'An error needs attention';
+
+          const phaseNumber =
+            evt.data &&
+            typeof evt.data === 'object' &&
+            'phase' in evt.data &&
+            typeof (evt.data as any).phase === 'number'
+              ? String((evt.data as any).phase)
+              : '';
+
+          void pm.sendToAll({
+            title: 'GSD Autopilot: Error needs attention',
+            body: errorMessage,
+            tag: 'gsd-error',
+            url: phaseNumber ? `/phases/${phaseNumber}` : '/',
+            requireInteraction: true,
+            silent: true,
+          });
+        } else if (evt.event === 'phase-completed') {
+          const phaseName =
+            evt.data &&
+            typeof evt.data === 'object' &&
+            'name' in evt.data &&
+            typeof (evt.data as any).name === 'string'
+              ? (evt.data as any).name
+              : 'Phase completed';
+
+          void pm.sendToAll({
+            title: 'GSD Autopilot: Phase completed',
+            body: phaseName,
+            tag: 'gsd-phase-complete',
+            url: '/',
+            requireInteraction: false,
+            silent: true,
+          });
+        } else if (evt.event === 'build-complete') {
+          let bodyText = 'All phases completed successfully!';
+
+          if (evt.data && typeof evt.data === 'object') {
+            const phaseCount =
+              'phasesCompleted' in evt.data && typeof (evt.data as any).phasesCompleted === 'number'
+                ? (evt.data as any).phasesCompleted
+                : null;
+            const duration =
+              'duration' in evt.data && typeof (evt.data as any).duration === 'string'
+                ? (evt.data as any).duration
+                : null;
+
+            if (phaseCount !== null && duration !== null) {
+              bodyText = `${phaseCount} phases completed in ${duration}`;
+            } else if (phaseCount !== null) {
+              bodyText = `${phaseCount} phases completed`;
+            }
+          }
+
+          void pm.sendToAll({
+            title: 'GSD Autopilot: Build complete!',
+            body: bodyText,
+            tag: 'gsd-build-complete',
+            url: '/',
+            requireInteraction: false,
+            silent: true,
+          });
+        }
+      }
     });
   }
 
