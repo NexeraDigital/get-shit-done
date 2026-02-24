@@ -18,6 +18,7 @@ import { runSetupWizard } from './wizard.js';
 import { StreamRenderer, StreamLogger } from '../output/index.js';
 import type { VerbosityLevel } from '../output/index.js';
 import { ResponseServer } from '../server/index.js';
+import { ActivityStore, truncateText } from '../activity/index.js';
 import { EventWriter } from '../ipc/event-writer.js';
 import { HeartbeatWriter } from '../ipc/heartbeat-writer.js';
 import { AnswerPoller } from '../ipc/answer-poller.js';
@@ -185,6 +186,10 @@ Dashboard:
       await stateStore.setState({});
     }
 
+    // Create and restore ActivityStore
+    const activityStore = new ActivityStore(projectDir);
+    await activityStore.restore();
+
     // f. Determine verbosity level from config
     const verbosity: VerbosityLevel = config.quiet ? 'quiet' : config.verbose ? 'verbose' : 'default';
 
@@ -271,6 +276,7 @@ Dashboard:
       logger,
       config,
       projectDir,
+      activityStore,
     });
 
     // Wire phase/step banners to StreamRenderer
@@ -302,6 +308,16 @@ Dashboard:
     });
     orchestrator.on('error:escalation', (data: unknown) => {
       void eventWriter.write('error', data);
+    });
+
+    // Wire error:escalation -> activity creation
+    orchestrator.on('error:escalation', ({ phase, step, error }: { phase: number; step: string; error: string }) => {
+      void activityStore.addActivity({
+        type: 'error',
+        message: truncateText(error, 100),
+        timestamp: new Date().toISOString(),
+        metadata: { phase, step },
+      });
     });
     claudeService.on('question:pending', (data: unknown) => {
       void eventWriter.write('question-pending', data);
@@ -394,6 +410,17 @@ Dashboard:
       void stateStore.setState({ pendingQuestions });
     });
 
+    // Wire question:pending -> activity creation
+    claudeService.on('question:pending', (event: QuestionEvent) => {
+      const questionText = event.questions.map(q => q.question).join('; ');
+      void activityStore.addActivity({
+        type: 'question-pending',
+        message: `Question: ${truncateText(questionText)}`,
+        timestamp: new Date().toISOString(),
+        metadata: { questionId: event.id, phase: event.phase },
+      });
+    });
+
     // Wire question:answered -> update state file + log selected answers
     claudeService.on('question:answered', ({ id, answers }: { id: string; answers: Record<string, string> }) => {
       const state = stateStore.getState();
@@ -412,6 +439,16 @@ Dashboard:
           message: `[Answer] ${short} -> ${answer}`,
         });
       }
+    });
+
+    // Wire question:answered -> activity creation
+    claudeService.on('question:answered', ({ id }: { id: string }) => {
+      void activityStore.addActivity({
+        type: 'question-answered',
+        message: `Question answered`,
+        timestamp: new Date().toISOString(),
+        metadata: { questionId: id },
+      });
     });
 
     // Wire question:pending -> notification dispatch + reminder
@@ -511,6 +548,7 @@ Dashboard:
         logger,
         config,
         dashboardDir,
+        activityProvider: activityStore,
       });
       await responseServer.start(config.port);
     } else {

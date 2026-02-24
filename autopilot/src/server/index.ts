@@ -27,6 +27,8 @@ export interface ResponseServerOptions {
   sseDeps?: SSEOptions;
   /** Path to dashboard/dist/ for SPA serving. */
   dashboardDir?: string;
+  /** Optional activity provider for activity feed */
+  activityProvider?: import('./routes/api.js').ActivityProvider;
 }
 
 /** Legacy options shape -- kept for backwards compatibility with existing callers */
@@ -37,6 +39,7 @@ export interface ResponseServerOptionsLegacy {
   logger: { on(event: string, listener: (...args: any[]) => void): unknown; getRecentEntries(): unknown[] };
   config: Record<string, unknown>;
   dashboardDir?: string;
+  activityProvider?: import('./routes/api.js').ActivityProvider;
 }
 
 function isLegacy(opts: ResponseServerOptions | ResponseServerOptionsLegacy): opts is ResponseServerOptionsLegacy {
@@ -67,6 +70,7 @@ export class ResponseServer {
     let livenessProvider: LivenessProvider | undefined;
     let sseOptions: SSEOptions | undefined;
     let dashboardDir: string | undefined;
+    let activityProvider: import('./routes/api.js').ActivityProvider | undefined;
 
     if (isLegacy(opts)) {
       // Legacy path: map old prop names to new interfaces
@@ -79,16 +83,18 @@ export class ResponseServer {
         logger: opts.logger,
       };
       dashboardDir = opts.dashboardDir;
+      activityProvider = opts.activityProvider;
     } else {
       stateProvider = opts.stateProvider;
       questionProvider = opts.questionProvider;
       livenessProvider = opts.livenessProvider;
       sseOptions = opts.sseDeps;
       dashboardDir = opts.dashboardDir;
+      activityProvider = opts.activityProvider;
     }
 
     // Mount REST API routes at /api
-    const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider });
+    const apiRouter = createApiRoutes({ stateProvider, questionProvider, livenessProvider, activityProvider });
     this.app.use('/api', apiRouter);
 
     // Mount SSE endpoint and wire events (if deps provided)

@@ -11,6 +11,7 @@ import { EventTailer } from '../ipc/event-tailer.js';
 import { AnswerWriter } from '../ipc/answer-writer.js';
 import { FileQuestionProvider } from '../ipc/file-question-provider.js';
 import { ResponseServer } from './index.js';
+import { ActivityStore } from '../activity/index.js';
 
 const program = new Command();
 
@@ -29,6 +30,10 @@ program
     const eventTailer = new EventTailer(projectDir);
     const answerWriter = new AnswerWriter(projectDir);
     const questionProvider = new FileQuestionProvider(stateReader, answerWriter);
+
+    // Create and restore ActivityStore
+    const activityStore = new ActivityStore(projectDir);
+    await activityStore.restore();
 
     // Start IPC readers
     stateReader.start();
@@ -49,6 +54,7 @@ program
         eventTailer,
       },
       dashboardDir: existsSync(dashboardDir) ? dashboardDir : undefined,
+      activityProvider: activityStore,
     });
 
     await server.start(port);
