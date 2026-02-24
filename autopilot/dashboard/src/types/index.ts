@@ -45,6 +45,8 @@ export type PhaseState = {
   completedAt?: string;
   commits: CommitInfo[];
   gapIterations: number;
+  inserted?: boolean;
+  dependsOn?: string | null;
 };
 
 // From autopilot/src/types/log.ts
