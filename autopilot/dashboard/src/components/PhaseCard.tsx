@@ -10,6 +10,13 @@ interface PhaseCardProps {
   currentPhase: number;
 }
 
+function padPhaseDisplay(num: number): string {
+  const str = String(num);
+  const dotIndex = str.indexOf('.');
+  if (dotIndex === -1) return str.padStart(2, '0');
+  return str.slice(0, dotIndex).padStart(2, '0') + str.slice(dotIndex);
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-gray-100 text-gray-700',
   in_progress: 'bg-blue-100 text-blue-700',
@@ -59,11 +66,16 @@ function PhaseRow({ phase, isCurrent }: {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-gray-400">
-            {String(phase.number).padStart(2, '0')}
+            {padPhaseDisplay(phase.number)}
           </span>
           <span className={`text-sm font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
             {phase.name}
           </span>
+          {phase.inserted && (
+            <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700 uppercase tracking-wide">
+              inserted
+            </span>
+          )}
         </div>
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor}`}
