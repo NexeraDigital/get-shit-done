@@ -318,6 +318,16 @@ export class Orchestrator extends EventEmitter {
       // .planning/phases/ doesn't exist — skip reconciliation
     }
 
+    // Clear stale unanswered questions from previous sessions
+    const staleQuestions = currentState.pendingQuestions.filter(q => !q.answeredAt);
+    if (staleQuestions.length > 0) {
+      const answered = currentState.pendingQuestions.filter(q => q.answeredAt);
+      await this.stateStore.setState({ pendingQuestions: answered });
+      currentState = this.stateStore.getState();
+      this.logger.log('info', 'orchestrator',
+        `Cleared ${staleQuestions.length} stale unanswered question(s) from previous session`);
+    }
+
     // Phase loop
     for (const phase of currentState.phases) {
       // Skip completed or skipped phases
