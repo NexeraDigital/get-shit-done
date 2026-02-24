@@ -34,7 +34,7 @@ export function Overview() {
         {/* Right column: Activity feed pinned to viewport height */}
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] flex flex-col">
-            <ActivityFeed activities={activities.slice(0, 10)} />
+            <ActivityFeed activities={activities} />
           </div>
         </div>
       </div>
