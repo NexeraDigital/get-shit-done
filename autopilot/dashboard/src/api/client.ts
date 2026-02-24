@@ -6,6 +6,7 @@ import type {
   PhaseState,
   QuestionEvent,
   ActivityItem,
+  MilestoneResponse,
 } from '../types/index.js';
 
 export interface StatusResponse {
@@ -89,6 +90,14 @@ export async function fetchActivities(): Promise<ActivitiesResponse> {
     throw new Error(`fetchActivities failed: ${String(res.status)}`);
   }
   return res.json() as Promise<ActivitiesResponse>;
+}
+
+export async function fetchMilestones(): Promise<MilestoneResponse> {
+  const res = await fetch('/api/milestones');
+  if (!res.ok) {
+    throw new Error(`fetchMilestones failed: ${String(res.status)}`);
+  }
+  return res.json() as Promise<MilestoneResponse>;
 }
 
 // Push notification endpoints

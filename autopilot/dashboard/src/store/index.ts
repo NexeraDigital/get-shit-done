@@ -8,6 +8,7 @@ import type {
   QuestionEvent,
   LogEntry,
   ActivityItem,
+  MilestoneInfo,
 } from '../types/index.js';
 
 export interface DashboardState {
@@ -25,6 +26,10 @@ export interface DashboardState {
   connected: boolean;
   autopilotAlive: boolean;
 
+  // Milestone state
+  currentMilestone: MilestoneInfo | null;
+  milestones: MilestoneInfo[];
+
   // Actions
   setStatus: (
     patch: Partial<
@@ -39,6 +44,9 @@ export interface DashboardState {
   setConnected: (connected: boolean) => void;
   setAutopilotAlive: (alive: boolean) => void;
   updatePhase: (phaseNumber: number, patch: Partial<PhaseState>) => void;
+
+  // Milestone actions
+  setMilestones: (current: MilestoneInfo | null, shipped: MilestoneInfo[]) => void;
 }
 
 export const useDashboardStore = create<DashboardState>()((set) => ({
@@ -55,6 +63,8 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   activities: [],
   connected: false,
   autopilotAlive: true,
+  currentMilestone: null,
+  milestones: [],
 
   // Actions
   setStatus: (patch) => set((state) => ({ ...state, ...patch })),
@@ -85,4 +95,6 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
         p.number === phaseNumber ? { ...p, ...patch } : p,
       ),
     })),
+
+  setMilestones: (current, shipped) => set({ currentMilestone: current, milestones: shipped }),
 }));

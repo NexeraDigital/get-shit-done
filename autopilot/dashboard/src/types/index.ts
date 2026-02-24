@@ -107,3 +107,23 @@ export type ActivityItem = {
     [key: string]: unknown;
   };
 };
+
+// Milestone types (mirrored from autopilot/src/milestone/types.ts)
+
+export type MilestoneStatus = 'active' | 'shipped';
+
+export type MilestoneInfo = {
+  version: string;
+  name: string;
+  status: MilestoneStatus;
+  shippedDate?: string;
+  phaseCount: number;
+  planCount: number;
+  phasesCompleted: number;
+  accomplishments: string[];
+};
+
+export type MilestoneResponse = {
+  current: MilestoneInfo | null;
+  shipped: MilestoneInfo[];
+};
