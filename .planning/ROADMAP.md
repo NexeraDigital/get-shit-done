@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
 - [x] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
 - [ ] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
+- [ ] **Phase 03.2: Add Sub phase support to orchestrator and dashboard** (INSERTED)
 - [ ] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
 - [x] **Phase 5: React Dashboard** - SPA with progress view, question response UI, phase detail, log viewer
 - [x] **Phase 6: Notification System** - Adapter pattern, console/system/Teams/Slack/custom adapters
@@ -87,6 +88,16 @@ Plans:
 - [x] 03.1-01-PLAN.md -- Output module: StreamRenderer, StreamLogger, verbosity, colors, banners
 - [x] 03.1-02-PLAN.md -- SDK integration: ClaudeService message emission and CLI wiring
 
+### Phase 03.2: Add Sub phase support to orchestrator and dashboard (INSERTED)
+
+**Goal:** Fix extractPhasesFromContent to merge checklist and heading sources, making all phases (including inserted decimal phases like 03.1, 06.1) visible to the orchestrator and dashboard
+**Depends on:** Phase 3
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03.2-01-PLAN.md -- Fix extractPhasesFromContent with merged extraction and type extension (TDD)
+- [ ] 03.2-02-PLAN.md -- Dashboard type mirroring and INSERTED badge on PhaseCard
+
 ### Phase 4: Response Server and API
 **Goal**: A local Express server exposes REST endpoints for autopilot state, question management, and real-time log streaming via SSE, enabling the dashboard and human-in-the-loop flow
 **Depends on**: Phase 3
@@ -137,6 +148,15 @@ Plans:
 - [x] 06-01-PLAN.md -- NotificationManager with parallel dispatch, console fallback, reminders; ConsoleAdapter with inline colored output
 - [x] 06-02-PLAN.md -- Teams, Slack, Webhook, System adapters; custom adapter loader; example-adapter.js
 - [x] 06-03-PLAN.md -- CLI wiring, config schema update, package exports, node-notifier optional dependency
+
+### Phase 06.1: add browser notifications to alert users when needed (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 06.1 to break down)
 
 ### Phase 7: CLI Polish and Distribution
 **Goal**: The CLI is feature-complete with all flags, published as an npm package, cross-platform tested, and provides a polished developer experience
