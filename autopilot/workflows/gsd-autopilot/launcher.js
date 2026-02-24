@@ -2,6 +2,8 @@
 // Main entry point that routes subcommands and manages background autopilot process
 // Pure JavaScript (not TypeScript) - runs directly from ~/.claude/skills/
 
+const CLI_PATH = '__CLI_PATH__';
+
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -85,11 +87,11 @@ async function handleLaunch(branch, projectDir, args) {
   const port = await assignPort(branch, projectDir);
 
   // 4. Build spawn args
-  const spawnArgs = ['gsd-autopilot', '--port', String(port), ...args];
+  const spawnArgs = [CLI_PATH, '--port', String(port), ...args];
 
   // 5. Spawn detached
   console.log(`Starting autopilot for branch '${branch}' on port ${port}...`);
-  const child = spawn('npx', spawnArgs, {
+  const child = spawn(process.execPath, spawnArgs, {
     detached: true,
     stdio: 'ignore',
     cwd: projectDir,

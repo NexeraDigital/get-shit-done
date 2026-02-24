@@ -32,6 +32,15 @@ async function installWorkflow() {
       console.log(`  Copied ${file} to ${workflowSubdir}/`);
     }
 
+    // 4b. Resolve and inject CLI_PATH into launcher.js
+    // Use forward slashes to avoid backslash escape issues in JS string literals (Node handles / on Windows)
+    const cliPath = join(__dirname, '..', 'dist', 'cli', 'index.js').replace(/\\/g, '/');
+    const launcherDest = join(workflowSubdir, 'launcher.js');
+    let launcherContent = await readFile(launcherDest, 'utf-8');
+    launcherContent = launcherContent.replace(/__CLI_PATH__/g, cliPath);
+    await writeFile(launcherDest, launcherContent, 'utf-8');
+    console.log(`  Injected CLI_PATH into launcher.js: ${cliPath}`);
+
     // 5. Read SKILL.md template
     const skillTemplatePath = join(sourceDir, 'SKILL.md');
     const skillTemplate = await readFile(skillTemplatePath, 'utf-8');
