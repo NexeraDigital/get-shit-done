@@ -115,10 +115,18 @@ async function handleLaunch(branch, projectDir, args) {
   // 7. Health check
   const healthCheckSuccess = await performHealthCheck(port);
 
+  // 8. Read real PID from heartbeat (the autopilot process writes process.pid there)
+  //    and overwrite the .pid file so subsequent status/stop calls use the correct PID
+  const realPid = await readHeartbeatPid(projectDir);
+  if (realPid) {
+    await writePid(branch, realPid, projectDir);
+  }
+
+  const displayPid = realPid ?? child.pid;
   if (healthCheckSuccess) {
-    console.log(`Autopilot started successfully (PID ${child.pid})`);
+    console.log(`Autopilot started successfully (PID ${displayPid})`);
   } else {
-    console.log(`Autopilot process started (PID ${child.pid}) but dashboard may take a moment to become available.`);
+    console.log(`Autopilot process started (PID ${displayPid}) but dashboard may take a moment to become available.`);
   }
 
   console.log(`Dashboard: http://localhost:${port}`);
@@ -129,8 +137,10 @@ async function handleLaunch(branch, projectDir, args) {
  * Reports running state, phase progress, and dashboard URL
  */
 async function handleStatus(branch, projectDir) {
-  // 1. Check if process is running
-  const pid = await readPid(branch, projectDir);
+  // 1. Check if process is running — prefer heartbeat PID (real), fall back to .pid file
+  const realPid = await readHeartbeatPid(projectDir);
+  const fallbackPid = await readPid(branch, projectDir);
+  const pid = realPid ?? fallbackPid;
   if (!pid || !isProcessRunning(pid)) {
     console.log(`No autopilot running for branch '${branch}'`);
     return;
@@ -178,31 +188,77 @@ async function handleStatus(branch, projectDir) {
 
 /**
  * Handle stop subcommand
- * Sends SIGTERM, waits, then SIGKILL if needed
+ *
+ * Uses cooperative shutdown signals instead of taskkill (which gets "Access denied"
+ * for processes spawned in a different console session via `start`):
+ *
+ * 1. Writes a `.planning/autopilot-shutdown` marker file — the autopilot's
+ *    HeartbeatWriter detects this within 5 seconds and triggers graceful shutdown.
+ * 2. Sends POST /api/shutdown to the dashboard HTTP server — the dashboard
+ *    exits immediately.
+ * 3. Waits for processes to exit, then falls back to taskkill if needed.
  */
 async function handleStop(branch, projectDir) {
-  // 1. Read PID
-  const pid = await readPid(branch, projectDir);
-  if (!pid || !isProcessRunning(pid)) {
-    console.log(`No autopilot running for branch '${branch}'`);
-    return;
+  // 1. Read the assigned port from state (needed for dashboard shutdown)
+  const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+  let port = 3847;
+  try {
+    const stateContent = await readFile(stateFilePath, 'utf-8');
+    const state = JSON.parse(stateContent);
+    port = state.branches?.[branch]?.port ?? 3847;
+  } catch {
+    // State file doesn't exist or invalid — use default port
   }
 
-  // 2. Stop process
+  // 2. Get real PID from heartbeat for status reporting
+  const realPid = await readHeartbeatPid(projectDir);
+  const fallbackPid = await readPid(branch, projectDir);
+  const pid = realPid ?? fallbackPid;
+
   console.log(`Stopping autopilot for branch '${branch}'...`);
-  const result = await stopProcess(pid);
 
-  // 3. Report result
-  if (result.status === 'not_running') {
-    console.log(`Autopilot was not running`);
-  } else if (result.graceful) {
-    console.log(`Autopilot stopped gracefully.`);
-  } else {
-    console.log(`Autopilot force-stopped after timeout.`);
+  // 3. Write shutdown marker file — the autopilot HeartbeatWriter checks for this
+  //    every 5 seconds and triggers graceful orchestrator shutdown
+  const shutdownMarkerPath = join(projectDir, '.planning', 'autopilot-shutdown');
+  try {
+    await writeFile(shutdownMarkerPath, new Date().toISOString(), 'utf-8');
+    console.log('  Shutdown signal sent to autopilot process.');
+  } catch {
+    // .planning/ may not exist — that's fine
   }
 
-  // 4. Clean up PID file
+  // 4. Send HTTP POST /api/shutdown to the dashboard server
+  const dashboardStopped = await sendShutdownRequest(port);
+  if (dashboardStopped) {
+    console.log('  Dashboard server stopped.');
+  }
+
+  // 5. Wait briefly for cooperative shutdown, then force-kill if needed
+  if (pid && isProcessRunning(pid)) {
+    // Wait up to 8 seconds for the autopilot to self-terminate (heartbeat interval is 5s)
+    let exited = false;
+    for (let i = 0; i < 16; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!isProcessRunning(pid)) {
+        exited = true;
+        break;
+      }
+    }
+
+    if (!exited) {
+      // Fall back to force-kill
+      console.log('  Autopilot did not exit in time, force-killing...');
+      forceKillPid(pid);
+    }
+  }
+
+  // 6. Kill any remaining process on the dashboard port (catches orphans)
+  killProcessOnPort(port);
+
+  // 7. Clean up PID file
   await cleanupPid(branch, projectDir);
+
+  console.log('Autopilot stopped.');
 }
 
 /**
@@ -277,10 +333,81 @@ function checkHealth(port) {
 }
 
 /**
- * Kill any process listening on the given port (Windows).
+ * Force-kill a process by PID. On Windows, tries taskkill then falls back to
+ * PowerShell .Kill() (which works for cross-session processes where taskkill
+ * returns "Access denied"). On other platforms, sends SIGKILL.
+ * @param {number} pid - Process ID to kill
+ */
+function forceKillPid(pid) {
+  if (process.platform === 'win32') {
+    try {
+      execSync(`taskkill /PID ${pid} /F /T`, { stdio: 'ignore' });
+    } catch {
+      try {
+        execSync(`powershell -NoProfile -Command "(Get-Process -Id ${pid}).Kill()"`, { stdio: 'ignore' });
+      } catch {
+        // Already gone or truly inaccessible
+      }
+    }
+  } else {
+    try { process.kill(pid, 'SIGKILL'); } catch { /* already gone */ }
+  }
+}
+
+/**
+ * Send POST /api/shutdown to the dashboard server.
+ * Returns true if the request succeeded (dashboard will exit), false otherwise.
+ * @param {number} port - Dashboard port
+ * @returns {Promise<boolean>}
+ */
+function sendShutdownRequest(port) {
+  return new Promise((resolve) => {
+    const options = {
+      hostname: '127.0.0.1',
+      port: port,
+      path: '/api/shutdown',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 3000,
+    };
+
+    const req = request(options, (res) => {
+      resolve(res.statusCode >= 200 && res.statusCode < 400);
+    });
+
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.end('{}');
+  });
+}
+
+/**
+ * Read the real autopilot PID from the heartbeat file.
+ * The autopilot process writes its own process.pid to this file every 5 seconds.
+ * Returns null if the file doesn't exist or can't be parsed.
+ * @param {string} projectDir - Project root directory
+ * @returns {Promise<number|null>}
+ */
+async function readHeartbeatPid(projectDir) {
+  try {
+    const heartbeatPath = join(projectDir, '.planning', 'autopilot-heartbeat.json');
+    const content = await readFile(heartbeatPath, 'utf-8');
+    const heartbeat = JSON.parse(content);
+    const pid = heartbeat?.pid;
+    return typeof pid === 'number' && pid > 0 ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Kill any process listening on the given port.
+ * Uses PowerShell .Kill() as fallback since taskkill gets "Access denied" for
+ * processes spawned in a different console session (via `start`).
  * Silently does nothing if the port is free or the kill fails.
  */
 function killProcessOnPort(port) {
+  if (process.platform !== 'win32') return;
   try {
     const output = execSync(`netstat -ano | findstr "LISTENING" | findstr ":${port} "`, {
       encoding: 'utf-8',
@@ -294,10 +421,17 @@ function killProcessOnPort(port) {
     }
     for (const pid of pids) {
       try {
-        execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
-        console.log(`  Killed stale process ${pid} on port ${port}`);
+        execSync(`taskkill /PID ${pid} /F /T`, { stdio: 'ignore' });
+        console.log(`  Killed process ${pid} on port ${port}`);
       } catch {
-        // Access denied or already gone — ignore
+        // taskkill may fail with "Access denied" for cross-session processes.
+        // Fall back to PowerShell .Kill() which bypasses the session restriction.
+        try {
+          execSync(`powershell -NoProfile -Command "(Get-Process -Id ${pid}).Kill()"`, { stdio: 'ignore' });
+          console.log(`  Killed process ${pid} on port ${port}`);
+        } catch {
+          // Already gone or truly inaccessible — ignore
+        }
       }
     }
   } catch {

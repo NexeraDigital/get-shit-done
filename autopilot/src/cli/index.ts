@@ -577,6 +577,10 @@ Dashboard:
     });
 
     // o. Start IPC components
+    heartbeatWriter.onShutdown = () => {
+      logger.log('warn', 'cli', 'Shutdown marker detected — requesting graceful shutdown');
+      orchestrator.requestShutdown();
+    };
     await heartbeatWriter.start();
     await answerPoller?.start();
 

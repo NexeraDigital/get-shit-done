@@ -120,5 +120,12 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
     res.json({ ok: true });
   });
 
+  // Shutdown endpoint -- allows the launcher to remotely stop the dashboard process.
+  // Responds 200 then exits after a short delay to allow the response to flush.
+  router.post('/shutdown', (_req: Request, res: Response) => {
+    res.json({ ok: true, message: 'Shutting down' });
+    setTimeout(() => process.exit(0), 200);
+  });
+
   return router;
 }
