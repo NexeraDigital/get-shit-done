@@ -159,6 +159,7 @@ Recent decisions affecting current work:
 - Phase 8 added: Autopilot should be able to be executed by using a claude command
 - Phase 06.1 inserted after Phase 6: add browser notifications to alert users when needed (URGENT)
 - Phase 03.2 inserted after Phase 3: Add Sub phase support to orchestrator and dashboard (URGENT)
+- Phase 9 added: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 
 ### Pending Todos
 

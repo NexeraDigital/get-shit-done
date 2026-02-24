@@ -202,3 +202,12 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
 | 7. CLI Polish and Distribution | 0/3 | Not started | - |
 | 8. Autopilot Claude Command | 0/3 | Not started | - |
+
+### Phase 9: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
+
+**Goal:** [To be planned]
+**Depends on:** Phase 8
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 9 to break down)
