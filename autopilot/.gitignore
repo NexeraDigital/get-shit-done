@@ -3,3 +3,6 @@ dist/
 
 # Dependencies (covered by root .gitignore too)
 node_modules/
+
+# VAPID keys (push notification secrets)
+.vapid-keys.json
