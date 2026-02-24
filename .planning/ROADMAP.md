@@ -202,6 +202,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
 | 7. CLI Polish and Distribution | 0/3 | Not started | - |
 | 8. Autopilot Claude Command | 0/3 | Not started | - |
+| 9. Fix Recent Activity Persistence | 3/3 | Complete | 2026-02-24 |
 
 ### Phase 9: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 
@@ -210,6 +211,6 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 **Plans:** 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md -- ActivityStore persistence class and GET /api/activities REST endpoint
-- [ ] 09-02-PLAN.md -- Wire ActivityStore into orchestrator, CLI, and standalone server for server-side activity creation
-- [ ] 09-03-PLAN.md -- Dashboard: updated types, server-sourced activities via REST, enhanced ActivityFeed with time formatting, Load more, and visual styling
+- [x] 09-01-PLAN.md -- ActivityStore persistence class and GET /api/activities REST endpoint
+- [x] 09-02-PLAN.md -- Wire ActivityStore into orchestrator, CLI, and standalone server for server-side activity creation
+- [x] 09-03-PLAN.md -- Dashboard: updated types, server-sourced activities via REST, enhanced ActivityFeed with time formatting, Load more, and visual styling
