@@ -91,10 +91,19 @@ export type ActivityItem = {
   type:
     | 'phase-started'
     | 'phase-completed'
+    | 'phase-failed'
+    | 'step-started'
+    | 'step-completed'
     | 'question-pending'
     | 'question-answered'
     | 'error'
     | 'build-complete';
   message: string;
   timestamp: string;
+  metadata?: {
+    phase?: number;
+    step?: string;
+    questionId?: string;
+    [key: string]: unknown;
+  };
 };

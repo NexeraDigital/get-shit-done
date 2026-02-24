@@ -33,6 +33,7 @@ export interface DashboardState {
   setQuestions: (questions: QuestionEvent[]) => void;
   addLog: (entry: LogEntry) => void;
   addActivity: (item: ActivityItem) => void;
+  setActivities: (activities: ActivityItem[]) => void;
   setConnected: (connected: boolean) => void;
   setAutopilotAlive: (alive: boolean) => void;
   updatePhase: (phaseNumber: number, patch: Partial<PhaseState>) => void;
@@ -67,6 +68,8 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
     set((state) => ({
       activities: [item, ...state.activities].slice(0, 50),
     })),
+
+  setActivities: (activities) => set({ activities }),
 
   setConnected: (connected) => set({ connected }),
 

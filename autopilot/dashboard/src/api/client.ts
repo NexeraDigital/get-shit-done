@@ -5,6 +5,7 @@ import type {
   AutopilotStatus,
   PhaseState,
   QuestionEvent,
+  ActivityItem,
 } from '../types/index.js';
 
 export interface StatusResponse {
@@ -27,6 +28,10 @@ export interface QuestionsResponse {
 
 export interface SubmitAnswerResponse {
   ok: boolean;
+}
+
+export interface ActivitiesResponse {
+  activities: ActivityItem[];
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
@@ -74,4 +79,12 @@ export async function submitAnswer(
     throw new Error(`submitAnswer failed: ${String(res.status)}`);
   }
   return res.json() as Promise<SubmitAnswerResponse>;
+}
+
+export async function fetchActivities(): Promise<ActivitiesResponse> {
+  const res = await fetch('/api/activities');
+  if (!res.ok) {
+    throw new Error(`fetchActivities failed: ${String(res.status)}`);
+  }
+  return res.json() as Promise<ActivitiesResponse>;
 }
