@@ -5,7 +5,7 @@
 const CLI_PATH = '__CLI_PATH__';
 
 import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { request } from 'node:http';
@@ -89,19 +89,24 @@ async function handleLaunch(branch, projectDir, args) {
   // 4. Build spawn args
   const spawnArgs = [CLI_PATH, '--port', String(port), ...args];
 
-  // 5. Spawn in a visible cmd window (detached)
+  // 5. Spawn in a visible cmd window using `start` (Windows built-in)
+  // Write a temporary .cmd file to avoid quoting hell with nested cmd interpreters
   console.log(`Starting autopilot for branch '${branch}' on port ${port}...`);
   const cmdTitle = `GSD Autopilot [${branch}] :${port}`;
-  const nodeCmd = `"${process.execPath}" ${spawnArgs.map(a => `"${a}"`).join(' ')}`;
-  const child = spawn('cmd.exe', ['/k', `title ${cmdTitle} && ${nodeCmd}`], {
-    detached: true,
+  const batContent = `@title ${cmdTitle}\n@"${process.execPath}" ${spawnArgs.map(a => `"${a}"`).join(' ')}\n@pause\n`;
+  const batPath = join(projectDir, '.planning', 'autopilot-run.cmd');
+  await writeFile(batPath, batContent, 'utf-8');
+  const child = spawn('start', ['""', batPath], {
+    shell: true,
     stdio: 'ignore',
     cwd: projectDir,
     env: process.env,
   });
   child.unref();
 
-  // 6. Write PID
+  // 6. Write PID (the `start` wrapper exits immediately; read actual PID from
+  //    the heartbeat file once the autopilot process writes it)
+  // Write the shell PID as a fallback — the health check gives the process time to start
   await writePid(branch, child.pid, projectDir);
 
   // 7. Health check
