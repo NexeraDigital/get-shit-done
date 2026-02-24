@@ -88,3 +88,45 @@ export async function fetchActivities(): Promise<ActivitiesResponse> {
   }
   return res.json() as Promise<ActivitiesResponse>;
 }
+
+// Push notification endpoints
+
+export interface VapidKeyResponse {
+  publicKey: string;
+}
+
+export interface PushSubscriptionResponse {
+  ok: boolean;
+}
+
+export async function fetchVapidPublicKey(): Promise<VapidKeyResponse> {
+  const res = await fetch('/api/push/vapid-public-key');
+  if (!res.ok) {
+    throw new Error(`fetchVapidPublicKey failed: ${String(res.status)}`);
+  }
+  return res.json() as Promise<VapidKeyResponse>;
+}
+
+export async function subscribePush(subscription: object): Promise<PushSubscriptionResponse> {
+  const res = await fetch('/api/push/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription),
+  });
+  if (!res.ok) {
+    throw new Error(`subscribePush failed: ${String(res.status)}`);
+  }
+  return res.json() as Promise<PushSubscriptionResponse>;
+}
+
+export async function unsubscribePush(endpoint: string): Promise<PushSubscriptionResponse> {
+  const res = await fetch('/api/push/subscribe', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint }),
+  });
+  if (!res.ok) {
+    throw new Error(`unsubscribePush failed: ${String(res.status)}`);
+  }
+  return res.json() as Promise<PushSubscriptionResponse>;
+}
