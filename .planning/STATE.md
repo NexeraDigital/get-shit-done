@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 8 of 8 (Autopilot Claude Command Integration) -- IN PROGRESS
-Plan: 1 of 3 in current phase (08-01 complete)
+Plan: 2 of 3 in current phase (08-01, 08-02 complete)
 Status: Executing Phase 8
-Last activity: 2026-02-23 -- Completed 08-01 Port Manager (1 TDD task, 2 files)
+Last activity: 2026-02-23 -- Completed 08-02 PID Manager and Launcher (2 tasks, 2 files)
 
 Progress: [█████████░] ~98%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
-- Average duration: 3.3min
-- Total execution time: ~1.5 hours
+- Total plans completed: 25
+- Average duration: 3.2min
+- Total execution time: ~1.6 hours
 
 **By Phase:**
 
@@ -35,11 +35,11 @@ Progress: [█████████░] ~98%
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
 | 06-notification-system | 3/3 | 8min | 2.7min |
 | 07-cli-polish-and-distribution | 2/3 | 10min | 5min |
-| 08-autopilot-claude-command | 1/3 | 8min | 8min |
+| 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (3min), 07-01 (6min), 07-02 (4min), 08-01 (8min)
-- Trend: Steady pace in Phase 8 TDD work
+- Last 5 plans: 07-01 (6min), 07-02 (4min), 08-01 (8min), 08-02 (3min)
+- Trend: Excellent velocity in Phase 8 infrastructure work
 
 *Updated after each plan completion*
 
@@ -140,6 +140,13 @@ Recent decisions affecting current work:
 - [08-01]: Port reuse from state file if still available, falls back to hash + collision detection
 - [08-01]: Node.js built-in test runner (node:test) for standalone .js modules outside TypeScript build
 - [08-01]: Plain JavaScript (not TypeScript) for ~/.claude/skills/ modules that run without compilation
+- [08-02]: PID files named autopilot-{sanitized-branch}.pid with / replaced by -- for cross-platform compatibility
+- [08-02]: isProcessRunning uses signal 0 check, treats EPERM as running (process exists but no permission)
+- [08-02]: stopProcess escalates SIGTERM -> wait up to 5s -> SIGKILL for graceful shutdown with timeout
+- [08-02]: Launch checks for existing instance before spawning to prevent double-spawn
+- [08-02]: Health check retries 3 times with 1-second delays using node:http (not fetch)
+- [08-02]: PRD prompt uses readline (not @inquirer/prompts) to maintain zero external dependencies
+- [08-02]: Status reads autopilot-state.json for phase progress and port from branches field
 
 ### Roadmap Evolution
 
@@ -158,5 +165,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 08-01-PLAN.md (Port manager with TDD, 1 task, 2 files)
+Stopped at: Completed 08-02-PLAN.md (PID manager and launcher, 2 tasks, 2 files)
 Resume file: None
