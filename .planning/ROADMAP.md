@@ -156,10 +156,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 06.1-01-PLAN.md -- Server-side push infrastructure: VAPID keys, web-push, subscription store, REST routes
-- [ ] 06.1-02-PLAN.md -- Service Worker and PWA: vite-plugin-pwa, push/click handlers, PWA manifest, assets
-- [ ] 06.1-03-PLAN.md -- Dashboard notification UI: per-type toggles, push subscription hook, badge count, permission flow
-- [ ] 06.1-04-PLAN.md -- Event-to-push wiring: SSE triggers push dispatch, question grouping, foreground sound
+- [x] 06.1-01-PLAN.md -- Server-side push infrastructure: VAPID keys, web-push, subscription store, REST routes
+- [x] 06.1-02-PLAN.md -- Service Worker and PWA: vite-plugin-pwa, push/click handlers, PWA manifest, assets
+- [x] 06.1-03-PLAN.md -- Dashboard notification UI: per-type toggles, push subscription hook, badge count, permission flow
+- [x] 06.1-04-PLAN.md -- Event-to-push wiring: SSE triggers push dispatch, question grouping, foreground sound
 
 ### Phase 7: CLI Polish and Distribution
 **Goal**: The CLI is feature-complete with all flags, published as an npm package, cross-platform tested, and provides a polished developer experience
@@ -203,6 +203,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 4. Response Server and API | 2/2 | Complete | 2026-02-17 |
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
+| 06.1. Browser Notifications | 4/4 | Complete | 2026-02-24 |
 | 7. CLI Polish and Distribution | 0/3 | Not started | - |
 | 8. Autopilot Claude Command | 0/3 | Not started | - |
 | 9. Fix Recent Activity Persistence | 3/3 | Complete | 2026-02-24 |
