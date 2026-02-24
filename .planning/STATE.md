@@ -19,9 +19,9 @@ Progress: [██████████] ~100%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
-- Average duration: 3.0min
-- Total execution time: ~1.8 hours
+- Total plans completed: 30
+- Average duration: 3.1min
+- Total execution time: ~1.9 hours
 
 **By Phase:**
 
@@ -37,11 +37,11 @@ Progress: [██████████] ~100%
 | 06-notification-system | 3/3 | 8min | 2.7min |
 | 07-cli-polish-and-distribution | 2/3 | 10min | 5min |
 | 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
-| 09-fix-recent-activity-persistence | 2/3 | 5min | 2.5min |
+| 09-fix-recent-activity-persistence | 3/3 | 9min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 03.2-01 (5min), 03.2-02 (1min), 09-01 (2min), 09-02 (3min)
-- Trend: Efficient execution continues with server-side activity wiring
+- Last 5 plans: 03.2-02 (1min), 09-01 (2min), 09-02 (3min), 09-03 (4min)
+- Trend: Efficient execution continues, dashboard activity persistence complete
 
 *Updated after each plan completion*
 
@@ -161,6 +161,12 @@ Recent decisions affecting current work:
 - [Phase 09-02]: Question-answered activities marked without exposing answer text
 - [Phase 09-02]: All activities use server timestamps (new Date().toISOString()) not client timestamps
 - [Phase 09-02]: Activity creation at event source (server-side) not client-side
+- [Phase 09-03]: Dashboard activities exclusively loaded from server via fetchActivities() REST endpoint
+- [Phase 09-03]: Timestamp formatting: relative time < 24h, absolute date >= 24h
+- [Phase 09-03]: Live timestamp refresh every 30 seconds using useState + useEffect
+- [Phase 09-03]: Load more pagination: initial 20 entries with button for older entries
+- [Phase 09-03]: Error activities styled with bold text + red background tint
+- [Phase 09-03]: Answered questions show checkmark indicator in activity feed
 
 ### Roadmap Evolution
 
@@ -182,5 +188,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 09-02-PLAN.md (Wire ActivityStore into Orchestrator and CLI, 2 tasks, 4 files)
+Stopped at: Completed 09-03-PLAN.md (Dashboard Activity Feed Enhancement, 3 tasks, 6 files)
 Resume file: None
