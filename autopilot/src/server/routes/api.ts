@@ -8,6 +8,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { AutopilotState } from '../../types/state.js';
 import type { QuestionEvent } from '../../claude/types.js';
+import type { MilestoneResponse } from '../../milestone/types.js';
 
 /**
  * Reads .planning/PROJECT.md and extracts the "What This Is" section content.
@@ -44,11 +45,17 @@ export interface ActivityProvider {
   getAll(): { type: string; message: string; timestamp: string; metadata?: Record<string, unknown> }[];
 }
 
+/** Provides milestone lifecycle data parsed from planning files */
+export interface MilestoneProvider {
+  getMilestones(): MilestoneResponse;
+}
+
 export interface ApiRouteDeps {
   stateProvider: StateProvider;
   questionProvider: QuestionProvider;
   livenessProvider?: LivenessProvider;
   activityProvider?: ActivityProvider;
+  milestoneProvider?: MilestoneProvider;
 }
 
 /**
@@ -76,7 +83,7 @@ export function computeProgress(state: Readonly<AutopilotState>): number {
  * @returns Express Router mounted at /api by the ResponseServer
  */
 export function createApiRoutes(deps: ApiRouteDeps): Router {
-  const { stateProvider, questionProvider, livenessProvider, activityProvider } = deps;
+  const { stateProvider, questionProvider, livenessProvider, activityProvider, milestoneProvider } = deps;
   const router = Router();
 
   // DASH-08: Health check
@@ -152,6 +159,16 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
     }
     const activities = activityProvider.getAll();
     res.json({ activities });
+  });
+
+  // Milestones endpoint
+  router.get('/milestones', (_req: Request, res: Response) => {
+    if (!milestoneProvider) {
+      res.json({ current: null, shipped: [] });
+      return;
+    }
+    const milestones = milestoneProvider.getMilestones();
+    res.json(milestones);
   });
 
   // Shutdown endpoint -- allows the launcher to remotely stop the dashboard process.
