@@ -8,33 +8,37 @@ declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 
 // Push event handler - receives push notifications from the server
+// Suppresses notifications when the dashboard is already visible (user sees live SSE updates)
 self.addEventListener('push', (event) => {
-  if (!event.data) {
-    return;
-  }
+  if (!event.data) return;
 
   const payload = event.data.json();
-  const {
-    title,
-    body,
-    icon,
-    badge,
-    tag,
-    requireInteraction,
-    silent,
-    data,
-  } = payload;
+  const { title, body, icon, badge, tag, requireInteraction, silent, data } =
+    payload;
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: icon || '/icon-192.png',
-      badge: '/badge-72.png',
-      tag,
-      requireInteraction,
-      silent,
-      data,
-    })
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        // If any dashboard window is visible, user already sees live SSE updates
+        const hasVisibleClient = clients.some(
+          (client) =>
+            client.url.startsWith(self.location.origin) &&
+            client.visibilityState === 'visible'
+        );
+
+        if (hasVisibleClient) return;
+
+        return self.registration.showNotification(title, {
+          body,
+          icon: icon || '/icon-192.png',
+          badge: '/badge-72.png',
+          tag,
+          requireInteraction,
+          silent,
+          data,
+        });
+      })
   );
 });
 
