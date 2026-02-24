@@ -6,6 +6,7 @@ import { ProgressBar } from '../components/ProgressBar.js';
 import { PhaseCard } from '../components/PhaseCard.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
 import { LogStream } from '../components/LogStream.js';
+import { VictoryScreen } from '../components/VictoryScreen.js';
 
 export function Overview() {
   const status = useDashboardStore((s) => s.status);
@@ -16,6 +17,25 @@ export function Overview() {
   const logs = useDashboardStore((s) => s.logs);
   const projectName = useDashboardStore((s) => s.projectName);
   const projectDescription = useDashboardStore((s) => s.projectDescription);
+  const currentMilestone = useDashboardStore((s) => s.currentMilestone);
+  const milestones = useDashboardStore((s) => s.milestones);
+
+  // Victory screen state: Milestone just shipped (status === 'shipped' OR currentMilestone is null but shipped milestones exist)
+  const shouldShowVictory =
+    currentMilestone?.status === 'shipped' ||
+    (currentMilestone === null && milestones.length > 0 && milestones[0]);
+
+  const victoryMilestone = currentMilestone?.status === 'shipped'
+    ? currentMilestone
+    : milestones[0];
+
+  // If victory screen should be shown, render it instead of normal overview
+  if (shouldShowVictory && victoryMilestone) {
+    return <VictoryScreen milestone={victoryMilestone} />;
+  }
+
+  // No active milestone state: No milestone at all (fresh project or between milestones)
+  const showNoMilestone = currentMilestone === null && milestones.length === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,6 +46,16 @@ export function Overview() {
             {projectName || 'Project'}
           </h2>
           <p className="text-gray-700 text-sm leading-relaxed">{projectDescription}</p>
+        </div>
+      )}
+
+      {/* No active milestone card */}
+      {showNoMilestone && (
+        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 text-center">
+          <p className="text-sm text-gray-600">No active milestone</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Run <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">/gsd:new-milestone</code> to define your first milestone
+          </p>
         </div>
       )}
 
