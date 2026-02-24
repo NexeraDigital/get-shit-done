@@ -12,6 +12,7 @@ import type { CommandResult } from '../claude/types.js';
 import type { StateStore } from '../state/index.js';
 import type { ClaudeService } from '../claude/index.js';
 import type { AutopilotLogger } from '../logger/index.js';
+import type { ActivityStore } from '../activity/index.js';
 import { writeYoloConfig } from './yolo-config.js';
 import { writeSkipDiscussContext } from './discuss-handler.js';
 import { checkForGaps } from './gap-detector.js';
@@ -22,6 +23,7 @@ export interface OrchestratorOptions {
   logger: AutopilotLogger;
   config: AutopilotConfig;
   projectDir: string;
+  activityStore?: ActivityStore;
 }
 
 interface RoadmapPhase {
@@ -222,6 +224,7 @@ export class Orchestrator extends EventEmitter {
   private readonly logger: AutopilotLogger;
   private readonly config: AutopilotConfig;
   private readonly projectDir: string;
+  private readonly activityStore?: ActivityStore;
   private shutdownRequested = false;
 
   constructor(options: OrchestratorOptions) {
@@ -231,6 +234,7 @@ export class Orchestrator extends EventEmitter {
     this.logger = options.logger;
     this.config = options.config;
     this.projectDir = options.projectDir;
+    this.activityStore = options.activityStore;
   }
 
   /**
@@ -347,6 +351,15 @@ export class Orchestrator extends EventEmitter {
       this.emit('build:complete');
       this.logger.log('info', 'orchestrator', 'Build complete');
       await this.stateStore.setState({ status: 'complete' });
+
+      // Create activity entry for build completion
+      if (this.activityStore) {
+        await this.activityStore.addActivity({
+          type: 'build-complete',
+          message: 'Build complete — all phases finished',
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
   }
 
@@ -499,6 +512,16 @@ export class Orchestrator extends EventEmitter {
     // ORCH-09: Emit phase:started
     this.emit('phase:started', { phase: phase.number, name: phase.name });
 
+    // Create activity entry for phase start
+    if (this.activityStore) {
+      await this.activityStore.addActivity({
+        type: 'phase-started',
+        message: `Phase ${phase.number}: ${phase.name} — started`,
+        timestamp: new Date().toISOString(),
+        metadata: { phase: phase.number },
+      });
+    }
+
     // Update state to mark phase as current and in-progress
     phase.status = 'in_progress';
     if (!phase.startedAt) {
@@ -538,6 +561,16 @@ export class Orchestrator extends EventEmitter {
 
     // ORCH-09: Emit phase:completed
     this.emit('phase:completed', { phase: phase.number, name: phase.name });
+
+    // Create activity entry for phase completion
+    if (this.activityStore) {
+      await this.activityStore.addActivity({
+        type: 'phase-completed',
+        message: `Phase ${phase.number}: ${phase.name} — completed`,
+        timestamp: new Date().toISOString(),
+        metadata: { phase: phase.number },
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -604,6 +637,16 @@ export class Orchestrator extends EventEmitter {
     // Emit step:started
     this.emit('step:started', { phase: phase.number, step: stepName });
 
+    // Create activity entry for step start
+    if (this.activityStore) {
+      await this.activityStore.addActivity({
+        type: 'step-started',
+        message: `Phase ${phase.number}: ${stepName} started`,
+        timestamp: new Date().toISOString(),
+        metadata: { phase: phase.number, step: stepName },
+      });
+    }
+
     // Update in-progress state
     phase.steps[stepName as keyof typeof phase.steps] = stepName;
     await this.stateStore.setState({ currentStep: stepName });
@@ -646,6 +689,16 @@ export class Orchestrator extends EventEmitter {
 
     // Emit step:completed
     this.emit('step:completed', { phase: phase.number, step: stepName });
+
+    // Create activity entry for step completion
+    if (this.activityStore) {
+      await this.activityStore.addActivity({
+        type: 'step-completed',
+        message: `Phase ${phase.number}: ${stepName} completed`,
+        timestamp: new Date().toISOString(),
+        metadata: { phase: phase.number, step: stepName },
+      });
+    }
 
     this.logger.log('info', 'orchestrator', `Step ${stepName} completed for phase ${phase.number}`, {
       phase: phase.number,
