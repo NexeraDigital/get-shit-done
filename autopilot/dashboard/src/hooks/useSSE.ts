@@ -3,8 +3,8 @@
 
 import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '../store/index.js';
-import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
-import type { LogEntry, ActivityItem } from '../types/index.js';
+import { fetchStatus, fetchPhases, fetchQuestions, fetchActivities } from '../api/client.js';
+import type { LogEntry } from '../types/index.js';
 
 /**
  * Rehydrate full dashboard state from REST endpoints.
@@ -13,10 +13,11 @@ import type { LogEntry, ActivityItem } from '../types/index.js';
 async function rehydrate(): Promise<void> {
   const store = useDashboardStore.getState();
   try {
-    const [statusRes, phasesRes, questionsRes] = await Promise.all([
+    const [statusRes, phasesRes, questionsRes, activitiesRes] = await Promise.all([
       fetchStatus(),
       fetchPhases(),
       fetchQuestions(),
+      fetchActivities(),
     ]);
     store.setStatus({
       status: statusRes.status,
@@ -27,6 +28,7 @@ async function rehydrate(): Promise<void> {
     store.setAutopilotAlive(statusRes.alive);
     store.setPhases(phasesRes.phases);
     store.setQuestions(questionsRes.questions);
+    store.setActivities(activitiesRes.activities);
   } catch {
     // Rehydration failure is non-fatal -- SSE events will still update state
   }
@@ -58,15 +60,8 @@ export function useSSE(): void {
     });
 
     // Phase lifecycle
-    es.addEventListener('phase-started', (e: MessageEvent) => {
-      const data = JSON.parse(e.data as string) as { phase?: number; name?: string };
-      const activity: ActivityItem = {
-        type: 'phase-started',
-        message: `Phase ${String(data.phase ?? '?')}: ${String(data.name ?? 'started')}`,
-        timestamp: new Date().toISOString(),
-      };
-      useDashboardStore.getState().addActivity(activity);
-      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+    es.addEventListener('phase-started', () => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchActivities()]).then(([s, p, a]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -76,18 +71,12 @@ export function useSSE(): void {
         });
         st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
+        st.setActivities(a.activities);
       });
     });
 
-    es.addEventListener('phase-completed', (e: MessageEvent) => {
-      const data = JSON.parse(e.data as string) as { phase?: number; name?: string };
-      const activity: ActivityItem = {
-        type: 'phase-completed',
-        message: `Phase ${String(data.phase ?? '?')}: ${String(data.name ?? 'completed')}`,
-        timestamp: new Date().toISOString(),
-      };
-      useDashboardStore.getState().addActivity(activity);
-      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+    es.addEventListener('phase-completed', () => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchActivities()]).then(([s, p, a]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -97,12 +86,13 @@ export function useSSE(): void {
         });
         st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
+        st.setActivities(a.activities);
       });
     });
 
     // Step completed — refresh phases to pick up new commits immediately
     es.addEventListener('step-completed', () => {
-      void Promise.all([fetchStatus(), fetchPhases()]).then(([s, p]) => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchActivities()]).then(([s, p, a]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -112,49 +102,35 @@ export function useSSE(): void {
         });
         st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
+        st.setActivities(a.activities);
       });
     });
 
     // Questions
-    es.addEventListener('question-pending', (e: MessageEvent) => {
-      const data = JSON.parse(e.data as string) as { id?: string };
-      const activity: ActivityItem = {
-        type: 'question-pending',
-        message: `New question pending: ${String(data.id ?? 'unknown')}`,
-        timestamp: new Date().toISOString(),
-      };
-      useDashboardStore.getState().addActivity(activity);
-      void fetchQuestions().then((q) => {
+    es.addEventListener('question-pending', () => {
+      void Promise.all([fetchQuestions(), fetchActivities()]).then(([q, a]) => {
         useDashboardStore.getState().setQuestions(q.questions);
+        useDashboardStore.getState().setActivities(a.activities);
       });
     });
 
     es.addEventListener('question-answered', () => {
-      void fetchQuestions().then((q) => {
+      void Promise.all([fetchQuestions(), fetchActivities()]).then(([q, a]) => {
         useDashboardStore.getState().setQuestions(q.questions);
+        useDashboardStore.getState().setActivities(a.activities);
       });
     });
 
     // Errors
-    es.addEventListener('error', (e: MessageEvent) => {
-      const data = JSON.parse(e.data as string) as { message?: string };
-      const activity: ActivityItem = {
-        type: 'error',
-        message: String(data.message ?? 'Unknown error'),
-        timestamp: new Date().toISOString(),
-      };
-      useDashboardStore.getState().addActivity(activity);
+    es.addEventListener('error', () => {
+      void fetchActivities().then((a) => {
+        useDashboardStore.getState().setActivities(a.activities);
+      });
     });
 
     // Build complete
     es.addEventListener('build-complete', () => {
-      const activity: ActivityItem = {
-        type: 'build-complete',
-        message: 'Build complete',
-        timestamp: new Date().toISOString(),
-      };
-      useDashboardStore.getState().addActivity(activity);
-      void fetchStatus().then((s) => {
+      void Promise.all([fetchStatus(), fetchActivities()]).then(([s, a]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -163,13 +139,14 @@ export function useSSE(): void {
           progress: s.progress,
         });
         st.setAutopilotAlive(s.alive);
+        st.setActivities(a.activities);
       });
     });
 
     // Poll status + phases every 3s to catch state changes that don't emit SSE events
     // (e.g., init completing and phases being loaded, step transitions within a phase)
     const pollTimer = setInterval(() => {
-      void Promise.all([fetchStatus(), fetchPhases(), fetchQuestions()]).then(([s, p, q]) => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchQuestions(), fetchActivities()]).then(([s, p, q, a]) => {
         const st = useDashboardStore.getState();
         st.setStatus({
           status: s.status,
@@ -180,6 +157,7 @@ export function useSSE(): void {
         st.setAutopilotAlive(s.alive);
         st.setPhases(p.phases);
         st.setQuestions(q.questions);
+        st.setActivities(a.activities);
       }).catch(() => { /* ignore poll failures */ });
     }, 3000);
 
