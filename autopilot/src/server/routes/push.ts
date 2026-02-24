@@ -5,10 +5,12 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { SubscriptionStore, PushSubscription } from '../push/subscription-store.js';
+import type { PushNotificationManager } from '../push/manager.js';
 
 export interface PushRouteDeps {
   subscriptionStore: SubscriptionStore;
   vapidPublicKey: string;
+  pushManager?: PushNotificationManager;
 }
 
 /**
@@ -19,7 +21,7 @@ export interface PushRouteDeps {
  * @returns Express Router with push subscription endpoints
  */
 export function createPushRoutes(deps: PushRouteDeps): Router {
-  const { subscriptionStore, vapidPublicKey } = deps;
+  const { subscriptionStore, vapidPublicKey, pushManager } = deps;
   const router = Router();
 
   /**
@@ -102,6 +104,29 @@ export function createPushRoutes(deps: PushRouteDeps): Router {
     subscriptionStore.remove(endpoint);
     res.json({ ok: true });
   });
+
+  /**
+   * POST /send
+   * Sends a push notification to all subscribers. Called by the CLI process
+   * to deliver notifications synchronously before exit.
+   * Body: { title: string, body: string, tag?: string, ... }
+   */
+  if (pushManager) {
+    router.post('/send', async (req: Request, res: Response) => {
+      const payload = req.body;
+      if (!payload || typeof payload !== 'object' || !payload.title) {
+        res.status(400).json({ error: 'Missing title in payload' });
+        return;
+      }
+      try {
+        await pushManager.sendToAll(payload);
+        res.json({ ok: true, subscribers: subscriptionStore.size() });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        res.status(500).json({ error: msg });
+      }
+    });
+  }
 
   return router;
 }

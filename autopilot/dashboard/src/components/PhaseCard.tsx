@@ -2,6 +2,7 @@
 // Shows ALL phases with status indicators. Current phase is highlighted.
 // During init (no phases yet), shows an "Initializing" state.
 
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { useDashboardStore } from '../store/index.js';
 import type { PhaseState, PhaseStep } from '../types/index.js';
@@ -62,6 +63,7 @@ function PhaseRow({ phase, isCurrent }: {
   return (
     <Link
       to={`/phases/${String(phase.number)}`}
+      data-phase={phase.number}
       className={`block rounded-lg border ${borderClass} p-3 hover:shadow-sm transition-shadow`}
     >
       <div className="flex items-center justify-between mb-2">
@@ -106,6 +108,20 @@ function PhaseRow({ phase, isCurrent }: {
 
 export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
   const currentMilestone = useDashboardStore((s) => s.currentMilestone);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false);
+
+  // Auto-scroll to the in-progress phase on initial load
+  useEffect(() => {
+    if (hasScrolledRef.current || currentPhase === 0 || phases.length === 0) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const target = container.querySelector<HTMLElement>(`[data-phase="${currentPhase}"]`);
+    if (target) {
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      hasScrolledRef.current = true;
+    }
+  }, [currentPhase, phases.length]);
 
   if (phases.length === 0) {
     return (
@@ -145,7 +161,7 @@ export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
           {completedCount}/{totalCount} complete
         </span>
       </div>
-      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+      <div ref={containerRef} className="flex flex-col gap-2 max-h-96 overflow-y-auto">
         {phases.map((phase) => (
           <PhaseRow
             key={phase.number}

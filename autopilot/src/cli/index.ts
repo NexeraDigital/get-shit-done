@@ -303,8 +303,10 @@ Dashboard:
     orchestrator.on('step:completed', (data: unknown) => {
       void eventWriter.write('step-completed', data);
     });
+    // Track the build-complete write promise so shutdown can await it
+    let buildCompleteWritePromise: Promise<void> | null = null;
     orchestrator.on('build:complete', () => {
-      void eventWriter.write('build-complete', {});
+      buildCompleteWritePromise = eventWriter.write('build-complete', {});
     });
     orchestrator.on('error:escalation', (data: unknown) => {
       void eventWriter.write('error', data);
@@ -630,6 +632,40 @@ Dashboard:
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');
       }
+
+      // Ensure the build-complete event is flushed to disk for SSE clients
+      if (buildCompleteWritePromise) {
+        await buildCompleteWritePromise;
+      }
+
+      // Send browser push notification via the standalone dashboard's HTTP API.
+      // This is synchronous (we await the response) so the notification is
+      // guaranteed to be delivered before the CLI exits and kills the dashboard.
+      if (!options.embeddedServer) {
+        try {
+          const pushUrl = `http://localhost:${config.port}/api/push/send`;
+          const res = await fetch(pushUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: 'GSD Autopilot: Build complete!',
+              body: 'All phases completed successfully!',
+              tag: 'gsd-build-complete',
+              url: '/',
+              requireInteraction: false,
+              silent: true,
+            }),
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            logger.log('warn', 'cli', `Push notification send failed: ${res.status} ${text}`);
+          }
+        } catch {
+          // Standalone dashboard may not be running or push not configured -- non-fatal
+        }
+      }
+
       heartbeatWriter.stop();
       answerPoller?.stop();
       await notificationManager.close();

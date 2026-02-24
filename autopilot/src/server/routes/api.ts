@@ -16,7 +16,7 @@ import type { MilestoneResponse } from '../../milestone/types.js';
  */
 function readProjectDescription(): string {
   try {
-    const projectMd = readFileSync(join(process.cwd(), '.planning', 'PROJECT.md'), 'utf-8');
+    const projectMd = readFileSync(join(process.cwd(), '.planning', 'PROJECT.md'), 'utf-8').replace(/\r\n/g, '\n');
     const match = projectMd.match(/## What This Is\n\n([\s\S]*?)(?:\n## |\n---|\n$)/);
     return match?.[1]?.trim() ?? '';
   } catch {

@@ -125,7 +125,7 @@ export class ResponseServer {
 
     // Mount push routes at /api/push if push infrastructure was provided
     if (subscriptionStore && vapidPublicKey) {
-      const pushRouter = createPushRoutes({ subscriptionStore, vapidPublicKey });
+      const pushRouter = createPushRoutes({ subscriptionStore, vapidPublicKey, pushManager: pushManagerProvided });
       this.app.use('/api/push', pushRouter);
     }
 

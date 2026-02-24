@@ -13,7 +13,7 @@ self.addEventListener('push', (event) => {
   if (!event.data) return;
 
   const payload = event.data.json();
-  const { title, body, icon, badge, tag, requireInteraction, silent, data } =
+  const { title, body, icon, badge, tag, requireInteraction, silent, url, data } =
     payload;
 
   event.waitUntil(
@@ -47,7 +47,7 @@ self.addEventListener('push', (event) => {
           tag,
           requireInteraction,
           silent,
-          data,
+          data: { ...data, url },
         });
       })
   );
