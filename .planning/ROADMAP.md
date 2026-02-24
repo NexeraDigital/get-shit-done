@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
 - [x] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
 - [ ] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
-- [ ] **Phase 03.2: Add Sub phase support to orchestrator and dashboard** (INSERTED)
+- [x] **Phase 03.2: Add Sub phase support to orchestrator and dashboard** (INSERTED)
 - [ ] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
 - [x] **Phase 5: React Dashboard** - SPA with progress view, question response UI, phase detail, log viewer
 - [x] **Phase 6: Notification System** - Adapter pattern, console/system/Teams/Slack/custom adapters
@@ -95,8 +95,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03.2-01-PLAN.md -- Fix extractPhasesFromContent with merged extraction and type extension (TDD)
-- [ ] 03.2-02-PLAN.md -- Dashboard type mirroring and INSERTED badge on PhaseCard
+- [x] 03.2-01-PLAN.md -- Fix extractPhasesFromContent with merged extraction and type extension (TDD)
+- [x] 03.2-02-PLAN.md -- Dashboard type mirroring and INSERTED badge on PhaseCard
 
 ### Phase 4: Response Server and API
 **Goal**: A local Express server exposes REST endpoints for autopilot state, question management, and real-time log streaming via SSE, enabling the dashboard and human-in-the-loop flow
@@ -196,6 +196,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 2. Claude Integration | 4/4 | Complete | 2026-02-15 |
 | 3. Core Orchestrator | 4/4 | Complete | 2026-02-15 |
 | 03.1. Display Console Output | 2/2 | Complete | 2026-02-16 |
+| 03.2. Sub-phase Support | 2/2 | Complete | 2026-02-23 |
 | 4. Response Server and API | 2/2 | Complete | 2026-02-17 |
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
