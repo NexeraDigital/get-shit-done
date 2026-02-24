@@ -1,7 +1,7 @@
 // Port manager tests using Node.js built-in test runner
 import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { mkdtemp, rm, writeFile, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, readFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { branchToPort, isPortAvailable, assignPort } from '../port-manager.js';
@@ -117,6 +117,7 @@ describe('assignPort', () => {
   it('assigns new port when persisted port is unavailable', async () => {
     // Create state file with a port that will be in use
     const planningDir = join(tempDir, '.planning');
+    await mkdir(planningDir, { recursive: true });
     await writeFile(
       join(planningDir, 'autopilot-state.json'),
       JSON.stringify({
