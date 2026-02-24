@@ -38,6 +38,8 @@ export class ClaudeService extends EventEmitter {
   private readonly autoAnswer: boolean;
   private running = false;
   private currentAbort: AbortController | null = null;
+  private currentPhase: number | undefined;
+  private currentStep: string | undefined;
 
   constructor(options?: ClaudeServiceOptions) {
     super();
@@ -73,6 +75,8 @@ export class ClaudeService extends EventEmitter {
     }
 
     this.running = true;
+    this.currentPhase = options?.phase;
+    this.currentStep = options?.step;
     const timeoutMs = options?.timeoutMs ?? this.defaultTimeoutMs;
     const { controller, cleanup } = createTimeout(timeoutMs);
     this.currentAbort = controller;
@@ -158,6 +162,8 @@ export class ClaudeService extends EventEmitter {
       cleanup();
       this.running = false;
       this.currentAbort = null;
+      this.currentPhase = undefined;
+      this.currentStep = undefined;
     }
   }
 
@@ -190,7 +196,10 @@ export class ClaudeService extends EventEmitter {
 
         // Delegate to QuestionHandler -- this blocks SDK execution
         // until submitAnswer() resolves the deferred promise.
-        return await this.questionHandler.handleQuestion(typedInput);
+        return await this.questionHandler.handleQuestion(typedInput, {
+          phase: this.currentPhase,
+          step: this.currentStep,
+        });
       }
 
       return { behavior: 'allow' as const, updatedInput: input };
