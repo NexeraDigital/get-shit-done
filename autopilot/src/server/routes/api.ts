@@ -23,10 +23,16 @@ export interface LivenessProvider {
   isAlive(): Promise<boolean>;
 }
 
+/** Provides access to persisted activity entries */
+export interface ActivityProvider {
+  getAll(): { type: string; message: string; timestamp: string; metadata?: Record<string, unknown> }[];
+}
+
 export interface ApiRouteDeps {
   stateProvider: StateProvider;
   questionProvider: QuestionProvider;
   livenessProvider?: LivenessProvider;
+  activityProvider?: ActivityProvider;
 }
 
 /**
@@ -54,7 +60,7 @@ export function computeProgress(state: Readonly<AutopilotState>): number {
  * @returns Express Router mounted at /api by the ResponseServer
  */
 export function createApiRoutes(deps: ApiRouteDeps): Router {
-  const { stateProvider, questionProvider, livenessProvider } = deps;
+  const { stateProvider, questionProvider, livenessProvider, activityProvider } = deps;
   const router = Router();
 
   // DASH-08: Health check
@@ -118,6 +124,16 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       return;
     }
     res.json({ ok: true });
+  });
+
+  // DASH-17: Activities endpoint
+  router.get('/activities', (_req: Request, res: Response) => {
+    if (!activityProvider) {
+      res.json({ activities: [] });
+      return;
+    }
+    const activities = activityProvider.getAll();
+    res.json({ activities });
   });
 
   // Shutdown endpoint -- allows the launcher to remotely stop the dashboard process.
