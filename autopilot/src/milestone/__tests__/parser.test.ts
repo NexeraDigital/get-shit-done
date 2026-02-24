@@ -184,7 +184,7 @@ A local Node.js command-line tool.
       expect(result.current?.status).toBe('shipped');
       expect(result.current?.shippedDate).toBe('2026-02-24');
       expect(result.shipped.length).toBe(1);
-      expect(result.shipped[0].version).toBe('v1.0');
+      expect(result.shipped[0]?.version).toBe('v1.0');
     });
   });
 
@@ -228,10 +228,10 @@ A local Node.js command-line tool.
       const result = parseMilestoneData('/test/planning');
 
       expect(result.shipped.length).toBe(2);
-      expect(result.shipped[0].version).toBe('v1.0');
-      expect(result.shipped[0].name).toBe('MVP');
-      expect(result.shipped[1].version).toBe('v2.0');
-      expect(result.shipped[1].name).toBe('Polish');
+      expect(result.shipped[0]?.version).toBe('v1.0');
+      expect(result.shipped[0]?.name).toBe('MVP');
+      expect(result.shipped[1]?.version).toBe('v2.0');
+      expect(result.shipped[1]?.name).toBe('Polish');
     });
   });
 
@@ -250,7 +250,7 @@ A local Node.js command-line tool.
       const result = parseMilestoneData('/test/planning');
 
       expect(result.current?.version).toBe('v1.0');
-      expect(result.shipped[0].version).toBe('v1.0');
+      expect(result.shipped[0]?.version).toBe('v1.0');
     });
   });
 
@@ -326,7 +326,7 @@ A local Node.js command-line tool.
 
       const result = parseMilestoneData('/test/planning');
 
-      expect(result.shipped[0].accomplishments).toEqual([
+      expect(result.shipped[0]?.accomplishments).toEqual([
         'First accomplishment',
         'Second accomplishment with details',
         'Third item',

@@ -24,3 +24,9 @@ export type {
   Notification,
   NotificationAdapter,
 } from './notification.js';
+
+export type {
+  MilestoneStatus,
+  MilestoneInfo,
+  MilestoneResponse,
+} from '../milestone/types.js';
