@@ -7,6 +7,7 @@ import { useDashboardStore } from '../store/index.js';
 import { fetchStatus, fetchPhases, fetchQuestions } from '../api/client.js';
 import { NotificationToggle } from './NotificationToggle.js';
 import { useBadgeCount } from '../hooks/useBadgeCount.js';
+import { useNotificationSound } from '../hooks/useNotificationSound.js';
 
 export function Layout() {
   const connected = useDashboardStore((s) => s.connected);
@@ -18,6 +19,9 @@ export function Layout() {
 
   // Update browser badge with pending question count
   useBadgeCount();
+
+  // Play notification sound when questions arrive (if tab is open)
+  useNotificationSound();
 
   // Load initial data on mount
   useEffect(() => {
