@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 09 of 9 (Fix Recent Activity Persistence) -- IN PROGRESS
-Plan: 1 of 3 in current phase (09-01 complete)
+Plan: 2 of 3 in current phase (09-01, 09-02 complete)
 Status: Executing Phase 09
-Last activity: 2026-02-24 -- Completed 09-01 Create ActivityStore Persistence and REST Endpoint (2 tasks, 3 files)
+Last activity: 2026-02-24 -- Completed 09-02 Wire ActivityStore into Orchestrator and CLI (2 tasks, 4 files)
 
 Progress: [██████████] ~100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 3.0min
-- Total execution time: ~1.75 hours
+- Total execution time: ~1.8 hours
 
 **By Phase:**
 
@@ -37,11 +37,11 @@ Progress: [██████████] ~100%
 | 06-notification-system | 3/3 | 8min | 2.7min |
 | 07-cli-polish-and-distribution | 2/3 | 10min | 5min |
 | 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
-| 09-fix-recent-activity-persistence | 1/3 | 2min | 2min |
+| 09-fix-recent-activity-persistence | 2/3 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 08-02 (3min), 03.2-01 (5min), 03.2-02 (1min), 09-01 (2min)
-- Trend: Efficient execution continues with activity persistence foundation
+- Last 5 plans: 03.2-01 (5min), 03.2-02 (1min), 09-01 (2min), 09-02 (3min)
+- Trend: Efficient execution continues with server-side activity wiring
 
 *Updated after each plan completion*
 
@@ -155,6 +155,12 @@ Recent decisions affecting current work:
 - [03.2-02]: Flat list display with visual distinction via badge (not nested hierarchy)
 - [Phase 09-01]: ActivityStore follows StateStore pattern with atomic writes and non-critical error handling
 - [Phase 09-01]: ActivityProvider interface uses optional injection to avoid breaking existing callers
+- [Phase 09-02]: ActivityStore injected as optional dependency to Orchestrator (no breaking changes)
+- [Phase 09-02]: Phase activities use em-dash separator format: 'Phase N: Name — action'
+- [Phase 09-02]: Question-pending activities display truncated question text (not raw UUIDs)
+- [Phase 09-02]: Question-answered activities marked without exposing answer text
+- [Phase 09-02]: All activities use server timestamps (new Date().toISOString()) not client timestamps
+- [Phase 09-02]: Activity creation at event source (server-side) not client-side
 
 ### Roadmap Evolution
 
@@ -176,5 +182,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 09-01-PLAN.md (Create ActivityStore Persistence and REST Endpoint, 2 tasks, 3 files)
+Stopped at: Completed 09-02-PLAN.md (Wire ActivityStore into Orchestrator and CLI, 2 tasks, 4 files)
 Resume file: None
