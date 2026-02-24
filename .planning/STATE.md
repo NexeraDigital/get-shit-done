@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 06.1 of 06.1 (Add Browser Notifications) -- IN PROGRESS
-Plan: 2 of 4 in current phase (06.1-01, 06.1-02 complete)
+Plan: 3 of 4 in current phase (06.1-01, 06.1-02, 06.1-03 complete)
 Status: Phase 06.1 Active
-Last activity: 2026-02-24 -- Completed 06.1-02 PWA Service Worker Setup (2 tasks, 9 files)
+Last activity: 2026-02-24 -- Completed 06.1-03 Dashboard Notification UI (2 tasks, 6 files)
 
-Progress: [██████████] ~100% (main phases) + Phase 06.1 (2/4 plans)
+Progress: [██████████] ~100% (main phases) + Phase 06.1 (3/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
+- Total plans completed: 33
 - Average duration: 3.0min
 - Total execution time: ~2.0 hours
 
@@ -35,14 +35,14 @@ Progress: [██████████] ~100% (main phases) + Phase 06.1 (2/4
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
 | 06-notification-system | 3/3 | 8min | 2.7min |
-| 06.1-add-browser-notifications | 2/4 | 6min | 3min |
+| 06.1-add-browser-notifications | 3/4 | 8min | 2.7min |
 | 07-cli-polish-and-distribution | 2/3 | 10min | 5min |
 | 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
 | 09-fix-recent-activity-persistence | 3/3 | 9min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 09-02 (3min), 09-03 (4min), 06.1-01 (2min), 06.1-02 (4min)
-- Trend: Efficient execution continues, PWA Service Worker with push handlers complete
+- Last 5 plans: 09-03 (4min), 06.1-01 (2min), 06.1-02 (4min), 06.1-03 (2min)
+- Trend: Efficient execution continues, dashboard notification UI with soft-ask permission flow complete
 
 *Updated after each plan completion*
 
@@ -178,6 +178,9 @@ Recent decisions affecting current work:
 - [Phase 06.1-02]: Notification click handler navigates existing window or opens new tab to dashboard page
 - [Phase 06.1-02]: Programmatic PNG/MP3 generation scripts for reproducible asset builds
 - [Phase 06.1-01]: Push routes follow Express Router factory pattern consistent with routes/api.ts
+- [Phase 06.1-03]: Action-needed notifications (questions, errors) enabled by default, informational (phaseCompleted) disabled by default
+- [Phase 06.1-03]: Soft-ask permission flow: show 'Enable notifications' link, not auto-prompt
+- [Phase 06.1-03]: Badge API integrated as progressive enhancement (silent fail)
 
 ### Roadmap Evolution
 
@@ -199,5 +202,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 06.1-02-PLAN.md (PWA Service Worker Setup, 2 tasks, 9 files)
+Stopped at: Completed 06.1-03-PLAN.md (Dashboard Notification UI, 2 tasks, 6 files)
 Resume file: None
