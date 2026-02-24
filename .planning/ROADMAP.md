@@ -205,9 +205,11 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 
 ### Phase 9: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 
-**Goal:** [To be planned]
+**Goal:** Fix the dashboard's Recent Activity feed so activities persist to disk in .planning/autopilot-activity.json (surviving restarts), display human-readable content instead of raw UUIDs, and show accurate server-sourced timestamps with proper relative/absolute time formatting
 **Depends on:** Phase 8
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 9 to break down)
+- [ ] 09-01-PLAN.md -- ActivityStore persistence class and GET /api/activities REST endpoint
+- [ ] 09-02-PLAN.md -- Wire ActivityStore into orchestrator, CLI, and standalone server for server-side activity creation
+- [ ] 09-03-PLAN.md -- Dashboard: updated types, server-sourced activities via REST, enhanced ActivityFeed with time formatting, Load more, and visual styling
