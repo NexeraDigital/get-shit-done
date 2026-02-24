@@ -153,6 +153,17 @@ Plans:
 - [ ] 07-02-PLAN.md -- Interactive setup wizard, CLI help text polish
 - [ ] 07-03-PLAN.md -- npm packaging, distribution config, build verification
 
+### Phase 8: Autopilot should be able to be executed by using a claude command
+
+**Goal:** Enable launching GSD Autopilot from within a Claude Code session via /gsd:autopilot slash command, with multi-instance support per git branch, background process management, and subcommands for status and stop
+**Depends on:** Phase 7
+**Plans:** 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md -- Port manager with deterministic branch-to-port hashing (TDD)
+- [ ] 08-02-PLAN.md -- PID manager and launcher script with subcommand routing
+- [ ] 08-03-PLAN.md -- Slash command SKILL.md, postinstall registration, end-to-end verification
+
 ## Progress
 
 **Execution Order:**
@@ -169,12 +180,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
 | 7. CLI Polish and Distribution | 0/3 | Not started | - |
-
-### Phase 8: Autopilot should be able to be executed by using a claude command
-
-**Goal:** [To be planned]
-**Depends on:** Phase 7
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+| 8. Autopilot Claude Command | 0/3 | Not started | - |
