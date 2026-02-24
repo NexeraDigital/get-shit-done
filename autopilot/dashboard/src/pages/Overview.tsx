@@ -14,9 +14,21 @@ export function Overview() {
   const currentPhase = useDashboardStore((s) => s.currentPhase);
   const activities = useDashboardStore((s) => s.activities);
   const logs = useDashboardStore((s) => s.logs);
+  const projectName = useDashboardStore((s) => s.projectName);
+  const projectDescription = useDashboardStore((s) => s.projectDescription);
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Project description */}
+      {projectDescription && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            {projectName || 'Project'}
+          </h2>
+          <p className="text-gray-700 text-sm leading-relaxed">{projectDescription}</p>
+        </div>
+      )}
+
       {/* Progress bar (full width) */}
       <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
 

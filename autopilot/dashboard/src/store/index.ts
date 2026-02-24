@@ -21,13 +21,14 @@ export interface DashboardState {
   logs: LogEntry[];
   activities: ActivityItem[];
   projectName: string;
+  projectDescription: string;
   connected: boolean;
   autopilotAlive: boolean;
 
   // Actions
   setStatus: (
     patch: Partial<
-      Pick<DashboardState, 'status' | 'currentPhase' | 'currentStep' | 'progress' | 'projectName'>
+      Pick<DashboardState, 'status' | 'currentPhase' | 'currentStep' | 'progress' | 'projectName' | 'projectDescription'>
     >,
   ) => void;
   setPhases: (phases: PhaseState[]) => void;
@@ -47,6 +48,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   currentStep: 'idle',
   progress: 0,
   projectName: '',
+  projectDescription: '',
   phases: [],
   questions: [],
   logs: [],

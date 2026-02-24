@@ -17,6 +17,7 @@ export interface StatusResponse {
   lastUpdatedAt: string;
   alive: boolean;
   projectName?: string;
+  projectDescription?: string;
 }
 
 export interface PhasesResponse {

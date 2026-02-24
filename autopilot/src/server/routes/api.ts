@@ -2,11 +2,26 @@
 // Creates an Express Router with health, status, phases, and questions endpoints.
 // All routes delegate to injected services -- no direct state mutation.
 
-import { basename } from 'node:path';
+import { basename, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { AutopilotState } from '../../types/state.js';
 import type { QuestionEvent } from '../../claude/types.js';
+
+/**
+ * Reads .planning/PROJECT.md and extracts the "What This Is" section content.
+ * Returns empty string if the file doesn't exist or the section isn't found.
+ */
+function readProjectDescription(): string {
+  try {
+    const projectMd = readFileSync(join(process.cwd(), '.planning', 'PROJECT.md'), 'utf-8');
+    const match = projectMd.match(/## What This Is\n\n([\s\S]*?)(?:\n## |\n---|\n$)/);
+    return match?.[1]?.trim() ?? '';
+  } catch {
+    return '';
+  }
+}
 
 /** Provides readonly access to autopilot state */
 export interface StateProvider {
@@ -82,6 +97,7 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       lastUpdatedAt: state.lastUpdatedAt,
       alive,
       projectName: basename(process.cwd()),
+      projectDescription: readProjectDescription(),
     });
   });
 
