@@ -156,17 +156,27 @@ Dashboard:
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
     const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: false });
 
-    // Handle --resume with no state file
+    // Handle state restore vs fresh creation
+    // No --prd: restore existing state to preserve completed phases
+    // --prd: fresh start from new PRD document
     let stateStore;
-    if (options.resume) {
+    const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+    const shouldRestore = !options.prd;
+
+    if (shouldRestore) {
       try {
-        stateStore = await StateStore.restore(join(projectDir, '.planning', 'autopilot-state.json'));
+        stateStore = await StateStore.restore(stateFilePath);
       } catch {
-        console.error('No previous run found in this directory.\n');
-        console.error('To start a new run:');
-        console.error('  gsd-autopilot --prd <path-to-your-prd>\n');
-        console.error('The --resume flag requires a previous autopilot run in the current directory.');
-        process.exit(1);
+        if (options.resume) {
+          console.error('No previous run found in this directory.\n');
+          console.error('To start a new run:');
+          console.error('  gsd-autopilot --prd <path-to-your-prd>\n');
+          console.error('The --resume flag requires a previous autopilot run in the current directory.');
+          process.exit(1);
+        }
+        // --phases without --resume: no state file yet, create fresh
+        stateStore = StateStore.createFresh(projectDir);
+        await stateStore.setState({});
       }
     } else {
       stateStore = StateStore.createFresh(projectDir);

@@ -251,7 +251,28 @@ export class Orchestrator extends EventEmitter {
     }
 
     // Re-read state after potential init
-    const currentState = this.stateStore.getState();
+    let currentState = this.stateStore.getState();
+
+    // Sync phases from ROADMAP.md to pick up any newly added phases (e.g. inserted sub-phases)
+    try {
+      const roadmapPhases = await extractPhases(this.projectDir);
+      const existingNumbers = new Set(currentState.phases.map(p => p.number));
+      const newPhases = roadmapPhases
+        .filter(rp => !existingNumbers.has(rp.number))
+        .map(toPhaseState);
+
+      if (newPhases.length > 0) {
+        const mergedPhases = [...currentState.phases, ...newPhases]
+          .sort((a, b) => a.number - b.number);
+        await this.stateStore.setState({ phases: mergedPhases, status: 'running' });
+        currentState = this.stateStore.getState();
+        this.logger.log('info', 'orchestrator', `Synced ${newPhases.length} new phase(s) from ROADMAP.md`, {
+          newPhases: newPhases.map(p => p.number),
+        });
+      }
+    } catch {
+      // ROADMAP.md missing or unparseable — continue with existing state
+    }
 
     // Phase loop
     for (const phase of currentState.phases) {

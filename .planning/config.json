@@ -11,5 +11,5 @@
   },
   "research": true,
   "plan_check": true,
-  "verifier": false
+  "verifier": true
 }

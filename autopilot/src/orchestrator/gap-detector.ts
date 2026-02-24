@@ -2,6 +2,20 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /**
+ * Zero-pads a phase number, handling decimals correctly.
+ *
+ * Pads only the integer part to at least 2 digits.
+ * Examples: 3 → "03", 3.1 → "03.1", 12 → "12", 12.1 → "12.1"
+ */
+export function padPhaseNumber(num: number): string {
+  const str = String(num);
+  const dotIndex = str.indexOf('.');
+  if (dotIndex === -1) return str.padStart(2, '0');
+  const intPart = str.slice(0, dotIndex).padStart(2, '0');
+  return intPart + str.slice(dotIndex);
+}
+
+/**
  * Finds the phase directory matching a given phase number.
  *
  * Reads `.planning/phases/` and finds the entry whose name starts with the
@@ -17,7 +31,7 @@ export async function findPhaseDir(
   phaseNumber: number,
 ): Promise<string> {
   const phasesDir = join(projectDir, '.planning', 'phases');
-  const padded = String(phaseNumber).padStart(2, '0');
+  const padded = padPhaseNumber(phaseNumber);
 
   const entries = await readdir(phasesDir);
   const match = entries.find((entry) => entry.startsWith(`${padded}-`));
@@ -55,7 +69,7 @@ export async function checkForGaps(
   phaseNumber: number,
 ): Promise<boolean> {
   const phaseDir = await findPhaseDir(projectDir, phaseNumber);
-  const padded = String(phaseNumber).padStart(2, '0');
+  const padded = padPhaseNumber(phaseNumber);
 
   // Check VERIFICATION.md
   try {
@@ -121,17 +135,17 @@ export function parsePhaseRange(range: string): number[] {
   const segments = range.split(',').map((s) => s.trim());
 
   for (const segment of segments) {
-    // Single number: "3"
-    if (/^\d+$/.test(segment)) {
-      phases.push(parseInt(segment, 10));
+    // Single number: "3" or decimal "3.1"
+    if (/^\d+(\.\d+)?$/.test(segment)) {
+      phases.push(parseFloat(segment));
       continue;
     }
 
-    // Range: "2-5"
-    const rangeMatch = segment.match(/^(\d+)-(\d+)$/);
+    // Range: "2-5" or "2.1-5.3"
+    const rangeMatch = segment.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
     if (rangeMatch) {
-      const start = parseInt(rangeMatch[1]!, 10);
-      const end = parseInt(rangeMatch[2]!, 10);
+      const start = parseFloat(rangeMatch[1]!);
+      const end = parseFloat(rangeMatch[2]!);
 
       if (start > end) {
         throw new Error(
@@ -139,8 +153,15 @@ export function parsePhaseRange(range: string): number[] {
         );
       }
 
-      for (let i = start; i <= end; i++) {
-        phases.push(i);
+      // For integer endpoints, enumerate all integers in range
+      if (Number.isInteger(start) && Number.isInteger(end)) {
+        for (let i = start; i <= end; i++) {
+          phases.push(i);
+        }
+      } else {
+        // Decimal endpoints: just push start and end (can't enumerate decimals)
+        phases.push(start);
+        if (start !== end) phases.push(end);
       }
       continue;
     }

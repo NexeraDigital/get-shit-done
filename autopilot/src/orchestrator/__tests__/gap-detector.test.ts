@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkForGaps, parsePhaseRange, findPhaseDir } from '../gap-detector.js';
+import { checkForGaps, parsePhaseRange, findPhaseDir, padPhaseNumber } from '../gap-detector.js';
 
 // Mock node:fs/promises
 vi.mock('node:fs/promises', () => ({
@@ -161,6 +161,26 @@ describe('parsePhaseRange', () => {
   it('throws on "1-2-3" (too many segments)', () => {
     expect(() => parsePhaseRange('1-2-3')).toThrow(/invalid phase specifier/i);
   });
+
+  it('parses single decimal "6.1" into [6.1]', () => {
+    expect(parsePhaseRange('6.1')).toEqual([6.1]);
+  });
+
+  it('parses comma-separated decimals "3.1,6.1" into [3.1, 6.1]', () => {
+    expect(parsePhaseRange('3.1,6.1')).toEqual([3.1, 6.1]);
+  });
+
+  it('parses mixed integer range and decimal "1-3,6.1" into [1, 2, 3, 6.1]', () => {
+    expect(parsePhaseRange('1-3,6.1')).toEqual([1, 2, 3, 6.1]);
+  });
+
+  it('parses decimal range "3.1-3.5" into [3.1, 3.5]', () => {
+    expect(parsePhaseRange('3.1-3.5')).toEqual([3.1, 3.5]);
+  });
+
+  it('deduplicates decimal "6.1,6.1" into [6.1]', () => {
+    expect(parsePhaseRange('6.1,6.1')).toEqual([6.1]);
+  });
 });
 
 describe('findPhaseDir', () => {
@@ -190,5 +210,34 @@ describe('findPhaseDir', () => {
     ]);
 
     await expect(findPhaseDir('/project', 99)).rejects.toThrow();
+  });
+
+  it('finds directory matching decimal phase number', async () => {
+    mockReaddir.mockResolvedValue([
+      '03-core-orchestrator',
+      '03.1-browser-notifications',
+      '04-server',
+    ]);
+
+    const result = await findPhaseDir('/project', 3.1);
+    expect(result).toContain('03.1-browser-notifications');
+  });
+});
+
+describe('padPhaseNumber', () => {
+  it('pads single digit integer: 3 → "03"', () => {
+    expect(padPhaseNumber(3)).toBe('03');
+  });
+
+  it('does not pad double digit integer: 12 → "12"', () => {
+    expect(padPhaseNumber(12)).toBe('12');
+  });
+
+  it('pads integer part of decimal: 3.1 → "03.1"', () => {
+    expect(padPhaseNumber(3.1)).toBe('03.1');
+  });
+
+  it('does not pad double digit decimal: 12.1 → "12.1"', () => {
+    expect(padPhaseNumber(12.1)).toBe('12.1');
   });
 });

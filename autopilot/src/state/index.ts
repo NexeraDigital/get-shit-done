@@ -55,6 +55,8 @@ const PhaseStateSchema = z.object({
     ]),
   ),
   gapIterations: z.number(),
+  inserted: z.boolean().optional(),
+  dependsOn: z.string().nullable().optional(),
 });
 
 const AutopilotStateSchema = z.object({
@@ -66,7 +68,7 @@ const AutopilotStateSchema = z.object({
   errorHistory: z.array(ErrorRecordSchema),
   startedAt: z.string(),
   lastUpdatedAt: z.string(),
-});
+}).passthrough();
 
 export class StateStore {
   private state: AutopilotState;

@@ -1,5 +1,6 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { padPhaseNumber } from './gap-detector.js';
 
 export interface PhaseInfo {
   number: number;
@@ -15,12 +16,10 @@ function slugify(name: string): string {
 }
 
 /**
- * Zero-pads a phase number to at least 2 digits.
- * e.g., 3 -> "03", 12 -> "12"
+ * @deprecated Use padPhaseNumber from gap-detector.js instead.
+ * Kept as alias for backward compatibility within this file.
  */
-function padPhase(num: number): string {
-  return String(num).padStart(2, '0');
-}
+const padPhase = padPhaseNumber;
 
 /**
  * Generates a CONTEXT.md string for a phase when --skip-discuss is set.
