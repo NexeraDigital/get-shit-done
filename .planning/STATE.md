@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 8 of 8 (Autopilot Claude Command Integration) -- IN PROGRESS
-Plan: 2 of 3 in current phase (08-01, 08-02 complete)
-Status: Executing Phase 8
-Last activity: 2026-02-23 -- Completed 08-02 PID Manager and Launcher (2 tasks, 2 files)
+Phase: 03.2 of 8 (Add Sub-phase Support to Orchestrator and Dashboard) -- IN PROGRESS
+Plan: 2 of 2 in current phase (03.2-01 complete)
+Status: Executing Phase 03.2
+Last activity: 2026-02-24 -- Completed 03.2-01 Extend Types and Merge Extraction (1 task, 3 files)
 
-Progress: [█████████░] ~98%
+Progress: [█████████░] ~99%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 3.2min
 - Total execution time: ~1.6 hours
 
@@ -31,6 +31,7 @@ Progress: [█████████░] ~98%
 | 02-claude-integration | 4/4 | 9min | 2min |
 | 03-core-orchestrator | 4/4 | 12min | 3min |
 | 03.1-display-claude-output | 2/2 | 9min | 4.5min |
+| 03.2-add-sub-phase-support | 1/2 | 5min | 5min |
 | 04-response-server-and-api | 2/2 | 9min | 4.5min |
 | 05-react-dashboard | 4/4 | ~45min | ~11min |
 | 06-notification-system | 3/3 | 8min | 2.7min |
@@ -38,8 +39,8 @@ Progress: [█████████░] ~98%
 | 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
 
 **Recent Trend:**
-- Last 5 plans: 07-01 (6min), 07-02 (4min), 08-01 (8min), 08-02 (3min)
-- Trend: Excellent velocity in Phase 8 infrastructure work
+- Last 5 plans: 07-02 (4min), 08-01 (8min), 08-02 (3min), 03.2-01 (5min)
+- Trend: Consistent velocity across infrastructure and type extension work
 
 *Updated after each plan completion*
 
@@ -147,11 +148,14 @@ Recent decisions affecting current work:
 - [08-02]: Health check retries 3 times with 1-second delays using node:http (not fetch)
 - [08-02]: PRD prompt uses readline (not @inquirer/prompts) to maintain zero external dependencies
 - [08-02]: Status reads autopilot-state.json for phase progress and port from branches field
+- [Phase 03.2-01]: extractDependsOn uses line-by-line parsing instead of complex regex for reliability
 
 ### Roadmap Evolution
 
 - Phase 03.1 inserted after Phase 3: Display claude console output to parent node process so users can see whats happening (URGENT)
 - Phase 8 added: Autopilot should be able to be executed by using a claude command
+- Phase 06.1 inserted after Phase 6: add browser notifications to alert users when needed (URGENT)
+- Phase 03.2 inserted after Phase 3: Add Sub phase support to orchestrator and dashboard (URGENT)
 
 ### Pending Todos
 
