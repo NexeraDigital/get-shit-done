@@ -20,6 +20,8 @@
     "dist/**/*.js",
     "dist/**/*.d.ts",
     "dashboard/dist/",
+    "workflows/gsd-autopilot/",
+    "scripts/install-workflow.js",
     "example-adapter.js",
     "!dist/**/*.test.*",
     "!dist/**/__tests__"
@@ -28,6 +30,7 @@
     "build": "tsc && cd dashboard && npm install && npm run build",
     "build:dashboard": "cd dashboard && npm install && npm run build",
     "prepare": "npm run build",
+    "postinstall": "node scripts/install-workflow.js",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
