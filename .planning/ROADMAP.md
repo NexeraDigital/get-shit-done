@@ -151,12 +151,15 @@ Plans:
 
 ### Phase 06.1: add browser notifications to alert users when needed (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
+**Goal:** Users receive browser-level push notifications when the autopilot needs attention (questions, errors) or reports progress (phase-completed, build-complete), even when the dashboard tab is closed, with per-type toggle control and notification grouping
 **Depends on:** Phase 6
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 06.1 to break down)
+- [ ] 06.1-01-PLAN.md -- Server-side push infrastructure: VAPID keys, web-push, subscription store, REST routes
+- [ ] 06.1-02-PLAN.md -- Service Worker and PWA: vite-plugin-pwa, push/click handlers, PWA manifest, assets
+- [ ] 06.1-03-PLAN.md -- Dashboard notification UI: per-type toggles, push subscription hook, badge count, permission flow
+- [ ] 06.1-04-PLAN.md -- Event-to-push wiring: SSE triggers push dispatch, question grouping, foreground sound
 
 ### Phase 7: CLI Polish and Distribution
 **Goal**: The CLI is feature-complete with all flags, published as an npm package, cross-platform tested, and provides a polished developer experience
