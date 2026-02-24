@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'node:events';
 import { execFile } from 'node:child_process';
-import { readFile, unlink } from 'node:fs/promises';
+import { readFile, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
 import type { AutopilotState, CommitInfo, PhaseState, PhaseStep } from '../types/state.js';
@@ -178,6 +178,12 @@ function toPhaseState(rp: RoadmapPhase): PhaseState {
   };
 }
 
+function formatPhaseNumber(num: number): string {
+  const parts = String(num).split('.');
+  const intPart = parts[0]!.padStart(2, '0');
+  return parts.length > 1 ? `${intPart}.${parts[1]}` : intPart;
+}
+
 /**
  * Custom error thrown when a shutdown is requested during command execution.
  * Used to distinguish shutdown aborts from real errors in executeWithRetry.
@@ -272,6 +278,44 @@ export class Orchestrator extends EventEmitter {
       }
     } catch {
       // ROADMAP.md missing or unparseable — continue with existing state
+    }
+
+    // Reconcile: detect phases completed on disk but not in state
+    // (handles state corruption, crashes, or manual recovery)
+    try {
+      const phasesDir = join(this.projectDir, '.planning', 'phases');
+      const entries = await readdir(phasesDir, { withFileTypes: true });
+      let corrected = false;
+
+      for (const phase of currentState.phases) {
+        if (phase.status === 'completed' || phase.status === 'skipped') continue;
+
+        const padded = formatPhaseNumber(phase.number);
+        const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
+        if (!phaseEntry) continue;
+
+        try {
+          const vPath = join(phasesDir, phaseEntry.name, `${padded}-VERIFICATION.md`);
+          const content = await readFile(vPath, 'utf-8');
+          if (/^status:\s*passed\s*$/m.test(content)) {
+            phase.status = 'completed';
+            phase.steps = { discuss: 'done', plan: 'done', execute: 'done', verify: 'done' };
+            if (!phase.completedAt) phase.completedAt = new Date().toISOString();
+            corrected = true;
+            this.logger.log('info', 'orchestrator',
+              `Phase ${phase.number} has passed verification on disk — marking completed`);
+          }
+        } catch {
+          // No verification file — phase is genuinely incomplete
+        }
+      }
+
+      if (corrected) {
+        await this.stateStore.setState({ phases: currentState.phases });
+        currentState = this.stateStore.getState();
+      }
+    } catch {
+      // .planning/phases/ doesn't exist — skip reconciliation
     }
 
     // Phase loop

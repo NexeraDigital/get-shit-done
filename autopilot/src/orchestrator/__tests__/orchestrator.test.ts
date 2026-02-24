@@ -21,6 +21,12 @@ vi.mock('../gap-detector.js', () => ({
   checkForGaps: vi.fn().mockResolvedValue(false),
 }));
 
+vi.mock('node:fs/promises', () => ({
+  readFile: vi.fn(),
+  readdir: vi.fn(),
+  unlink: vi.fn(),
+}));
+
 // Import mocked modules so we can configure them per test
 import { writeYoloConfig } from '../yolo-config.js';
 import { writeSkipDiscussContext } from '../discuss-handler.js';
@@ -151,9 +157,21 @@ function createMockDeps(overrides?: Partial<MockDeps>): MockDeps {
 describe('Orchestrator', () => {
   let deps: MockDeps;
   let orchestrator: Orchestrator;
+  let mockReadFile: ReturnType<typeof vi.fn>;
+  let mockReaddir: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Set up fs mocks with ENOENT defaults (simulates non-existent paths)
+    const fsMod = await import('node:fs/promises');
+    mockReadFile = fsMod.readFile as unknown as ReturnType<typeof vi.fn>;
+    mockReaddir = fsMod.readdir as unknown as ReturnType<typeof vi.fn>;
+    const mockUnlink = fsMod.unlink as unknown as ReturnType<typeof vi.fn>;
+    mockReadFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+    mockReaddir.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+    mockUnlink.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+
     deps = createMockDeps();
     orchestrator = new Orchestrator(deps as unknown as OrchestratorOptions);
   });
@@ -504,6 +522,78 @@ describe('Orchestrator', () => {
       (c: unknown[]) => (c[0] as Partial<AutopilotState>).status === 'idle',
     );
     expect(idleCalls.length).toBeGreaterThan(0);
+  });
+
+  // -------------------------------------------------------------------------
+  // Test 16: Reconciles phases with passed verification on disk
+  // -------------------------------------------------------------------------
+  it('reconciles phases with passed verification on disk', async () => {
+    // State has phase 1 in_progress and phase 2 pending (corrupted state)
+    const state = createState({
+      currentPhase: 1,
+      phases: [
+        createPhase(1, 'Foundation', {
+          status: 'in_progress',
+          steps: { discuss: 'done', plan: 'done', execute: 'done', verify: 'idle' },
+        }),
+        createPhase(2, 'Integration', { status: 'pending' }),
+      ],
+    });
+    deps.stateStore.getState.mockReturnValue(state);
+
+    // Track setState calls and update state so getState reflects changes
+    deps.stateStore.setState.mockImplementation(async (patch: Partial<AutopilotState>) => {
+      if (patch.phases) state.phases = patch.phases;
+      if (patch.status) state.status = patch.status;
+    });
+
+    // readdir returns matching phase directories (withFileTypes: true shape)
+    mockReaddir.mockImplementation(async (path: string) => {
+      if (String(path).includes('phases')) {
+        return [
+          { name: '01-foundation', isDirectory: () => true },
+          { name: '02-integration', isDirectory: () => true },
+        ];
+      }
+      throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+    });
+
+    // readFile: ROADMAP.md for sync + VERIFICATION.md for both phases
+    mockReadFile.mockImplementation(async (path: string) => {
+      const p = String(path);
+      if (p.includes('ROADMAP')) {
+        return '# Roadmap\n## Phase 1: Foundation\n## Phase 2: Integration\n';
+      }
+      if (p.includes('01-foundation') && p.includes('VERIFICATION')) {
+        return '---\nstatus: passed\n---\nAll checks passed.';
+      }
+      if (p.includes('02-integration') && p.includes('VERIFICATION')) {
+        return '---\nstatus: passed\n---\nAll checks passed.';
+      }
+      throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+    });
+
+    await orchestrator.run('');
+
+    // Both phases should have been reconciled to completed
+    const setStateCalls = deps.stateStore.setState.mock.calls;
+    const reconcileCall = setStateCalls.find(
+      (c: unknown[]) => {
+        const patch = c[0] as Partial<AutopilotState>;
+        return patch.phases?.every((p: PhaseState) => p.status === 'completed');
+      },
+    );
+    expect(reconcileCall).toBeDefined();
+
+    // Steps should all be 'done'
+    const reconciledPhases = (reconcileCall![0] as Partial<AutopilotState>).phases!;
+    for (const phase of reconciledPhases) {
+      expect(phase.steps).toEqual({ discuss: 'done', plan: 'done', execute: 'done', verify: 'done' });
+      expect(phase.completedAt).toBeDefined();
+    }
+
+    // Claude should never have been called (no phase execution needed)
+    expect(deps.claudeService.runGsdCommand).not.toHaveBeenCalled();
   });
 });
 
