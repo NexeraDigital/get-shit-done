@@ -89,9 +89,11 @@ async function handleLaunch(branch, projectDir, args) {
   // 4. Build spawn args
   const spawnArgs = [CLI_PATH, '--port', String(port), ...args];
 
-  // 5. Spawn detached
+  // 5. Spawn in a visible cmd window (detached)
   console.log(`Starting autopilot for branch '${branch}' on port ${port}...`);
-  const child = spawn(process.execPath, spawnArgs, {
+  const cmdTitle = `GSD Autopilot [${branch}] :${port}`;
+  const nodeCmd = `"${process.execPath}" ${spawnArgs.map(a => `"${a}"`).join(' ')}`;
+  const child = spawn('cmd.exe', ['/k', `title ${cmdTitle} && ${nodeCmd}`], {
     detached: true,
     stdio: 'ignore',
     cwd: projectDir,
