@@ -79,11 +79,11 @@ export function extractPhasesFromContent(content: string): RoadmapPhase[] {
       existingPhase.inserted = hasInsertedMarker;
       existingPhase.dependsOn = extractDependsOn(content, phaseNumber);
     } else {
-      // New heading-only phase
+      // New heading-only phase — check if ROADMAP marks it as complete
       phases.push({
         number: phaseNumber,
         name: phaseName,
-        completed: false,
+        completed: extractStatusComplete(content, phaseNumber),
         inserted: hasInsertedMarker,
         dependsOn: extractDependsOn(content, phaseNumber),
       });
@@ -104,18 +104,37 @@ export function extractPhasesFromContent(content: string): RoadmapPhase[] {
  * @returns Depends on value or null if not found
  */
 function extractDependsOn(content: string, phaseNumber: number): string | null {
-  // Build regex pattern that matches both "3.1" and "03.1" formats
-  const parts = String(phaseNumber).split('.');
-  let numberPattern: string;
-  if (parts.length === 1) {
-    // Integer phase: match with or without leading zero
-    numberPattern = `0?${parts[0]}`;
-  } else {
-    // Decimal phase: match "3.1" or "03.1"
-    numberPattern = `0?${parts[0]}\\.${parts[1]}`;
-  }
+  const block = extractPhaseBlock(content, phaseNumber);
+  if (!block) return null;
 
-  // Find the phase heading line and extract the block content line-by-line
+  const dependsOnPattern = /^\*\*Depends on:\*\*\s*(.+?)$/m;
+  const dependsMatch = dependsOnPattern.exec(block);
+  return dependsMatch ? dependsMatch[1]!.trim() : null;
+}
+
+/**
+ * Checks if a phase's heading block contains a "**Status:** Complete" line.
+ *
+ * @param content - Full ROADMAP.md content
+ * @param phaseNumber - Phase number to check
+ * @returns true if the phase block indicates completion
+ */
+function extractStatusComplete(content: string, phaseNumber: number): boolean {
+  const block = extractPhaseBlock(content, phaseNumber);
+  if (!block) return false;
+  return /^\*\*Status:\*\*\s*Complete\b/m.test(block);
+}
+
+/**
+ * Extracts the text block for a phase heading (everything between the heading
+ * and the next phase heading or end of content).
+ */
+function extractPhaseBlock(content: string, phaseNumber: number): string | null {
+  const parts = String(phaseNumber).split('.');
+  const numberPattern = parts.length === 1
+    ? `0?${parts[0]}`
+    : `0?${parts[0]}\\.${parts[1]}`;
+
   const lines = content.split('\n');
   const headingPattern = new RegExp(`^#{1,3} Phase ${numberPattern}:`);
 
@@ -125,26 +144,15 @@ function extractDependsOn(content: string, phaseNumber: number): string | null {
   for (const line of lines) {
     if (headingPattern.test(line)) {
       inTargetPhase = true;
-      continue; // Skip the heading line itself
+      continue;
     }
-
     if (inTargetPhase) {
-      // Stop at the next phase heading
-      if (/^#{1,3} Phase/.test(line)) {
-        break;
-      }
+      if (/^#{1,3} Phase/.test(line)) break;
       blockLines.push(line);
     }
   }
 
-  if (blockLines.length === 0) return null;
-
-  const blockContent = blockLines.join('\n');
-
-  // Look for "**Depends on:** value" line
-  const dependsOnPattern = /^\*\*Depends on:\*\*\s*(.+?)$/m;
-  const dependsMatch = dependsOnPattern.exec(blockContent);
-  return dependsMatch ? dependsMatch[1]!.trim() : null;
+  return blockLines.length > 0 ? blockLines.join('\n') : null;
 }
 
 /**
@@ -301,7 +309,7 @@ export class Orchestrator extends EventEmitter {
         try {
           const vPath = join(phasesDir, phaseEntry.name, `${padded}-VERIFICATION.md`);
           const content = await readFile(vPath, 'utf-8');
-          if (/^status:\s*passed\s*$/m.test(content)) {
+          if (/^status:\s*(?:passed|gaps_found)\s*$/m.test(content)) {
             phase.status = 'completed';
             phase.steps = { discuss: 'done', plan: 'done', execute: 'done', verify: 'done' };
             if (!phase.completedAt) phase.completedAt = new Date().toISOString();
