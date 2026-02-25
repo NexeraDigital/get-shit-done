@@ -157,7 +157,19 @@ export class ClaudeService extends EventEmitter {
           numTurns: 0,
         };
       }
-      throw err;
+
+      // Convert API/network errors into a failed CommandResult so the
+      // orchestrator's retry-then-escalate logic can handle them instead
+      // of crashing the process.
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return {
+        success: false,
+        error: errMsg,
+        sessionId,
+        durationMs: Date.now() - startTimeMs,
+        costUsd: 0,
+        numTurns: 0,
+      };
     } finally {
       cleanup();
       this.running = false;

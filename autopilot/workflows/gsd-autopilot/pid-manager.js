@@ -5,6 +5,34 @@ import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /**
+ * Retry an async file operation with exponential backoff.
+ * Handles Windows file-locking errors (EBUSY, EPERM, UNKNOWN, EACCES)
+ * that occur when a previous process hasn't fully released its handle.
+ * @param {() => Promise<T>} fn - Async function to retry
+ * @param {number} maxRetries - Maximum retry attempts (default: 4)
+ * @returns {Promise<T>}
+ * @template T
+ */
+const RETRYABLE_CODES = new Set(['EBUSY', 'EPERM', 'UNKNOWN', 'EACCES']);
+
+async function withRetry(fn, maxRetries = 4) {
+  let lastErr;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE_CODES.has(err.code) || attempt === maxRetries) {
+        throw err;
+      }
+      // Exponential backoff: 100ms, 200ms, 400ms, 800ms
+      await new Promise(r => setTimeout(r, 100 * Math.pow(2, attempt)));
+    }
+  }
+  throw lastErr;
+}
+
+/**
  * Sanitize branch name for use in filename
  * Replaces all / with -- to ensure valid filenames on all platforms
  * @param {string} branch - Git branch name
@@ -24,7 +52,7 @@ function sanitizeBranchName(branch) {
 export async function writePid(branch, pid, projectDir) {
   const sanitized = sanitizeBranchName(branch);
   const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
-  await writeFile(pidFilePath, String(pid), 'utf-8');
+  await withRetry(() => writeFile(pidFilePath, String(pid), 'utf-8'));
 }
 
 /**
@@ -38,7 +66,7 @@ export async function readPid(branch, projectDir) {
   const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
 
   try {
-    const content = await readFile(pidFilePath, 'utf-8');
+    const content = await withRetry(() => readFile(pidFilePath, 'utf-8'));
     const pid = parseInt(content.trim(), 10);
     return isNaN(pid) ? null : pid;
   } catch (err) {
@@ -136,7 +164,7 @@ export async function cleanupPid(branch, projectDir) {
   const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
 
   try {
-    await unlink(pidFilePath);
+    await withRetry(() => unlink(pidFilePath));
   } catch (err) {
     // Swallow ENOENT - file already gone is success
     if (err.code !== 'ENOENT') {
