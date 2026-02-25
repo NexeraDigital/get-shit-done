@@ -16,7 +16,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await rm(testDir, { recursive: true, force: true });
+  await rm(testDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 });
 
 function writeState(state: AutopilotState): Promise<void> {
