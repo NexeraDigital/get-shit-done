@@ -2,6 +2,7 @@
 // Wired to Zustand store with individual selectors for each data slice.
 
 import { useDashboardStore } from '../store/index.js';
+import { TunnelBanner } from '../components/TunnelBanner.js';
 import { ProgressBar } from '../components/ProgressBar.js';
 import { PhaseCard } from '../components/PhaseCard.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
@@ -39,6 +40,9 @@ export function Overview() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Tunnel banner (top of page, before all content) */}
+      <TunnelBanner />
+
       {/* Project description */}
       {projectDescription && (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
