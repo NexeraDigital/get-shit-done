@@ -632,9 +632,10 @@ Dashboard:
         logger.log('warn', 'tunnel', `Tunnel creation failed: ${message}`);
         if (!options.quiet) {
           console.log(`Dashboard available at: http://localhost:${config.port} (tunnel unavailable)`);
-          console.log('  To enable remote access, run:');
-          console.log('    az login --scope https://tunnels.api.visualstudio.com/.default');
-          console.log('  Or set DEVTUNNEL_TOKEN environment variable.');
+          console.log('  To enable remote access:');
+          console.log('    devtunnel user login       (recommended)');
+          console.log('    set GITHUB_TOKEN=<pat>     (any GitHub PAT)');
+          console.log('    set DEVTUNNEL_TOKEN=<tok>  (Azure AD token)');
           console.log('  Use --no-tunnel to suppress this message.');
         }
         await stateStore.setState({ tunnelUrl: undefined });

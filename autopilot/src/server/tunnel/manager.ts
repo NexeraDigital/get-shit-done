@@ -11,9 +11,46 @@ import {
   ManagementApiVersions,
   TunnelManagementHttpClient,
 } from '@microsoft/dev-tunnels-management';
-import { AzureCliCredential } from '@azure/identity';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const TUNNEL_RESOURCE_SCOPE = 'https://tunnels.api.visualstudio.com/.default';
+const execFileAsync = promisify(execFile);
+
+/**
+ * Resolve the path to the devtunnel CLI executable.
+ * Looks in the package root first, then falls back to PATH.
+ */
+function resolveDevTunnelExe(): string {
+  const __filename = fileURLToPath(import.meta.url);
+  // From dist/server/tunnel/manager.js -> package root
+  const packageRoot = resolve(dirname(__filename), '..', '..', '..');
+  const ext = process.platform === 'win32' ? '.exe' : '';
+  return resolve(packageRoot, `devtunnel${ext}`);
+}
+
+/**
+ * Extract a cached AAD token from the devtunnel CLI.
+ * Returns the Bearer token string or null if unavailable.
+ */
+async function getDevTunnelCliToken(logger?: { info(msg: string): void }): Promise<string | null> {
+  const exe = resolveDevTunnelExe();
+  try {
+    const { stdout } = await execFileAsync(exe, ['user', 'show', '-v'], {
+      timeout: 10_000,
+      windowsHide: true,
+    });
+    const match = stdout.match(/^Token: (.+)$/m);
+    if (match?.[1]) {
+      logger?.info('Using cached devtunnel CLI credentials');
+      return match[1].trim();
+    }
+  } catch {
+    // devtunnel CLI not available or not logged in — fall through
+  }
+  return null;
+}
 
 // Helper function to get port URI from endpoint
 function getPortUri(endpoint: TunnelEndpoint, port: number): string | undefined {
@@ -46,7 +83,6 @@ export class TunnelManager {
   private logger?: TunnelManagerOptions['logger'];
   private onReconnect?: (newUrl: string) => void;
   private onDisconnect?: () => void;
-  private credential: AzureCliCredential | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
@@ -68,12 +104,12 @@ export class TunnelManager {
   async start(port: number): Promise<string> {
     this.port = port;
 
-    // Create credential for token acquisition.
-    // Priority 1: explicit env var (backward compat, checked in token callback)
-    // Priority 2: AzureCliCredential (uses `az login` session — no subprocess windows)
-    this.credential = new AzureCliCredential();
-
-    // Create management client with user agent and token callback
+    // Create management client with user agent and token callback.
+    // Priority order:
+    //   1. DEVTUNNEL_TOKEN / AAD_TOKEN env var (backward compat, Bearer scheme)
+    //   2. GITHUB_TOKEN env var (GitHub scheme — no Azure tenant needed)
+    //   3. devtunnel CLI cached credentials (works across tenants)
+    const logger = this.logger;
     this.managementClient = new TunnelManagementHttpClient(
       { name: 'gsd-autopilot', version: '1.0.0' },
       ManagementApiVersions.Version20230927preview,
@@ -81,8 +117,15 @@ export class TunnelManager {
         const envToken = process.env['DEVTUNNEL_TOKEN'] || process.env['AAD_TOKEN'];
         if (envToken) return `Bearer ${envToken}`;
 
-        const result = await this.credential!.getToken(TUNNEL_RESOURCE_SCOPE);
-        return `Bearer ${result.token}`;
+        const ghToken = process.env['GITHUB_TOKEN'];
+        if (ghToken) return `Github ${ghToken}`;
+
+        const cliToken = await getDevTunnelCliToken(logger);
+        if (cliToken) return `Bearer ${cliToken}`;
+
+        throw new Error(
+          'No dev-tunnel credentials found. Run `devtunnel user login` or set GITHUB_TOKEN / DEVTUNNEL_TOKEN.',
+        );
       },
     );
 

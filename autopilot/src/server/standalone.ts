@@ -17,6 +17,7 @@ import { SubscriptionStore } from './push/subscription-store.js';
 import { PushNotificationManager } from './push/manager.js';
 import { parseMilestoneData } from '../milestone/parser.js';
 import { TunnelManager } from './tunnel/index.js';
+import { derivePort } from '../config/derive-port.js';
 
 const program = new Command();
 
@@ -25,10 +26,12 @@ program
   .description('Standalone dashboard server for GSD autopilot')
   .version('0.1.0')
   .requiredOption('--project-dir <path>', 'Path to the project directory')
-  .option('--port <number>', 'Dashboard server port', '3847')
-  .action(async (options: { projectDir: string; port: string }) => {
+  .option('--port <number>', 'Dashboard server port (auto-derived from git repo if omitted)')
+  .action(async (options: { projectDir: string; port?: string }) => {
     const projectDir = resolve(options.projectDir);
-    const port = parseInt(options.port, 10);
+    const port = options.port
+      ? parseInt(options.port, 10)
+      : await derivePort(projectDir);
 
     // Create file-based IPC components
     const stateReader = new FileStateReader(projectDir);
