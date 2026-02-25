@@ -88,6 +88,7 @@ export class TunnelManager {
   private maxReconnectAttempts = 10;
   private reconnectDelays = [1000, 2000, 4000, 8000, 16000, 30000]; // exponential backoff capped at 30s
   private isConnected = false;
+  private uncaughtHandler: ((err: Error) => void) | null = null;
 
   constructor(options: TunnelManagerOptions = {}) {
     this.logger = options.logger;
@@ -178,6 +179,12 @@ export class TunnelManager {
    * Safe to call multiple times - errors are logged but not thrown.
    */
   async stop(): Promise<void> {
+    // Remove process-level error handler
+    if (this.uncaughtHandler) {
+      process.removeListener('uncaughtException', this.uncaughtHandler);
+      this.uncaughtHandler = null;
+    }
+
     // Cancel any pending reconnection
     this.cancelReconnection();
 
@@ -246,18 +253,39 @@ export class TunnelManager {
 
   /**
    * Set up event handlers for connection monitoring and reconnection.
+   *
+   * The dev-tunnels SDK uses its own event system (not Node.js EventEmitter).
+   * We subscribe to connectionStatusChanged for status tracking.
+   * The underlying SSH streams can emit unhandled 'error' events on Node.js
+   * streams (e.g. SshChannel disposed) — we install a process-level handler
+   * to catch these and prevent crashes.
    */
   private setupReconnectionHandlers(): void {
     if (!this.host) {
       return;
     }
 
-    // Monitor connection status changes
-    // Note: The SDK's exact event API may vary - we're using a pattern based on the research
-    // and will handle connection drops through error events if direct status events aren't available
+    // Subscribe to SDK connection status changes
+    this.host.connectionStatusChanged((e) => {
+      const status = (e as { status?: string })?.status ?? String(e);
+      this.logger?.info(`Tunnel connection status: ${status}`);
+    });
 
-    // Connection drops typically surface through disposal or stream errors
-    // We'll implement a watchdog pattern if needed in future iterations
+    // Catch unhandled errors from internal SSH streams (SshChannel/SshStream).
+    // These are Node.js streams that emit 'error' events without listeners,
+    // which would otherwise crash the process.
+    this.uncaughtHandler = (err: Error) => {
+      if (err.name === 'ObjectDisposedError' || err.message?.includes('SshChannel disposed')) {
+        this.logger?.warn(`Tunnel stream error (suppressed): ${err.message}`);
+        if (this.isConnected) {
+          this.handleConnectionDrop();
+        }
+      } else {
+        // Re-throw non-tunnel errors so they aren't silently swallowed
+        throw err;
+      }
+    };
+    process.on('uncaughtException', this.uncaughtHandler);
   }
 
   /**
@@ -339,6 +367,10 @@ export class TunnelManager {
    * Clean up resources on failure.
    */
   private async cleanupResources(): Promise<void> {
+    if (this.uncaughtHandler) {
+      process.removeListener('uncaughtException', this.uncaughtHandler);
+      this.uncaughtHandler = null;
+    }
     this.cancelReconnection();
     this.isConnected = false;
 
