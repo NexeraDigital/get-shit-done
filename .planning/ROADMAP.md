@@ -232,9 +232,11 @@ Plans:
 
 ### Phase 11: Use Microsoft dev-tunnels to create public URLs for remote dashboard access
 
-**Goal:** [To be planned]
+**Goal:** Integrate Microsoft dev-tunnels into the autopilot server so the local dashboard is automatically exposed via a public URL, enabling remote access from phones, other machines, or shared links
 **Depends on:** Phase 10
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 11 to break down)
+- [ ] 11-01-PLAN.md — TunnelManager with dev-tunnels SDK integration, lifecycle management, and reconnection handling
+- [ ] 11-02-PLAN.md — State persistence, CLI integration with --no-tunnel flag, ShutdownManager cleanup
+- [ ] 11-03-PLAN.md — Dashboard tunnel URL display, notification wiring, copy-to-clipboard functionality
