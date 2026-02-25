@@ -35,6 +35,7 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { Notification } from '../types/notification.js';
 import type { QuestionEvent } from '../claude/types.js';
+import { TunnelManager } from '../server/tunnel/index.js';
 
 const program = new Command();
 
@@ -67,6 +68,7 @@ Dashboard:
   .option('--quiet', 'Suppress non-error output')
   .option('--adapter-path <path>', 'Path to custom notification adapter module')
   .option('--embedded-server', 'Run dashboard server in-process (legacy mode)')
+  .option('--no-tunnel', 'Disable public tunnel (local-only dashboard)')
   .action(async (options: {
     prd?: string;
     resume?: boolean;
@@ -82,6 +84,7 @@ Dashboard:
     verbose?: boolean;
     quiet?: boolean;
     embeddedServer?: boolean;
+    tunnel?: boolean;
   }) => {
     // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
@@ -587,8 +590,50 @@ Dashboard:
       });
     }
 
-    if (!options.quiet) {
-      console.log(`Dashboard server: http://localhost:${config.port}`);
+    // Tunnel lifecycle: start tunnel after dashboard server is ready
+    const enableTunnel = options.tunnel !== false; // --no-tunnel sets this to false
+    let tunnelManager: TunnelManager | null = null;
+
+    if (enableTunnel) {
+      tunnelManager = new TunnelManager({
+        logger: {
+          info: (msg: string) => logger.log('info', 'tunnel', msg),
+          warn: (msg: string) => logger.log('warn', 'tunnel', msg),
+          error: (msg: string) => logger.log('error', 'tunnel', msg),
+        },
+        onReconnect: (url: string) => {
+          logger.log('info', 'tunnel', `Tunnel reconnected: ${url}`);
+          void stateStore.setState({ tunnelUrl: url });
+        },
+        onDisconnect: () => {
+          logger.log('warn', 'tunnel', 'Tunnel connection dropped, reconnecting...');
+        },
+      });
+
+      try {
+        const url = await tunnelManager.start(config.port);
+        await stateStore.setState({ tunnelUrl: url });
+        if (!options.quiet) {
+          console.log(`Dashboard available at: ${url}`);
+        }
+        // Register tunnel cleanup AFTER server cleanup (LIFO = runs before server shutdown)
+        shutdown.register(async () => {
+          logger.log('info', 'cli', 'Stopping tunnel');
+          await tunnelManager!.stop();
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.log('warn', 'tunnel', `Tunnel creation failed: ${message}`);
+        if (!options.quiet) {
+          console.log(`Dashboard available at: http://localhost:${config.port} (tunnel unavailable)`);
+        }
+        await stateStore.setState({ tunnelUrl: undefined });
+      }
+    } else {
+      if (!options.quiet) {
+        console.log(`Dashboard server: http://localhost:${config.port}`);
+      }
+      await stateStore.setState({ tunnelUrl: undefined });
     }
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing stream logger on shutdown');
