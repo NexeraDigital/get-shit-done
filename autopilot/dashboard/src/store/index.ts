@@ -25,6 +25,7 @@ export interface DashboardState {
   projectDescription: string;
   connected: boolean;
   autopilotAlive: boolean;
+  tunnelUrl: string | null; // Public dev-tunnel URL, null if disabled or failed
 
   // Milestone state
   currentMilestone: MilestoneInfo | null;
@@ -44,6 +45,7 @@ export interface DashboardState {
   setConnected: (connected: boolean) => void;
   setAutopilotAlive: (alive: boolean) => void;
   updatePhase: (phaseNumber: number, patch: Partial<PhaseState>) => void;
+  setTunnelUrl: (url: string | null) => void;
 
   // Milestone actions
   setMilestones: (current: MilestoneInfo | null, shipped: MilestoneInfo[]) => void;
@@ -63,6 +65,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   activities: [],
   connected: false,
   autopilotAlive: true,
+  tunnelUrl: null,
   currentMilestone: null,
   milestones: [],
 
@@ -95,6 +98,8 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
         p.number === phaseNumber ? { ...p, ...patch } : p,
       ),
     })),
+
+  setTunnelUrl: (url) => set({ tunnelUrl: url }),
 
   setMilestones: (current, shipped) => set({ currentMilestone: current, milestones: shipped }),
 }));

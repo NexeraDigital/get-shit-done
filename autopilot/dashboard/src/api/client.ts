@@ -19,6 +19,7 @@ export interface StatusResponse {
   alive: boolean;
   projectName?: string;
   projectDescription?: string;
+  tunnelUrl?: string;
 }
 
 export interface PhasesResponse {
