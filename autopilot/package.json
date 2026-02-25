@@ -24,7 +24,9 @@
     "scripts/install-workflow.js",
     "example-adapter.js",
     "!dist/**/*.test.*",
-    "!dist/**/__tests__"
+    "!dist/**/__tests__",
+    "!workflows/**/__tests__",
+    "!workflows/**/*.test.js"
   ],
   "scripts": {
     "build": "tsc && cd dashboard && npm install && npm run build",
