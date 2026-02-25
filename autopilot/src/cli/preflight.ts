@@ -1,12 +1,8 @@
 import { access } from 'node:fs/promises';
 import { createServer } from 'node:net';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { homedir } from 'node:os';
 import { resolve, join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
-
-const execFileAsync = promisify(execFile);
 
 interface PreflightCheck {
   name: string;
@@ -24,10 +20,9 @@ export interface PreflightFailure {
  * Runs all preflight checks in parallel and returns failures.
  *
  * Validates:
- * 1. Claude CLI is installed
- * 2. PRD file exists (if prdPath provided)
- * 3. Port is available
- * 4. GSD workflows are installed
+ * 1. PRD file exists (if prdPath provided)
+ * 2. Port is available
+ * 3. GSD workflows are installed
  *
  * @param config - Autopilot configuration
  * @param prdPath - Optional PRD file path to validate
@@ -38,19 +33,6 @@ export async function runPreflightChecks(
   prdPath?: string,
 ): Promise<PreflightFailure[]> {
   const checks: PreflightCheck[] = [
-    {
-      name: 'claude-cli',
-      check: async () => {
-        try {
-          await execFileAsync('claude', ['--version']);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      error: 'Claude CLI not found',
-      fix: 'Install it: npm install -g @anthropic-ai/claude-code',
-    },
     {
       name: 'port-available',
       check: async () => {

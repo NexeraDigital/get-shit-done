@@ -82,15 +82,17 @@ async function loadConfigFile(
 }
 
 /**
- * Load configuration with precedence: CLI flags > env vars > config file > Zod defaults.
+ * Load configuration with precedence: CLI flags > env vars > config file > derived defaults > Zod defaults.
  *
  * @param projectDir - Project root directory containing .gsd-autopilot.json
  * @param cliFlags - CLI flag overrides (partial config)
+ * @param derivedDefaults - Derived defaults (e.g. port from git repo identity), below file/env/CLI
  * @returns Validated AutopilotConfig
  */
 export async function loadConfig(
   projectDir: string,
   cliFlags: Partial<AutopilotConfig>,
+  derivedDefaults?: Partial<AutopilotConfig>,
 ): Promise<AutopilotConfig> {
   // 1. Load from config file (may be empty if no file)
   const fileConfig = await loadConfigFile(projectDir);
@@ -98,8 +100,8 @@ export async function loadConfig(
   // 2. Load from environment variables
   const envConfig = loadEnvVars();
 
-  // 3. Merge with precedence: file < env < CLI
-  const merged = { ...fileConfig, ...envConfig, ...cliFlags };
+  // 3. Merge with precedence: derived < file < env < CLI
+  const merged = { ...derivedDefaults, ...fileConfig, ...envConfig, ...cliFlags };
 
   // 4. Validate with Zod safeParse (user-facing input)
   const result = AutopilotConfigSchema.safeParse(merged);

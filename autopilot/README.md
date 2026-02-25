@@ -5,7 +5,6 @@ Autonomous GSD workflow orchestrator — turns a PRD into a built project. Runs 
 ## Prerequisites
 
 - **Node.js** >= 20.0.0
-- **Claude Code** CLI installed globally (`npm install -g @anthropic-ai/claude-code`)
 - **GSD workflows** installed (`npx get-shit-done-cc@latest`)
 - **Git** initialized in your project directory
 

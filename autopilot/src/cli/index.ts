@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { loadConfig } from '../config/index.js';
+import { derivePort } from '../config/derive-port.js';
 import { StateStore } from '../state/index.js';
 import { AutopilotLogger } from '../logger/index.js';
 import { ClaudeService } from '../claude/index.js';
@@ -50,7 +51,7 @@ Examples:
   $ gsd-autopilot --prd ./spec.md --phases 1-3,5
 
 Dashboard:
-  http://localhost:3847 (configurable with --port)
+  Port auto-derived from git repo (override with --port)
 `)
   .option('--prd <path>', 'Path to PRD/idea document')
   .option('--resume', 'Resume from last checkpoint')
@@ -59,7 +60,7 @@ Dashboard:
   .option('--phases <range>', 'Run specific phases (e.g., 1-3,5,7-9)')
   .option('--notify <channel>', 'Notification channel (console, system, teams, slack)', 'console')
   .option('--webhook-url <url>', 'Webhook URL for Teams/Slack notifications')
-  .option('--port <number>', 'Dashboard server port', '3847')
+  .option('--port <number>', 'Dashboard server port (auto-derived from git repo if omitted)')
   .option('--depth <level>', 'Planning depth (quick, standard, comprehensive)', 'standard')
   .option('--model <profile>', 'Model profile (quality, balanced, budget)', 'balanced')
   .option('--verbose', 'Verbose output')
@@ -75,7 +76,7 @@ Dashboard:
     notify: string;
     webhookUrl?: string;
     adapterPath?: string;
-    port: string;
+    port?: string;
     depth: string;
     model: string;
     verbose?: boolean;
@@ -119,21 +120,29 @@ Dashboard:
     // b. Determine project directory
     const projectDir = process.cwd();
 
-    // c. Load config with CLI overrides
+    // c. Derive port from git repo identity (stable per repo+branch)
+    const derivedPort = await derivePort(projectDir);
+
+    // d. Load config with CLI overrides
+    const cliFlags: Record<string, unknown> = {
+      skipDiscuss: options.skipDiscuss ?? false,
+      skipVerify: options.skipVerify ?? false,
+      verbose: options.verbose ?? false,
+      quiet: options.quiet ?? false,
+      depth: options.depth as 'quick' | 'standard' | 'comprehensive',
+      model: options.model as 'quality' | 'balanced' | 'budget',
+      notify: options.notify as 'console' | 'system' | 'teams' | 'slack' | 'webhook',
+      webhookUrl: options.webhookUrl,
+      adapterPath: options.adapterPath,
+    };
+    // Only include port in CLI flags when explicitly passed
+    if (options.port !== undefined) {
+      cliFlags.port = parseInt(options.port, 10);
+    }
+
     let config;
     try {
-      config = await loadConfig(projectDir, {
-        skipDiscuss: options.skipDiscuss ?? false,
-        skipVerify: options.skipVerify ?? false,
-        verbose: options.verbose ?? false,
-        quiet: options.quiet ?? false,
-        depth: options.depth as 'quick' | 'standard' | 'comprehensive',
-        model: options.model as 'quality' | 'balanced' | 'budget',
-        notify: options.notify as 'console' | 'system' | 'teams' | 'slack' | 'webhook',
-        webhookUrl: options.webhookUrl,
-        adapterPath: options.adapterPath,
-        port: parseInt(options.port, 10),
-      });
+      config = await loadConfig(projectDir, cliFlags, { port: derivedPort });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`Configuration error: ${msg}\n`);
@@ -142,7 +151,7 @@ Dashboard:
       process.exit(1);
     }
 
-    // d. Run preflight checks -- validate ALL prerequisites at once
+    // e. Run preflight checks -- validate ALL prerequisites at once
     const preflightFailures = await runPreflightChecks(config, options.prd);
     if (preflightFailures.length > 0) {
       console.error('\nPreflight checks failed:\n');
@@ -153,7 +162,7 @@ Dashboard:
       process.exit(1);
     }
 
-    // e. Create core components
+    // f. Create core components
     const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot', 'log'));
     const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: false });
 

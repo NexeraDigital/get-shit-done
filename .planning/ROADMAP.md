@@ -229,3 +229,12 @@ Plans:
 - [x] 10-02-PLAN.md -- API endpoint and server wiring (MilestoneProvider, /api/milestones)
 - [x] 10-03-PLAN.md -- Dashboard types, store, API client, PhaseCard milestone header
 - [x] 10-04-PLAN.md -- VictoryScreen component and Overview page milestone lifecycle
+
+### Phase 11: Use Microsoft dev-tunnels to create public URLs for remote dashboard access
+
+**Goal:** [To be planned]
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 11 to break down)

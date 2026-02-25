@@ -213,6 +213,7 @@ Recent decisions affecting current work:
 - Phase 03.2 inserted after Phase 3: Add Sub phase support to orchestrator and dashboard (URGENT)
 - Phase 9 added: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 - Phase 10 added: Add GSD Milestone support to autopilot and dashboard
+- Phase 11 added: Use Microsoft dev-tunnels to create public URLs for remote dashboard access
 
 ### Pending Todos
 
