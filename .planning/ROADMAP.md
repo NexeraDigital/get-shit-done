@@ -206,6 +206,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 8. Autopilot Claude Command | 0/3 | Not started | - |
 | 9. Fix Recent Activity Persistence | 3/3 | Complete | 2026-02-24 |
 | 10. GSD Milestone Support | 4/4 | Complete | 2026-02-24 |
+| 11. Dev-Tunnels Integration | 3/3 | Complete | 2026-02-25 |
 
 ### Phase 9: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 
@@ -237,6 +238,6 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — TunnelManager with dev-tunnels SDK integration, lifecycle management, and reconnection handling
-- [ ] 11-02-PLAN.md — State persistence, CLI integration with --no-tunnel flag, ShutdownManager cleanup
-- [ ] 11-03-PLAN.md — Dashboard tunnel URL display, notification wiring, copy-to-clipboard functionality
+- [x] 11-01-PLAN.md — TunnelManager with dev-tunnels SDK integration, lifecycle management, and reconnection handling
+- [x] 11-02-PLAN.md — State persistence, CLI integration with --no-tunnel flag, ShutdownManager cleanup
+- [x] 11-03-PLAN.md — Dashboard tunnel URL display, notification wiring, copy-to-clipboard functionality
