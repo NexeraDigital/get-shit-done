@@ -39,16 +39,11 @@ The postinstall script automatically registers the `/gsd:autopilot` slash comman
 ### From Claude Code
 
 ```
-/gsd:autopilot --prd ./idea.md
+/gsd:autopilot --prd ./idea.md    # New project from a PRD
+/gsd:autopilot                     # Existing GSD project
 ```
 
-### From the terminal
-
-```bash
-gsd-autopilot --prd ./idea.md
-```
-
-If you run `gsd-autopilot` with no arguments and no existing `.planning/ROADMAP.md`, an interactive setup wizard will walk you through configuration.
+If you run `/gsd:autopilot` in a directory with an existing GSD project (`.planning/ROADMAP.md`), it picks up where the project left off — no flags needed. If no roadmap exists and no `--prd` is provided, an interactive setup wizard will walk you through configuration.
 
 ## How It Works
 
