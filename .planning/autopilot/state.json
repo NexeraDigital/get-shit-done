@@ -1,7 +1,7 @@
 {
-  "status": "running",
+  "status": "complete",
   "currentPhase": 11,
-  "currentStep": "plan",
+  "currentStep": "done",
   "phases": [
     {
       "number": 1,
@@ -398,18 +398,64 @@
     {
       "number": 11,
       "name": "Use Microsoft dev-tunnels to create public URLs for remote dashboard access",
-      "status": "in_progress",
+      "status": "completed",
       "steps": {
         "discuss": "done",
-        "plan": "plan",
-        "execute": "idle",
-        "verify": "idle"
+        "plan": "done",
+        "execute": "done",
+        "verify": "done"
       },
       "startedAt": "2026-02-25T16:10:45.762Z",
-      "commits": [],
+      "commits": [
+        {
+          "hash": "03ee70b1ef02f4989dc820ba04f976dc42f6dd97",
+          "message": "docs(phase-11): complete phase execution"
+        },
+        {
+          "hash": "66e77fdc4c377740e48679104923854a22281aac",
+          "message": "docs(11-03): complete Surface tunnel URL in dashboard UI and notifications plan"
+        },
+        {
+          "hash": "b96d66cf9cfbd9e203b895b9129dd2f5a1f18484",
+          "message": "feat(11-03): include tunnel URL in all console notifications"
+        },
+        {
+          "hash": "898331caad2dc21f322dbf9a59e0ad284a1426b0",
+          "message": "feat(11-03): create TunnelBanner component and integrate into Overview page"
+        },
+        {
+          "hash": "9f9da2da20316132c8bb8982bfc470bf2db9d530",
+          "message": "feat(11-03): add tunnelUrl to dashboard state and API client"
+        },
+        {
+          "hash": "abb8e31a5c298e20d8e95f2ed58371e09d462015",
+          "message": "docs(11-02): complete wire tunnel lifecycle plan"
+        },
+        {
+          "hash": "44a77311ee0c0a29ab44e4c0fde28bcc6cc010cc",
+          "message": "feat(11-02): add tunnel support to standalone dashboard server"
+        },
+        {
+          "hash": "7e0342d83e50a39c6ba1acd7cec4002fa90ab903",
+          "message": "feat(11-02): integrate TunnelManager into CLI with --no-tunnel flag"
+        },
+        {
+          "hash": "eee375eea729f131e26f5f828c7ced71edcd543f",
+          "message": "feat(11-02): add tunnelUrl field to AutopilotState"
+        },
+        {
+          "hash": "977999941e3b03dcc36f33dcc8bf463645886e81",
+          "message": "docs(11-01): complete TunnelManager implementation summary"
+        },
+        {
+          "hash": "cd8426e7bd9497e82f132a14ed4a2e1b4e7087e9",
+          "message": "feat(11-01): install dev-tunnels SDK and create TunnelManager"
+        }
+      ],
       "gapIterations": 0,
       "inserted": false,
-      "dependsOn": "Phase 10"
+      "dependsOn": "Phase 10",
+      "completedAt": "2026-02-25T18:13:58.438Z"
     }
   ],
   "pendingQuestions": [
@@ -654,6 +700,40 @@
           "multiSelect": false
         }
       ]
+    },
+    {
+      "id": "138a84ec-d1a3-42ad-9b81-9f29558f83aa",
+      "phase": 11,
+      "step": "plan",
+      "questions": [
+        "Phase 11 already has 3 complete plans (621 total lines). What would you like to do?"
+      ],
+      "questionItems": [
+        {
+          "question": "Phase 11 already has 3 complete plans (621 total lines). What would you like to do?",
+          "header": "Existing plans",
+          "options": [
+            {
+              "label": "Verify existing plans",
+              "description": "Send current plans to plan checker for verification (Recommended)"
+            },
+            {
+              "label": "View plans first",
+              "description": "Read through all 3 plans before deciding"
+            },
+            {
+              "label": "Replan from scratch",
+              "description": "Discard existing plans and spawn planner to create fresh ones"
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-02-25T17:39:28.917Z",
+      "answeredAt": "2026-02-25T17:39:53.878Z",
+      "answers": {
+        "Phase 11 already has 3 complete plans (621 total lines). What would you like to do?": "use the existing plans"
+      }
     }
   ],
   "errorHistory": [
@@ -673,7 +753,7 @@
     }
   ],
   "startedAt": "2026-02-24T03:05:41.567Z",
-  "lastUpdatedAt": "2026-02-25T17:26:44.079Z",
+  "lastUpdatedAt": "2026-02-25T18:13:58.443Z",
   "branches": {
     "main": {
       "port": 4120,
