@@ -10,7 +10,7 @@ let testDir: string;
 
 beforeEach(async () => {
   testDir = await mkdtemp(join(tmpdir(), 'ipc-state-reader-'));
-  await mkdir(join(testDir, '.planning'), { recursive: true });
+  await mkdir(join(testDir, '.planning', 'autopilot'), { recursive: true });
 });
 
 afterEach(async () => {
@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 function writeState(state: AutopilotState): Promise<void> {
-  const path = join(testDir, '.planning', 'autopilot-state.json');
+  const path = join(testDir, '.planning', 'autopilot', 'state.json');
   return writeFileAtomic(path, JSON.stringify(state, null, 2) + '\n');
 }
 
@@ -86,7 +86,7 @@ describe('FileStateReader', () => {
   });
 
   it('isAlive returns true when heartbeat is recent', async () => {
-    const hbPath = join(testDir, '.planning', 'autopilot-heartbeat.json');
+    const hbPath = join(testDir, '.planning', 'autopilot', 'heartbeat.json');
     await writeFileAtomic(hbPath, JSON.stringify({
       pid: process.pid,
       timestamp: new Date().toISOString(),
@@ -99,7 +99,7 @@ describe('FileStateReader', () => {
   });
 
   it('isAlive returns false when heartbeat is stale', async () => {
-    const hbPath = join(testDir, '.planning', 'autopilot-heartbeat.json');
+    const hbPath = join(testDir, '.planning', 'autopilot', 'heartbeat.json');
     const staleTime = new Date(Date.now() - 30_000).toISOString();
     await writeFileAtomic(hbPath, JSON.stringify({
       pid: 12345,

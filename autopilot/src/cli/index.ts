@@ -154,14 +154,14 @@ Dashboard:
     }
 
     // e. Create core components
-    const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot-log'));
+    const logger = new AutopilotLogger(join(projectDir, '.planning', 'autopilot', 'log'));
     const claudeService = new ClaudeService({ defaultCwd: projectDir, autoAnswer: false });
 
     // Handle state restore vs fresh creation
     // No --prd: restore existing state to preserve completed phases
     // --prd: fresh start from new PRD document
     let stateStore;
-    const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+    const stateFilePath = join(projectDir, '.planning', 'autopilot', 'state.json');
     const shouldRestore = !options.prd;
 
     if (shouldRestore) {
@@ -195,7 +195,7 @@ Dashboard:
 
     // g. Create output streaming components
     const streamRenderer = new StreamRenderer(verbosity, undefined, new Set(['AskUserQuestion']));
-    const streamLogger = new StreamLogger(join(projectDir, '.planning', 'autopilot-log'));
+    const streamLogger = new StreamLogger(join(projectDir, '.planning', 'autopilot', 'log'));
 
     // Wire SDK message stream to terminal renderer and log file (dual output per user decision)
     claudeService.on('message', (message: unknown) => {

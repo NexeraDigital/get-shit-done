@@ -12,7 +12,7 @@ let testDir: string;
 
 beforeEach(async () => {
   testDir = await mkdtemp(join(tmpdir(), 'ipc-fqp-'));
-  await mkdir(join(testDir, '.planning'), { recursive: true });
+  await mkdir(join(testDir, '.planning', 'autopilot'), { recursive: true });
 });
 
 afterEach(async () => {
@@ -20,7 +20,7 @@ afterEach(async () => {
 });
 
 function writeState(state: AutopilotState): Promise<void> {
-  const path = join(testDir, '.planning', 'autopilot-state.json');
+  const path = join(testDir, '.planning', 'autopilot', 'state.json');
   return writeFileAtomic(path, JSON.stringify(state, null, 2) + '\n');
 }
 

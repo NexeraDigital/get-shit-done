@@ -1,5 +1,5 @@
 // VAPID key management for Web Push notifications.
-// Loads VAPID keys from environment variables or generates/persists them to .planning/.vapid-keys.json.
+// Loads VAPID keys from environment variables or generates/persists them to .planning/autopilot/.vapid-keys.json.
 // Ensures the server has stable keys across restarts without committing secrets to git.
 
 import webpush from 'web-push';
@@ -16,8 +16,8 @@ export interface VAPIDKeys {
  * Loads or generates VAPID keys for Web Push.
  * Priority:
  * 1. Environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT)
- * 2. Persisted keys in .planning/.vapid-keys.json
- * 3. Generate new keys, persist to .planning/.vapid-keys.json
+ * 2. Persisted keys in .planning/autopilot/.vapid-keys.json
+ * 3. Generate new keys, persist to .planning/autopilot/.vapid-keys.json
  *
  * @param planningDir - Absolute path to the .planning/ directory
  * @returns VAPID keys ready for webpush.setVapidDetails()

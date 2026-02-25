@@ -23,7 +23,7 @@ function sanitizeBranchName(branch) {
  */
 export async function writePid(branch, pid, projectDir) {
   const sanitized = sanitizeBranchName(branch);
-  const pidFilePath = join(projectDir, '.planning', `autopilot-${sanitized}.pid`);
+  const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
   await writeFile(pidFilePath, String(pid), 'utf-8');
 }
 
@@ -35,7 +35,7 @@ export async function writePid(branch, pid, projectDir) {
  */
 export async function readPid(branch, projectDir) {
   const sanitized = sanitizeBranchName(branch);
-  const pidFilePath = join(projectDir, '.planning', `autopilot-${sanitized}.pid`);
+  const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
 
   try {
     const content = await readFile(pidFilePath, 'utf-8');
@@ -133,7 +133,7 @@ export async function stopProcess(pid, timeoutMs = 5000) {
  */
 export async function cleanupPid(branch, projectDir) {
   const sanitized = sanitizeBranchName(branch);
-  const pidFilePath = join(projectDir, '.planning', `autopilot-${sanitized}.pid`);
+  const pidFilePath = join(projectDir, '.planning', 'autopilot', `${sanitized}.pid`);
 
   try {
     await unlink(pidFilePath);

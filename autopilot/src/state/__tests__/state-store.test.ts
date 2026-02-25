@@ -10,8 +10,8 @@ describe('StateStore', () => {
 
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'gsd-state-test-'));
-    // Create .planning subdirectory for createFresh
-    await mkdir(join(tempDir, '.planning'), { recursive: true });
+    // Create .planning/autopilot subdirectory for createFresh
+    await mkdir(join(tempDir, '.planning', 'autopilot'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -35,7 +35,7 @@ describe('StateStore', () => {
 
     it('uses path.join for file path construction (no hardcoded separators)', () => {
       const store = StateStore.createFresh(tempDir);
-      const expectedPath = join(tempDir, '.planning', 'autopilot-state.json');
+      const expectedPath = join(tempDir, '.planning', 'autopilot', 'state.json');
       // Verify the store uses the correctly joined path
       expect(store.filePath).toBe(expectedPath);
     });
@@ -79,7 +79,7 @@ describe('StateStore', () => {
       const store = StateStore.createFresh(tempDir);
       await store.setState({ status: 'running', currentPhase: 1 });
 
-      const filePath = join(tempDir, '.planning', 'autopilot-state.json');
+      const filePath = join(tempDir, '.planning', 'autopilot', 'state.json');
       const fileContent = await readFile(filePath, 'utf-8');
       const parsed = JSON.parse(fileContent) as AutopilotState;
 
@@ -113,7 +113,7 @@ describe('StateStore', () => {
       expect(state.currentStep).toBe('plan');
 
       // Verify final state on disk too
-      const filePath = join(tempDir, '.planning', 'autopilot-state.json');
+      const filePath = join(tempDir, '.planning', 'autopilot', 'state.json');
       const fileContent = await readFile(filePath, 'utf-8');
       const parsed = JSON.parse(fileContent) as AutopilotState;
       expect(parsed.status).toBe('running');
@@ -222,7 +222,7 @@ describe('StateStore', () => {
       });
 
       // Restore from file
-      const filePath = join(tempDir, '.planning', 'autopilot-state.json');
+      const filePath = join(tempDir, '.planning', 'autopilot', 'state.json');
       const restored = await StateStore.restore(filePath);
       const state = restored.getState();
 
@@ -240,7 +240,7 @@ describe('StateStore', () => {
       await store.setState({ status: 'running', currentPhase: 3 });
 
       // Now restore from the file
-      const filePath = join(tempDir, '.planning', 'autopilot-state.json');
+      const filePath = join(tempDir, '.planning', 'autopilot', 'state.json');
       const restored = await StateStore.restore(filePath);
       const state = restored.getState();
 

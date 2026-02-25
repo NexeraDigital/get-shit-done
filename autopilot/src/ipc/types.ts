@@ -3,19 +3,19 @@
 
 import { join } from 'node:path';
 
-/** Paths for IPC files relative to project .planning/ directory */
+/** Paths for IPC files relative to project .planning/autopilot/ directory */
 export const IPC_PATHS = {
   /** Autopilot state file (already exists, written by StateStore) */
-  state: (projectDir: string) => join(projectDir, '.planning', 'autopilot-state.json'),
+  state: (projectDir: string) => join(projectDir, '.planning', 'autopilot', 'state.json'),
   /** NDJSON event log for SSE streaming */
-  events: (projectDir: string) => join(projectDir, '.planning', 'autopilot-log', 'events.ndjson'),
+  events: (projectDir: string) => join(projectDir, '.planning', 'autopilot', 'log', 'events.ndjson'),
   /** Heartbeat file for liveness detection */
-  heartbeat: (projectDir: string) => join(projectDir, '.planning', 'autopilot-heartbeat.json'),
+  heartbeat: (projectDir: string) => join(projectDir, '.planning', 'autopilot', 'heartbeat.json'),
   /** Directory for answer files (dashboard writes, autopilot reads) */
-  answersDir: (projectDir: string) => join(projectDir, '.planning', 'autopilot-answers'),
+  answersDir: (projectDir: string) => join(projectDir, '.planning', 'autopilot', 'answers'),
   /** Individual answer file */
   answer: (projectDir: string, questionId: string) =>
-    join(projectDir, '.planning', 'autopilot-answers', `${questionId}.json`),
+    join(projectDir, '.planning', 'autopilot', 'answers', `${questionId}.json`),
 } as const;
 
 /** Event written to the NDJSON event log */

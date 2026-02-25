@@ -1,5 +1,5 @@
 // Activity persistence manager for the autopilot dashboard.
-// Provides atomic writes to .planning/autopilot-activity.json with restore capability.
+// Provides atomic writes to .planning/autopilot/activity.json with restore capability.
 // Non-critical path: persist errors are logged but don't throw.
 
 import { join } from 'node:path';
@@ -12,7 +12,7 @@ export class ActivityStore {
   private activities: ActivityEntry[] = [];
 
   constructor(projectDir: string) {
-    this.filePath = join(projectDir, '.planning', 'autopilot-activity.json');
+    this.filePath = join(projectDir, '.planning', 'autopilot', 'activity.json');
   }
 
   /**

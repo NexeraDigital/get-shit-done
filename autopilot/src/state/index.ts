@@ -144,7 +144,7 @@ export class StateStore {
    * The state file path is constructed using path.join (FNDN-03).
    */
   static createFresh(projectDir: string): StateStore {
-    const filePath = join(projectDir, '.planning', 'autopilot-state.json');
+    const filePath = join(projectDir, '.planning', 'autopilot', 'state.json');
     const now = new Date().toISOString();
     const state: AutopilotState = {
       status: 'idle',

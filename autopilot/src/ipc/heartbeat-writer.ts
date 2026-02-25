@@ -9,7 +9,7 @@ import type { IPCHeartbeat } from './types.js';
 
 /** Path to the shutdown marker file, relative to project .planning/ dir */
 export function shutdownMarkerPath(projectDir: string): string {
-  return join(projectDir, '.planning', 'autopilot-shutdown');
+  return join(projectDir, '.planning', 'autopilot', 'shutdown');
 }
 
 export class HeartbeatWriter {

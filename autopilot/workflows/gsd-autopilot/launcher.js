@@ -49,7 +49,7 @@ async function handleLaunch(branch, projectDir, args) {
   const existingPid = await readPid(branch, projectDir);
   if (existingPid && isProcessRunning(existingPid)) {
     // Read port from state file to show dashboard URL
-    const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+    const stateFilePath = join(projectDir, '.planning', 'autopilot', 'state.json');
     let port = 3847; // default
     try {
       const stateContent = await readFile(stateFilePath, 'utf-8');
@@ -97,7 +97,7 @@ async function handleLaunch(branch, projectDir, args) {
   console.log(`Starting autopilot for branch '${branch}' on port ${port}...`);
   const cmdTitle = `GSD Autopilot [${branch}] :${port}`;
   const batContent = `@title ${cmdTitle}\n@"${process.execPath}" ${spawnArgs.map(a => `"${a}"`).join(' ')}\n@pause\n`;
-  const batPath = join(projectDir, '.planning', 'autopilot-run.cmd');
+  const batPath = join(projectDir, '.planning', 'autopilot', 'run.cmd');
   await writeFile(batPath, batContent, 'utf-8');
   const child = spawn('start', ['""', batPath], {
     shell: true,
@@ -150,7 +150,7 @@ async function handleStatus(branch, projectDir) {
   }
 
   // 2. Read state file for progress
-  const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+  const stateFilePath = join(projectDir, '.planning', 'autopilot', 'state.json');
   let status = 'unknown';
   let currentPhase = 0;
   let totalPhases = 0;
@@ -195,7 +195,7 @@ async function handleStatus(branch, projectDir) {
  * Uses cooperative shutdown signals instead of taskkill (which gets "Access denied"
  * for processes spawned in a different console session via `start`):
  *
- * 1. Writes a `.planning/autopilot-shutdown` marker file — the autopilot's
+ * 1. Writes a `.planning/autopilot/shutdown` marker file — the autopilot's
  *    HeartbeatWriter detects this within 5 seconds and triggers graceful shutdown.
  * 2. Sends POST /api/shutdown to the dashboard HTTP server — the dashboard
  *    exits immediately.
@@ -203,7 +203,7 @@ async function handleStatus(branch, projectDir) {
  */
 async function handleStop(branch, projectDir) {
   // 1. Read the assigned port from state (needed for dashboard shutdown)
-  const stateFilePath = join(projectDir, '.planning', 'autopilot-state.json');
+  const stateFilePath = join(projectDir, '.planning', 'autopilot', 'state.json');
   let port = 3847;
   try {
     const stateContent = await readFile(stateFilePath, 'utf-8');
@@ -222,7 +222,7 @@ async function handleStop(branch, projectDir) {
 
   // 3. Write shutdown marker file — the autopilot HeartbeatWriter checks for this
   //    every 5 seconds and triggers graceful orchestrator shutdown
-  const shutdownMarkerPath = join(projectDir, '.planning', 'autopilot-shutdown');
+  const shutdownMarkerPath = join(projectDir, '.planning', 'autopilot', 'shutdown');
   try {
     await writeFile(shutdownMarkerPath, new Date().toISOString(), 'utf-8');
     console.log('  Shutdown signal sent to autopilot process.');
@@ -393,7 +393,7 @@ function sendShutdownRequest(port) {
  */
 async function readHeartbeatPid(projectDir) {
   try {
-    const heartbeatPath = join(projectDir, '.planning', 'autopilot-heartbeat.json');
+    const heartbeatPath = join(projectDir, '.planning', 'autopilot', 'heartbeat.json');
     const content = await readFile(heartbeatPath, 'utf-8');
     const heartbeat = JSON.parse(content);
     const pid = heartbeat?.pid;

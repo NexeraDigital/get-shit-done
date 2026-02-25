@@ -45,8 +45,9 @@ program
 
     // Initialize push notification infrastructure
     const planningDir = join(projectDir, '.planning');
+    const autopilotDir = join(planningDir, 'autopilot');
     const subscriptionStore = new SubscriptionStore();
-    const vapidKeys = await loadVAPIDKeys(planningDir);
+    const vapidKeys = await loadVAPIDKeys(autopilotDir);
     const pushManager = new PushNotificationManager(vapidKeys, subscriptionStore);
 
     // Create milestone provider

@@ -95,7 +95,7 @@ describe('Answer roundtrip (AnswerWriter + AnswerPoller)', () => {
 
     // Verify file was deleted
     const { readdir } = await import('node:fs/promises');
-    const answersDir = join(testDir, '.planning', 'autopilot-answers');
+    const answersDir = join(testDir, '.planning', 'autopilot', 'answers');
     const files = await readdir(answersDir);
     const answerFiles = files.filter(f => f.endsWith('.json'));
     expect(answerFiles).toHaveLength(0);
