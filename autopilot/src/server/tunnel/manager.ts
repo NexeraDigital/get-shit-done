@@ -11,6 +11,9 @@ import {
   ManagementApiVersions,
   TunnelManagementHttpClient,
 } from '@microsoft/dev-tunnels-management';
+import { DefaultAzureCredential } from '@azure/identity';
+
+const TUNNEL_RESOURCE_SCOPE = 'https://tunnels.api.visualstudio.com/.default';
 
 // Helper function to get port URI from endpoint
 function getPortUri(endpoint: TunnelEndpoint, port: number): string | undefined {
@@ -43,6 +46,7 @@ export class TunnelManager {
   private logger?: TunnelManagerOptions['logger'];
   private onReconnect?: (newUrl: string) => void;
   private onDisconnect?: () => void;
+  private credential: DefaultAzureCredential | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
@@ -64,20 +68,22 @@ export class TunnelManager {
   async start(port: number): Promise<string> {
     this.port = port;
 
-    // Get Azure AD token from environment
-    const token =
-      process.env['DEVTUNNEL_TOKEN'] || process.env['AAD_TOKEN'] || '';
-    if (!token) {
-      throw new Error(
-        'Dev-tunnel token not found. Set DEVTUNNEL_TOKEN environment variable. Get one with: az account get-access-token --resource https://tunnels.api.visualstudio.com',
-      );
-    }
+    // Create credential for token acquisition.
+    // Priority 1: explicit env var (backward compat)
+    // Priority 2: DefaultAzureCredential (auto-discovers az login, env vars, managed identity, etc.)
+    this.credential = new DefaultAzureCredential();
 
     // Create management client with user agent and token callback
     this.managementClient = new TunnelManagementHttpClient(
       { name: 'gsd-autopilot', version: '1.0.0' },
       ManagementApiVersions.Version20230927preview,
-      () => Promise.resolve(`Bearer ${token}`),
+      async () => {
+        const envToken = process.env['DEVTUNNEL_TOKEN'] || process.env['AAD_TOKEN'];
+        if (envToken) return `Bearer ${envToken}`;
+
+        const result = await this.credential!.getToken(TUNNEL_RESOURCE_SCOPE);
+        return `Bearer ${result.token}`;
+      },
     );
 
     // Build tunnel object with anonymous access

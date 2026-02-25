@@ -84,8 +84,7 @@ program
     await server.start(port);
 
     // Tunnel lifecycle: start tunnel after server is ready
-    const hasToken = process.env['DEVTUNNEL_TOKEN'] || process.env['AAD_TOKEN'];
-    const enableTunnel = hasToken && process.env['NO_TUNNEL'] !== 'true';
+    const enableTunnel = process.env['NO_TUNNEL'] !== 'true';
     let tunnelManager: TunnelManager | null = null;
 
     if (enableTunnel) {

@@ -632,6 +632,9 @@ Dashboard:
         logger.log('warn', 'tunnel', `Tunnel creation failed: ${message}`);
         if (!options.quiet) {
           console.log(`Dashboard available at: http://localhost:${config.port} (tunnel unavailable)`);
+          console.log('  To enable remote access, log in with: az login');
+          console.log('  Or set DEVTUNNEL_TOKEN environment variable.');
+          console.log('  Use --no-tunnel to suppress this message.');
         }
         await stateStore.setState({ tunnelUrl: undefined });
       }
