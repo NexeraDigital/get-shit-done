@@ -20,6 +20,7 @@ export interface ConsoleAdapterOptions {
   port: number;
   stopSpinner?: () => void;
   output?: WritableOutput;
+  getTunnelUrl?: () => string | null;
 }
 
 export class ConsoleAdapter implements NotificationAdapter {
@@ -28,11 +29,13 @@ export class ConsoleAdapter implements NotificationAdapter {
   private readonly port: number;
   private readonly stopSpinner?: () => void;
   private readonly output: WritableOutput;
+  private readonly getTunnelUrl?: () => string | null;
 
   constructor(options: ConsoleAdapterOptions) {
     this.port = options.port;
     this.stopSpinner = options.stopSpinner;
     this.output = options.output ?? process.stdout;
+    this.getTunnelUrl = options.getTunnelUrl;
   }
 
   /** No-op: console requires no initialization. */
@@ -74,9 +77,11 @@ export class ConsoleAdapter implements NotificationAdapter {
   }
 
   private formatQuestion(n: Notification): string {
-    const url = `http://localhost:${this.port}/questions/${n.id}`;
+    const tunnelUrl = this.getTunnelUrl?.() || null;
+    const baseUrl = tunnelUrl || `http://localhost:${this.port}`;
+    const questionUrl = `${baseUrl}/questions/${n.id}`;
     const prefix = ansis.yellow('[?]');
-    const titleLine = `\x07${prefix} ${ansis.white(n.title)} (${ansis.dim(url)})`;
+    const titleLine = `\x07${prefix} ${ansis.white(n.title)} (${ansis.dim(questionUrl)})`;
 
     const optionLines: string[] = [];
     if (n.options && n.options.length > 0) {
@@ -92,10 +97,15 @@ export class ConsoleAdapter implements NotificationAdapter {
     if (bodyLine) parts.push(bodyLine);
     parts.push(...optionLines);
 
+    // Append dashboard URL to every notification
+    parts.push(`\n${ansis.dim('Dashboard:')} ${baseUrl}`);
+
     return parts.join('\n') + '\n';
   }
 
   private formatError(n: Notification): string {
+    const tunnelUrl = this.getTunnelUrl?.() || null;
+    const baseUrl = tunnelUrl || `http://localhost:${this.port}`;
     const prefix = ansis.bold.red('[!]');
     const titleLine = `${prefix} ${ansis.white(n.title)}`;
 
@@ -113,10 +123,15 @@ export class ConsoleAdapter implements NotificationAdapter {
       lines.push(`    ${ansis.dim(`Error: ${n.errorMessage}`)}`);
     }
 
+    // Append dashboard URL to every notification
+    lines.push(`\n${ansis.dim('Dashboard:')} ${baseUrl}`);
+
     return lines.join('\n') + '\n';
   }
 
   private formatComplete(n: Notification): string {
+    const tunnelUrl = this.getTunnelUrl?.() || null;
+    const baseUrl = tunnelUrl || `http://localhost:${this.port}`;
     const prefix = ansis.green('[v]');
     const titleLine = `${prefix} ${ansis.white(n.title)}`;
 
@@ -130,11 +145,19 @@ export class ConsoleAdapter implements NotificationAdapter {
       lines.push(`    ${ansis.dim(`Next: ${n.nextSteps}`)}`);
     }
 
+    // Append dashboard URL to every notification
+    lines.push(`\n${ansis.dim('Dashboard:')} ${baseUrl}`);
+
     return lines.join('\n') + '\n';
   }
 
   private formatProgress(n: Notification): string {
+    const tunnelUrl = this.getTunnelUrl?.() || null;
+    const baseUrl = tunnelUrl || `http://localhost:${this.port}`;
     const prefix = ansis.dim('[i]');
-    return `${prefix} ${ansis.white(n.title)}\n`;
+    const titleLine = `${prefix} ${ansis.white(n.title)}`;
+
+    // Append dashboard URL to every notification
+    return `${titleLine}\n${ansis.dim('Dashboard:')} ${baseUrl}\n`;
   }
 }

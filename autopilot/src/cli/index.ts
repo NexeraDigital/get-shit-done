@@ -224,9 +224,12 @@ Dashboard:
     });
 
     // Always add console adapter (default, zero-dependency)
+    // getTunnelUrl callback will be populated after tunnel manager is created
+    let tunnelUrlGetter: (() => string | null) | undefined;
     notificationManager.addAdapter(new ConsoleAdapter({
       port: config.port,
       stopSpinner: () => streamRenderer.stopSpinner(),
+      getTunnelUrl: () => tunnelUrlGetter?.() ?? null,
     }));
 
     // Add channel-specific adapter based on config.notify
@@ -609,6 +612,9 @@ Dashboard:
           logger.log('warn', 'tunnel', 'Tunnel connection dropped, reconnecting...');
         },
       });
+
+      // Wire tunnel URL getter for ConsoleAdapter
+      tunnelUrlGetter = () => tunnelManager?.url || null;
 
       try {
         const url = await tunnelManager.start(config.port);
