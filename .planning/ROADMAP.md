@@ -169,12 +169,10 @@ Plans:
   1. `npx gsd-autopilot --help` shows all documented flags (--prd, --notify, --webhook-url, --port, --depth, --model, --skip-discuss, --skip-verify, --phases, --resume, --verbose, --quiet, --adapter-path)
   2. `--verbose` increases log detail; `--quiet` suppresses all non-error output; `--port` changes the server port; `--depth` and `--model` pass through to GSD config
   3. `npm pack` produces a package under 2MB that installs and runs correctly via `npx gsd-autopilot` on macOS, Linux, and Windows
-**Plans**: 3 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 07-01-PLAN.md -- Preflight checks, actionable error messaging, enhanced phase range parser
-- [ ] 07-02-PLAN.md -- Interactive setup wizard, CLI help text polish
-- [ ] 07-03-PLAN.md -- npm packaging, distribution config, build verification
+- [ ] 07-03-PLAN.md -- npm packaging verification, tarball build test, cross-platform bin script validation
 
 ### Phase 8: Autopilot should be able to be executed by using a claude command
 
@@ -204,7 +202,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 5. React Dashboard | 4/4 | Complete | 2026-02-18 |
 | 6. Notification System | 3/3 | Complete | 2026-02-18 |
 | 06.1. Browser Notifications | 4/4 | Complete | 2026-02-24 |
-| 7. CLI Polish and Distribution | 0/3 | Not started | - |
+| 7. CLI Polish and Distribution | 0/1 | Not started | - |
 | 8. Autopilot Claude Command | 0/3 | Not started | - |
 | 9. Fix Recent Activity Persistence | 3/3 | Complete | 2026-02-24 |
 | 10. GSD Milestone Support | 4/4 | Complete | 2026-02-24 |
