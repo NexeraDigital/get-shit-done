@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 11 of 13 (Use Microsoft dev-tunnels to create public URLs for remote dashboard access)
-Plan: 1 of 3 in current phase -- COMPLETE
+Plan: 2 of 3 in current phase -- COMPLETE
 Status: In Progress
-Last activity: 2026-02-25 -- Completed 11-01 Install dev-tunnels SDK and create TunnelManager (2 files created, 2 files modified)
+Last activity: 2026-02-25 -- Completed 11-02 Wire tunnel lifecycle (4 files modified)
 
 Progress: [████████░░] 55% - Phase 11 In Progress
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40
+- Total plans completed: 41
 - Average duration: 3.0min
 - Total execution time: ~2.5 hours
 
@@ -40,11 +40,11 @@ Progress: [████████░░] 55% - Phase 11 In Progress
 | 08-autopilot-claude-command | 2/3 | 11min | 5.5min |
 | 09-fix-recent-activity-persistence | 3/3 | 9min | 3min |
 | 10-add-gsd-milestone-support | 4/4 | 10min | 2.5min |
-| 11-use-microsoft-dev-tunnels-to-create-public-urls-for-remote-dashboard-access | 1/3 | 3min | 3min |
+| 11-use-microsoft-dev-tunnels-to-create-public-urls-for-remote-dashboard-access | 2/3 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 10-04 (1min), 07-01 (5min), 07-02 (5min), 07-03 (3min), 11-01 (3min)
-- Trend: Phase 11 started - dev-tunnels SDK integration underway
+- Last 5 plans: 07-01 (5min), 07-02 (5min), 07-03 (3min), 11-01 (3min), 11-02 (2min)
+- Trend: Phase 11 tunnel lifecycle integration complete
 
 *Updated after each plan completion*
 
@@ -209,6 +209,11 @@ Recent decisions affecting current work:
 - [Phase 11-01]: Port URI extraction via portUriFormat.replace('{port}', port) pattern (endpoints use templates, not pre-computed maps)
 - [Phase 11-01]: Reconnection scaffolding implemented without event wiring (SDK event API needs runtime validation)
 - [Phase 11-01]: ManagementApiVersions.Version20230927preview is CamelCase with lowercase 'preview' suffix
+- [Phase 11-02]: tunnelUrl stored in AutopilotState for persistence across restarts and cross-tool access
+- [Phase 11-02]: Tunnel enabled by default in CLI, explicit opt-out with --no-tunnel flag
+- [Phase 11-02]: Tunnel failure is non-fatal - dashboard works locally with warning (graceful degradation)
+- [Phase 11-02]: Tunnel cleanup registered in ShutdownManager LIFO order (runs before server shutdown)
+- [Phase 11-02]: Standalone server checks DEVTUNNEL_TOKEN/AAD_TOKEN env vars to auto-enable tunnel
 
 ### Roadmap Evolution
 
@@ -232,5 +237,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 11-01-PLAN.md (Install dev-tunnels SDK and create TunnelManager, 2 files created, 2 files modified)
+Stopped at: Completed 11-02-PLAN.md (Wire tunnel lifecycle - state persistence, CLI integration, standalone server, 4 files modified)
 Resume file: None
