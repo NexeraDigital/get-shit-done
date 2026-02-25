@@ -19,3 +19,6 @@ animation/
 reports/
 RAILROAD_ARCHITECTURE.md
 nul
+
+# VAPID keys (secrets)
+.vapid-keys.json
