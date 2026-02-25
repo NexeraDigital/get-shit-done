@@ -16,6 +16,7 @@ import { loadVAPIDKeys } from './push/vapid.js';
 import { SubscriptionStore } from './push/subscription-store.js';
 import { PushNotificationManager } from './push/manager.js';
 import { parseMilestoneData } from '../milestone/parser.js';
+import { TunnelManager } from './tunnel/index.js';
 
 const program = new Command();
 
@@ -81,20 +82,51 @@ program
     });
 
     await server.start(port);
-    console.log(`Dashboard server: http://localhost:${port}`);
+
+    // Tunnel lifecycle: start tunnel after server is ready
+    const hasToken = process.env['DEVTUNNEL_TOKEN'] || process.env['AAD_TOKEN'];
+    const enableTunnel = hasToken && process.env['NO_TUNNEL'] !== 'true';
+    let tunnelManager: TunnelManager | null = null;
+
+    if (enableTunnel) {
+      tunnelManager = new TunnelManager({
+        logger: {
+          info: console.log,
+          warn: console.warn,
+          error: console.error,
+        },
+        onReconnect: (url: string) => console.log('Tunnel reconnected:', url),
+      });
+
+      try {
+        const url = await tunnelManager.start(port);
+        console.log(`Dashboard available at: ${url}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn('Tunnel creation failed:', message);
+        console.log(`Dashboard available at: http://localhost:${port}`);
+      }
+    } else {
+      console.log(`Dashboard server: http://localhost:${port}`);
+    }
+
     console.log(`Push notifications: enabled`);
     console.log(`Watching project: ${projectDir}`);
 
-    // Graceful shutdown
-    const shutdown = () => {
+    // Graceful shutdown with tunnel cleanup
+    const shutdown = async () => {
       console.log('\nShutting down dashboard...');
+      if (tunnelManager) {
+        await tunnelManager.stop();
+      }
       stateReader.stop();
       eventTailer.stop();
-      void server.close().then(() => process.exit(0));
+      await server.close();
+      process.exit(0);
     };
 
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', () => void shutdown());
+    process.on('SIGTERM', () => void shutdown());
   });
 
 try {
