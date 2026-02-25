@@ -131,7 +131,7 @@ export class TunnelManager {
 
     // Build tunnel object with anonymous access
     const tunnelConfig: Tunnel = {
-      ports: [{ portNumber: port, protocol: 'https' }],
+      ports: [{ portNumber: port, protocol: 'http' }],
       accessControl: {
         entries: [
           {
