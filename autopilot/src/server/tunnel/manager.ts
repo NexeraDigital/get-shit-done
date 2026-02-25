@@ -11,7 +11,7 @@ import {
   ManagementApiVersions,
   TunnelManagementHttpClient,
 } from '@microsoft/dev-tunnels-management';
-import { DefaultAzureCredential } from '@azure/identity';
+import { AzureCliCredential } from '@azure/identity';
 
 const TUNNEL_RESOURCE_SCOPE = 'https://tunnels.api.visualstudio.com/.default';
 
@@ -46,7 +46,7 @@ export class TunnelManager {
   private logger?: TunnelManagerOptions['logger'];
   private onReconnect?: (newUrl: string) => void;
   private onDisconnect?: () => void;
-  private credential: DefaultAzureCredential | null = null;
+  private credential: AzureCliCredential | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
@@ -69,9 +69,9 @@ export class TunnelManager {
     this.port = port;
 
     // Create credential for token acquisition.
-    // Priority 1: explicit env var (backward compat)
-    // Priority 2: DefaultAzureCredential (auto-discovers az login, env vars, managed identity, etc.)
-    this.credential = new DefaultAzureCredential();
+    // Priority 1: explicit env var (backward compat, checked in token callback)
+    // Priority 2: AzureCliCredential (uses `az login` session — no subprocess windows)
+    this.credential = new AzureCliCredential();
 
     // Create management client with user agent and token callback
     this.managementClient = new TunnelManagementHttpClient(
