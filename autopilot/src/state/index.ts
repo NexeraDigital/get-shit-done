@@ -68,6 +68,7 @@ const AutopilotStateSchema = z.object({
   errorHistory: z.array(ErrorRecordSchema),
   startedAt: z.string(),
   lastUpdatedAt: z.string(),
+  tunnelUrl: z.string().optional(),
 }).passthrough();
 
 export class StateStore {
