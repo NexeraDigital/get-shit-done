@@ -24,7 +24,7 @@ const program = new Command();
 program
   .name('gsd-dashboard')
   .description('Standalone dashboard server for GSD autopilot')
-  .version('0.1.0')
+  .version('0.2.0')
   .requiredOption('--project-dir <path>', 'Path to the project directory')
   .option('--port <number>', 'Dashboard server port (auto-derived from git repo if omitted)')
   .action(async (options: { projectDir: string; port?: string }) => {

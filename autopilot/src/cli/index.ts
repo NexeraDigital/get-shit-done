@@ -42,7 +42,7 @@ const program = new Command();
 program
   .name('gsd-autopilot')
   .description('Autonomous GSD workflow orchestrator')
-  .version('0.1.0')
+  .version('0.2.0')
   .showHelpAfterError('(run gsd-autopilot --help for usage information)')
   .addHelpText('after', `
 Examples:
