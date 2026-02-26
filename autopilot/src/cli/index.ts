@@ -621,6 +621,7 @@ Dashboard:
         await stateStore.setState({ tunnelUrl: url });
         if (!options.quiet) {
           console.log(`Dashboard available at: ${url}`);
+          console.log(`Dashboard local:        http://localhost:${config.port}`);
         }
         // Register tunnel cleanup AFTER server cleanup (LIFO = runs before server shutdown)
         shutdown.register(async () => {

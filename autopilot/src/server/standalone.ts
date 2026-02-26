@@ -103,6 +103,7 @@ program
       try {
         const url = await tunnelManager.start(port);
         console.log(`Dashboard available at: ${url}`);
+        console.log(`Dashboard local:        http://localhost:${port}`);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.warn('Tunnel creation failed:', message);
