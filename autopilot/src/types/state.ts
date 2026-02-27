@@ -83,4 +83,5 @@ export interface AutopilotState {
   startedAt: string;
   lastUpdatedAt: string;
   tunnelUrl?: string; // Public dev-tunnel URL for remote dashboard access
+  remoteSessionUrl?: string; // Claude Code remote session URL for interactive access
 }
