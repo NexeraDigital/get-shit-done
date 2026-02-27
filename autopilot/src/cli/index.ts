@@ -36,6 +36,7 @@ import { randomUUID } from 'node:crypto';
 import type { Notification } from '../types/notification.js';
 import type { QuestionEvent } from '../claude/types.js';
 import { TunnelManager } from '../server/tunnel/index.js';
+import { RemoteSessionManager } from '../server/remote-session/index.js';
 
 const program = new Command();
 
@@ -69,6 +70,7 @@ Dashboard:
   .option('--adapter-path <path>', 'Path to custom notification adapter module')
   .option('--embedded-server', 'Run dashboard server in-process (legacy mode)')
   .option('--no-tunnel', 'Disable public tunnel (local-only dashboard)')
+  .option('--no-remote', 'Disable Claude Code remote session')
   .action(async (options: {
     prd?: string;
     resume?: boolean;
@@ -85,6 +87,7 @@ Dashboard:
     quiet?: boolean;
     embeddedServer?: boolean;
     tunnel?: boolean;
+    remote?: boolean;
   }) => {
     // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
@@ -647,6 +650,48 @@ Dashboard:
       }
       await stateStore.setState({ tunnelUrl: undefined });
     }
+
+    // Remote session lifecycle: start claude remote-control after tunnel setup
+    const enableRemote = options.remote !== false; // --no-remote sets this to false
+    let remoteSessionManager: RemoteSessionManager | null = null;
+
+    if (enableRemote) {
+      remoteSessionManager = new RemoteSessionManager({
+        logger: {
+          info: (msg: string) => logger.log('info', 'remote-session', msg),
+          warn: (msg: string) => logger.log('warn', 'remote-session', msg),
+          error: (msg: string) => logger.log('error', 'remote-session', msg),
+        },
+        onUrlDetected: (url: string) => {
+          void stateStore.setState({ remoteSessionUrl: url });
+        },
+      });
+
+      try {
+        const url = await remoteSessionManager.start(projectDir);
+        await stateStore.setState({ remoteSessionUrl: url });
+        if (!options.quiet) {
+          console.log(`Claude remote session: ${url}`);
+        }
+        // Register cleanup in ShutdownManager
+        shutdown.register(async () => {
+          logger.log('info', 'cli', 'Stopping remote session');
+          await remoteSessionManager!.stop();
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.log('warn', 'remote-session', `Failed to start remote session: ${message}`);
+        if (!options.quiet) {
+          console.log('Claude remote session unavailable (continuing without it)');
+          console.log('  Ensure claude CLI is installed and you are logged in.');
+          console.log('  Use --no-remote to suppress this message.');
+        }
+        await stateStore.setState({ remoteSessionUrl: undefined });
+      }
+    } else {
+      await stateStore.setState({ remoteSessionUrl: undefined });
+    }
+
     shutdown.register(async () => {
       logger.log('info', 'cli', 'Flushing stream logger on shutdown');
       await streamLogger.flush();
