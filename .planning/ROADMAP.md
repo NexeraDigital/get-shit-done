@@ -252,3 +252,12 @@ Plans:
 Plans:
 - [x] 12-01-PLAN.md -- RemoteSessionManager class, state type extension, and CLI integration with --no-remote flag
 - [x] 12-02-PLAN.md -- Dashboard RemoteSessionCard component, store/API/SSE wiring, server status endpoint extension
+
+### Phase 13: Add gsd:autopilot command to run devtunnel user login process so the user can do that all from claude code
+
+**Goal:** Add a `login` subcommand to `/gsd:autopilot` that runs the devtunnel browser-based authentication flow from within Claude Code, so users can authenticate for remote dashboard access without leaving the session
+**Depends on:** Phase 12
+**Plans:** 1 plan
+
+Plans:
+- [ ] 13-01-PLAN.md -- Login subcommand handler in launcher.js and SKILL.md documentation
