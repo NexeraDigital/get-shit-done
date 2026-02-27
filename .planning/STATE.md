@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 11 of 13 (Use Microsoft dev-tunnels to create public URLs for remote dashboard access)
-Plan: 3 of 3 in current phase -- COMPLETE
-Status: Phase 11 Complete
-Last activity: 2026-02-25 -- Completed 11-03 Surface tunnel URL in dashboard UI and notifications (7 files modified)
+Phase: 12 of 13 (Claude Code remote session integration)
+Plan: 2 of 2 in current phase -- COMPLETE
+Status: Phase 12 in progress
+Last activity: 2026-02-26 -- Completed 12-01 Remote session manager backend (5 files modified)
 
-Progress: [████████░░] 56% - Phase 11 Complete
+Progress: [█████████░] 60% - Phase 12 in progress
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 42
+- Total plans completed: 43
 - Average duration: 3.0min
-- Total execution time: ~2.6 hours
+- Total execution time: ~2.7 hours
 
 **By Phase:**
 
@@ -41,10 +41,11 @@ Progress: [████████░░] 56% - Phase 11 Complete
 | 09-fix-recent-activity-persistence | 3/3 | 9min | 3min |
 | 10-add-gsd-milestone-support | 4/4 | 10min | 2.5min |
 | 11-use-microsoft-dev-tunnels-to-create-public-urls-for-remote-dashboard-access | 3/3 | 10min | 3.3min |
+| 12-have-gsd-autopilot-process-create-a-claude-code-remote-session | 1/2 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (5min), 07-03 (3min), 11-01 (3min), 11-02 (2min), 11-03 (5min)
-- Trend: Phase 11 complete - dev-tunnels fully integrated
+- Last 5 plans: 07-03 (3min), 11-01 (3min), 11-02 (2min), 11-03 (5min), 12-01 (3min)
+- Trend: Phase 12 in progress - Claude Code remote session backend complete
 
 *Updated after each plan completion*
 
@@ -214,6 +215,10 @@ Recent decisions affecting current work:
 - [Phase 11-02]: Tunnel failure is non-fatal - dashboard works locally with warning (graceful degradation)
 - [Phase 11-02]: Tunnel cleanup registered in ShutdownManager LIFO order (runs before server shutdown)
 - [Phase 11-02]: Standalone server checks DEVTUNNEL_TOKEN/AAD_TOKEN env vars to auto-enable tunnel
+- [Phase 12-01]: RemoteSessionManager spawns claude remote-control with 30s timeout for URL detection
+- [Phase 12-01]: No auto-restart on remote session process death (log warning only)
+- [Phase 12-01]: Remote session lifecycle follows TunnelManager pattern (SIGTERM -> 5s -> SIGKILL)
+- [Phase 12-01]: Remote session enabled by default with --no-remote opt-out flag
 
 ### Roadmap Evolution
 
@@ -224,6 +229,7 @@ Recent decisions affecting current work:
 - Phase 9 added: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 - Phase 10 added: Add GSD Milestone support to autopilot and dashboard
 - Phase 11 added: Use Microsoft dev-tunnels to create public URLs for remote dashboard access
+- Phase 12 added: have gsd autopilot process create a claude code remote session and add the url to the dashboard so users can ask questions to claude code. The claude code session will stay open so users can ask questions or restart autopilot if nessessary.
 
 ### Pending Todos
 
@@ -236,6 +242,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Phase 11 COMPLETE - Dev-tunnels integration (TunnelManager, CLI/state wiring, dashboard UI, notification wiring)
+Last session: 2026-02-26
+Stopped at: Completed 12-01 Remote session manager backend (RemoteSessionManager class, state types, CLI integration)
 Resume file: None
