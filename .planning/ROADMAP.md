@@ -241,3 +241,13 @@ Plans:
 - [x] 11-01-PLAN.md — TunnelManager with dev-tunnels SDK integration, lifecycle management, and reconnection handling
 - [x] 11-02-PLAN.md — State persistence, CLI integration with --no-tunnel flag, ShutdownManager cleanup
 - [x] 11-03-PLAN.md — Dashboard tunnel URL display, notification wiring, copy-to-clipboard functionality
+
+### Phase 12: have gsd autopilot process create a claude code remote session and add the url to the dashboard so users can ask questions to claude code. The claude code session will stay open so users can ask questions or restart autopilot if nessessary.
+
+**Goal:** Spawn a Claude Code remote session via `claude remote-control` when autopilot starts, capture the session URL, persist it in state, and surface it prominently in the dashboard Overview page with copy-to-clipboard
+**Depends on:** Phase 11
+**Plans:** 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md -- RemoteSessionManager class, state type extension, and CLI integration with --no-remote flag
+- [ ] 12-02-PLAN.md -- Dashboard RemoteSessionCard component, store/API/SSE wiring, server status endpoint extension
