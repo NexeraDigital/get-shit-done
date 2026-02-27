@@ -1,7 +1,7 @@
 ---
 name: gsd:autopilot
-description: Launch, monitor, or stop GSD Autopilot for the current git branch
-argument-hint: "[status|stop|--prd path|--phases range|--notify channel]"
+description: Launch, monitor, stop, or authenticate GSD Autopilot for the current git branch
+argument-hint: "[status|stop|login [github]|--prd path|--phases range|--notify channel]"
 allowed-tools:
   - Bash
 ---
@@ -28,6 +28,12 @@ Launch and manage the GSD Autopilot workflow orchestrator. Each git branch gets 
 **Stop autopilot** (gracefully terminates the background process):
 ```
 /gsd:autopilot stop
+```
+
+**Authenticate for dev tunnels** (runs devtunnel browser login):
+```
+/gsd:autopilot login
+/gsd:autopilot login github
 ```
 
 ## How It Works
