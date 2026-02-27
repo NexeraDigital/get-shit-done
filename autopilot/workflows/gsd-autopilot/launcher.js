@@ -4,13 +4,18 @@
 
 const CLI_PATH = '__CLI_PATH__';
 
-import { spawn, execSync } from 'node:child_process';
+import { spawn, execSync, execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, dirname, resolve as pathResolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { request } from 'node:http';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 import { assignPort } from './port-manager.js';
 import { writePid, readPid, isProcessRunning, stopProcess, cleanupPid } from './pid-manager.js';
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Main entry point
@@ -33,6 +38,9 @@ async function main() {
     await handleStatus(branch, projectDir);
   } else if (subcommandOrArg === 'stop') {
     await handleStop(branch, projectDir);
+  } else if (subcommandOrArg === 'login') {
+    const provider = process.argv[4]; // 'github' or undefined (for Microsoft default)
+    await handleLogin(provider);
   } else {
     // Everything else goes to launch (including no args, --prd, --resume, etc.)
     const remainingArgs = process.argv.slice(3);
@@ -262,6 +270,180 @@ async function handleStop(branch, projectDir) {
   await cleanupPid(branch, projectDir);
 
   console.log('Autopilot stopped.');
+}
+
+/**
+ * Resolve the path to the bundled devtunnel executable.
+ * The devtunnel binary lives at the autopilot package root.
+ * @returns {string} Path to devtunnel.exe (or devtunnel on non-Windows)
+ */
+function resolveDevTunnelExe() {
+  const __filename = fileURLToPath(import.meta.url);
+  const packageRoot = pathResolve(dirname(__filename), '..', '..');
+  const ext = process.platform === 'win32' ? '.exe' : '';
+  return pathResolve(packageRoot, `devtunnel${ext}`);
+}
+
+/**
+ * Check authentication status via devtunnel user show.
+ * Parses the "Logged in as X using Y." line for account info.
+ * @param {string} exe - Path to devtunnel executable
+ * @returns {Promise<{loggedIn: boolean, account?: string, provider?: string}>}
+ */
+async function checkAuthStatus(exe) {
+  try {
+    const { stdout } = await execFileAsync(exe, ['user', 'show'], {
+      timeout: 10_000,
+      windowsHide: true,
+    });
+    const match = stdout.match(/Logged in as (.+?) using (.+?)\./);
+    if (match) {
+      return { loggedIn: true, account: match[1], provider: match[2] };
+    }
+    return { loggedIn: false };
+  } catch {
+    return { loggedIn: false };
+  }
+}
+
+/**
+ * Prompt user to confirm re-authentication if already logged in.
+ * Uses readline for simple yes/no prompt.
+ * @param {string} account - Current logged-in account name
+ * @returns {Promise<boolean>} True if user wants to re-authenticate
+ */
+function confirmReLogin(account) {
+  return new Promise((resolve) => {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    console.log(`Already logged in as: ${account}`);
+    rl.question('Re-authenticate? (y/N): ', (answer) => {
+      rl.close();
+      const choice = answer.trim().toLowerCase();
+      resolve(choice === 'y' || choice === 'yes');
+    });
+  });
+}
+
+/**
+ * Wrap a promise with a timeout.
+ * Uses timer.unref() to avoid blocking Node.js exit.
+ * @param {Promise} promise - Promise to wrap
+ * @param {number} timeoutMs - Timeout in milliseconds
+ * @param {string} timeoutMessage - Error message if timeout occurs
+ * @returns {Promise}
+ */
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(timeoutMessage));
+      }, timeoutMs);
+      timer.unref();
+    }),
+  ]);
+}
+
+/**
+ * Spawn devtunnel user login in interactive mode.
+ * Uses stdio: 'inherit' for interactive CLI and windowsHide: false for Windows compatibility.
+ * @param {string} exe - Path to devtunnel executable
+ * @param {string|undefined} provider - 'github' or undefined for Microsoft default
+ * @returns {Promise<void>}
+ */
+function spawnDevTunnelLogin(exe, provider) {
+  return new Promise((resolve, reject) => {
+    const args = ['user', 'login'];
+    if (provider === 'github') {
+      args.push('-g');
+    }
+
+    const proc = spawn(exe, args, {
+      stdio: 'inherit',
+      windowsHide: false,
+    });
+
+    proc.on('exit', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Login failed (exit code ${code})`));
+      }
+    });
+
+    proc.on('error', (err) => {
+      reject(new Error(`Failed to spawn devtunnel: ${err.message}`));
+    });
+  });
+}
+
+/**
+ * Handle login subcommand.
+ * Runs devtunnel browser-based authentication flow from within Claude Code.
+ * Flow:
+ * 1. Resolve devtunnel.exe path and verify it exists
+ * 2. Pre-check auth status via `devtunnel user show`
+ * 3. If already logged in, prompt for re-authentication confirmation
+ * 4. Print waiting message and spawn login with 5-minute timeout
+ * 5. On success, fetch account info and display confirmation
+ * 6. On failure, show error and suggest retry
+ * @param {string|undefined} provider - 'github' or undefined for Microsoft default
+ */
+async function handleLogin(provider) {
+  const exe = resolveDevTunnelExe();
+
+  // Check if devtunnel.exe exists
+  if (!existsSync(exe)) {
+    console.error('Error: devtunnel executable not found');
+    console.error(`Expected location: ${exe}`);
+    console.error('Reinstall GSD to restore devtunnel: npm install -g get-shit-done-cc');
+    process.exit(1);
+  }
+
+  // Validate provider argument
+  if (provider && provider !== 'github') {
+    console.error(`Unknown auth provider: ${provider}`);
+    console.error('Usage: /gsd:autopilot login [github]');
+    console.error('  (omit provider for Microsoft account, or specify "github")');
+    process.exit(1);
+  }
+
+  // Pre-check: is user already logged in?
+  const status = await checkAuthStatus(exe);
+  if (status.loggedIn) {
+    const shouldReLogin = await confirmReLogin(status.account);
+    if (!shouldReLogin) {
+      console.log('Login cancelled.');
+      return;
+    }
+  }
+
+  // Run login with 5-minute timeout
+  console.log('Waiting for browser authentication... (Press Ctrl+C to cancel)');
+  try {
+    await withTimeout(
+      spawnDevTunnelLogin(exe, provider),
+      5 * 60 * 1000,
+      'Login timeout: authentication not completed within 5 minutes'
+    );
+
+    // Get account info after successful login
+    const newStatus = await checkAuthStatus(exe);
+    if (newStatus.loggedIn) {
+      console.log(`\nLogged in as: ${newStatus.account}`);
+      console.log('Dev tunnels are ready.');
+    } else {
+      console.log('\nLogin completed.');
+    }
+  } catch (err) {
+    console.error(`\nLogin failed: ${err.message}`);
+    console.error('Please try running /gsd:autopilot login again.');
+    process.exit(1);
+  }
 }
 
 /**
