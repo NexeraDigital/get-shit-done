@@ -207,6 +207,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6 > 7
 | 9. Fix Recent Activity Persistence | 3/3 | Complete | 2026-02-24 |
 | 10. GSD Milestone Support | 4/4 | Complete | 2026-02-24 |
 | 11. Dev-Tunnels Integration | 3/3 | Complete | 2026-02-25 |
+| 12. Claude Code Remote Session | 2/2 | Complete | 2026-02-26 |
 
 ### Phase 9: Fix Recent activity so it persists in the .planning folder so it stays consistant and time works properly
 
@@ -249,5 +250,5 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md -- RemoteSessionManager class, state type extension, and CLI integration with --no-remote flag
-- [ ] 12-02-PLAN.md -- Dashboard RemoteSessionCard component, store/API/SSE wiring, server status endpoint extension
+- [x] 12-01-PLAN.md -- RemoteSessionManager class, state type extension, and CLI integration with --no-remote flag
+- [x] 12-02-PLAN.md -- Dashboard RemoteSessionCard component, store/API/SSE wiring, server status endpoint extension

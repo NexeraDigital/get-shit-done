@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Turn a PRD document into a fully built project by running one command, with human decisions collected asynchronously through notifications instead of synchronous CLI prompts.
-**Current focus:** Phase 11 - Use Microsoft dev-tunnels for remote dashboard access
+**Current focus:** Phase 12 Complete - Claude Code remote session integration
 
 ## Current Position
 
