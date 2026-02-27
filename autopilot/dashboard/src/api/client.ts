@@ -20,6 +20,7 @@ export interface StatusResponse {
   projectName?: string;
   projectDescription?: string;
   tunnelUrl?: string;
+  remoteSessionUrl?: string;
 }
 
 export interface PhasesResponse {

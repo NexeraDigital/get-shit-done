@@ -105,6 +105,8 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
       alive,
       projectName: basename(process.cwd()),
       projectDescription: readProjectDescription(),
+      tunnelUrl: state.tunnelUrl,
+      remoteSessionUrl: state.remoteSessionUrl,
     });
   });
 
