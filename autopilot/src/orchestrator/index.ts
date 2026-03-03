@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'node:events';
 import { execFile } from 'node:child_process';
-import { readFile, readdir, unlink } from 'node:fs/promises';
+import { access, readFile, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AutopilotConfig } from '../types/index.js';
 import type { AutopilotState, CommitInfo, PhaseState, PhaseStep } from '../types/state.js';
@@ -318,7 +318,38 @@ export class Orchestrator extends EventEmitter {
               `Phase ${phase.number} has passed verification on disk — marking completed`);
           }
         } catch {
-          // No verification file — phase is genuinely incomplete
+          // No verification file — check for individual step artifacts
+        }
+
+        // Reconcile discuss step: detect CONTEXT.md on disk
+        if (phase.steps.discuss !== 'done') {
+          try {
+            const cPath = join(phasesDir, phaseEntry.name, `${padded}-CONTEXT.md`);
+            await access(cPath);
+            phase.steps.discuss = 'done';
+            corrected = true;
+            this.logger.log('info', 'orchestrator',
+              `Phase ${phase.number} has CONTEXT.md on disk — marking discuss done`);
+          } catch {
+            // No context file — discuss genuinely needed
+          }
+        }
+
+        // Reconcile plan step: detect PLAN.md artifacts on disk
+        if (phase.steps.plan !== 'done') {
+          try {
+            const phaseFiles = await readdir(join(phasesDir, phaseEntry.name));
+            const hasPlan = phaseFiles.some(f =>
+              f.startsWith(`${padded}-`) && f.endsWith('-PLAN.md'));
+            if (hasPlan) {
+              phase.steps.plan = 'done';
+              corrected = true;
+              this.logger.log('info', 'orchestrator',
+                `Phase ${phase.number} has PLAN.md on disk — marking plan done`);
+            }
+          } catch {
+            // Can't read phase dir — plan genuinely needed
+          }
         }
       }
 
@@ -728,6 +759,23 @@ export class Orchestrator extends EventEmitter {
       return;
     }
 
+    // Check if CONTEXT.md already exists (phase was previously discussed)
+    try {
+      const padded = formatPhaseNumber(phase.number);
+      const phasesDir = join(this.projectDir, '.planning', 'phases');
+      const entries = await readdir(phasesDir, { withFileTypes: true });
+      const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
+      if (phaseEntry) {
+        const cPath = join(phasesDir, phaseEntry.name, `${padded}-CONTEXT.md`);
+        await access(cPath);
+        this.logger.log('info', 'orchestrator',
+          `Phase ${phase.number} already has CONTEXT.md — skipping discuss`);
+        return;
+      }
+    } catch {
+      // No existing context — proceed with discuss
+    }
+
     // Delegate to GSD discuss-phase command
     await this.executeWithRetry(
       `/gsd:discuss-phase ${phase.number}`,
@@ -736,6 +784,26 @@ export class Orchestrator extends EventEmitter {
   }
 
   private async runPlan(phase: PhaseState): Promise<void> {
+    // Check if PLAN.md files already exist (phase was previously planned)
+    try {
+      const padded = formatPhaseNumber(phase.number);
+      const phasesDir = join(this.projectDir, '.planning', 'phases');
+      const entries = await readdir(phasesDir, { withFileTypes: true });
+      const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
+      if (phaseEntry) {
+        const phaseFiles = await readdir(join(phasesDir, phaseEntry.name));
+        const hasPlan = phaseFiles.some(f =>
+          f.startsWith(`${padded}-`) && f.endsWith('-PLAN.md'));
+        if (hasPlan) {
+          this.logger.log('info', 'orchestrator',
+            `Phase ${phase.number} already has PLAN.md — skipping plan`);
+          return;
+        }
+      }
+    } catch {
+      // No existing plan — proceed with planning
+    }
+
     await this.executeWithRetry(
       `/gsd:plan-phase ${phase.number}`,
       { phase: phase.number, step: 'plan', maxTurns: 200 },

@@ -14,9 +14,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Types** - Project skeleton, shared types, state store, logger, config loading
 - [x] **Phase 2: Claude Integration** - Agent SDK wrapper, GSD command execution, question interception
-- [ ] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
+- [x] **Phase 3: Core Orchestrator** - Phase sequencing, state machine, resume, retry, discuss-phase handler
 - [x] **Phase 03.2: Add Sub phase support to orchestrator and dashboard** (INSERTED)
-- [ ] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
+- [x] **Phase 4: Response Server and API** - Express server, REST endpoints, SSE streaming, static serving
 - [x] **Phase 5: React Dashboard** - SPA with progress view, question response UI, phase detail, log viewer
 - [x] **Phase 6: Notification System** - Adapter pattern, console/system/Teams/Slack/custom adapters
 - [x] **Phase 7: CLI Polish and Distribution** - Full CLI flags, dry-run, graceful shutdown, npm packaging
@@ -74,8 +74,8 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md -- Shutdown manager and YOLO config writer (TDD)
 - [x] 03-02-PLAN.md -- Discuss-phase handler and gap detector (TDD)
-- [ ] 03-03-PLAN.md -- Orchestrator core class with phase lifecycle loop
-- [ ] 03-04-PLAN.md -- CLI entry point with Commander.js
+- [x] 03-03-PLAN.md -- Orchestrator core class with phase lifecycle loop
+- [x] 03-04-PLAN.md -- CLI entry point with Commander.js
 
 ### Phase 03.1: Display claude console output to parent node process so users can see whats happening (INSERTED)
 

@@ -280,6 +280,16 @@ export class TunnelManager {
         if (this.isConnected) {
           this.handleConnectionDrop();
         }
+      } else if (
+        // Suppress broken-pipe / stream-write errors (e.g. ora writing to a
+        // closed stdout after the parent process disconnects). These are
+        // harmless side-effects of the tunnel or terminal going away.
+        (err as NodeJS.ErrnoException).syscall === 'write' ||
+        (err as NodeJS.ErrnoException).code === 'EPIPE' ||
+        (err as NodeJS.ErrnoException).code === 'ERR_STREAM_DESTROYED' ||
+        (err as NodeJS.ErrnoException).code === 'UNKNOWN'
+      ) {
+        this.logger?.warn(`Stream write error (suppressed): ${(err as NodeJS.ErrnoException).code ?? err.message}`);
       } else {
         // Re-throw non-tunnel errors so they aren't silently swallowed
         throw err;
