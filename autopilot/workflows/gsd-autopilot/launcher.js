@@ -281,7 +281,20 @@ function resolveDevTunnelExe() {
   const __filename = fileURLToPath(import.meta.url);
   const packageRoot = pathResolve(dirname(__filename), '..', '..');
   const ext = process.platform === 'win32' ? '.exe' : '';
-  return pathResolve(packageRoot, `devtunnel${ext}`);
+  const bundled = pathResolve(packageRoot, `devtunnel${ext}`);
+  if (existsSync(bundled)) return bundled;
+  // Fall back: check project cwd autopilot/ directory (dev/repo layout)
+  const cwdBundled = pathResolve(process.cwd(), 'autopilot', `devtunnel${ext}`);
+  if (existsSync(cwdBundled)) return cwdBundled;
+  // Fall back: scan process.env.PATH
+  const sep = process.platform === 'win32' ? ';' : ':';
+  const dirs = (process.env.PATH || '').split(sep);
+  for (const dir of dirs) {
+    if (!dir) continue;
+    const candidate = pathResolve(dir, `devtunnel${ext}`);
+    if (existsSync(candidate)) return candidate;
+  }
+  return bundled; // Return original path so error message shows expected location
 }
 
 /**

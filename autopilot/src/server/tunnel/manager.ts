@@ -12,6 +12,7 @@ import {
   TunnelManagementHttpClient,
 } from '@microsoft/dev-tunnels-management';
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { promisify } from 'node:util';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +28,20 @@ function resolveDevTunnelExe(): string {
   // From dist/server/tunnel/manager.js -> package root
   const packageRoot = resolve(dirname(__filename), '..', '..', '..');
   const ext = process.platform === 'win32' ? '.exe' : '';
-  return resolve(packageRoot, `devtunnel${ext}`);
+  const bundled = resolve(packageRoot, `devtunnel${ext}`);
+  if (existsSync(bundled)) return bundled;
+  // Fall back: check project cwd autopilot/ directory (dev/repo layout)
+  const cwdBundled = resolve(process.cwd(), 'autopilot', `devtunnel${ext}`);
+  if (existsSync(cwdBundled)) return cwdBundled;
+  // Fall back: scan process.env.PATH
+  const sep = process.platform === 'win32' ? ';' : ':';
+  const dirs = (process.env.PATH || '').split(sep);
+  for (const dir of dirs) {
+    if (!dir) continue;
+    const candidate = resolve(dir, `devtunnel${ext}`);
+    if (existsSync(candidate)) return candidate;
+  }
+  return bundled; // Return original path so error message shows expected location
 }
 
 /**
