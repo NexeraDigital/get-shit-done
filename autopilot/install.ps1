@@ -1,12 +1,9 @@
-# Install @nexeradigital/gsd-autopilot from GitHub Packages (public)
+# Install @nexeradigital/gsd-autopilot
 # Usage: irm https://raw.githubusercontent.com/NexeraDigital/get-shit-done/main/autopilot/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
-$Package  = "@nexeradigital/gsd-autopilot"
-$Registry = "https://npm.pkg.github.com"
-$Scope    = "@nexeradigital"
-$Npmrc    = Join-Path $env:USERPROFILE ".npmrc"
+$Package = "@nexeradigital/gsd-autopilot"
 
 Write-Host "Installing $Package..." -ForegroundColor Cyan
 Write-Host ""
@@ -25,23 +22,7 @@ if ($nodeMajor -lt 20) {
     exit 1
 }
 
-# 2. Configure npm registry for @nexeradigital scope
-$registryLine = "${Scope}:registry=${Registry}"
-if (Test-Path $Npmrc) {
-    $content = Get-Content $Npmrc -Raw
-    if ($content -match [regex]::Escape("${Scope}:registry=")) {
-        Write-Host "Registry already configured in $Npmrc"
-    } else {
-        Add-Content $Npmrc $registryLine
-        Write-Host "Added $Scope registry to $Npmrc"
-    }
-} else {
-    Set-Content $Npmrc $registryLine
-    Write-Host "Created $Npmrc with $Scope registry"
-}
-
-# 3. Install globally
-Write-Host ""
+# 2. Install globally
 Write-Host "Running: npm install -g $Package" -ForegroundColor Cyan
 npm install -g $Package
 

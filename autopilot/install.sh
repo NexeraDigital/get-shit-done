@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# Install @nexeradigital/gsd-autopilot from GitHub Packages (public)
+# Install @nexeradigital/gsd-autopilot
 # Usage: curl -fsSL https://raw.githubusercontent.com/NexeraDigital/get-shit-done/main/autopilot/install.sh | bash
 
 set -euo pipefail
 
 PACKAGE="@nexeradigital/gsd-autopilot"
-REGISTRY="https://npm.pkg.github.com"
-SCOPE="@nexeradigital"
-NPMRC="$HOME/.npmrc"
 
 echo "Installing ${PACKAGE}..."
 echo ""
@@ -25,15 +22,7 @@ if [ "$NODE_MAJOR" -lt 20 ]; then
   exit 1
 fi
 
-# 2. Configure npm registry for @nexeradigital scope
-if [ -f "$NPMRC" ] && grep -q "${SCOPE}:registry=" "$NPMRC"; then
-  echo "Registry already configured in ${NPMRC}"
-else
-  echo "${SCOPE}:registry=${REGISTRY}" >> "$NPMRC"
-  echo "Added ${SCOPE} registry to ${NPMRC}"
-fi
-
-# 3. Install globally
+# 2. Install globally
 echo ""
 echo "Running: npm install -g ${PACKAGE}"
 npm install -g "${PACKAGE}"

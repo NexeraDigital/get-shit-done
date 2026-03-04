@@ -4,7 +4,7 @@
   "description": "Autonomous GSD workflow orchestrator -- turns a PRD into a built project",
   "type": "module",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org",
     "access": "public"
   },
   "repository": {
