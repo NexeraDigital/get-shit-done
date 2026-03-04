@@ -30,6 +30,7 @@ async function rehydrate(): Promise<void> {
     });
     store.setAutopilotAlive(statusRes.alive);
     store.setTunnelUrl(statusRes.tunnelUrl ?? null);
+    store.setTunnelError(statusRes.tunnelError ?? null);
     store.setRemoteSessionUrl(statusRes.remoteSessionUrl ?? null);
     store.setPhases(phasesRes.phases);
     store.setQuestions(questionsRes.questions);
@@ -169,6 +170,7 @@ export function useSSE(): void {
         });
         st.setAutopilotAlive(s.alive);
         st.setTunnelUrl(s.tunnelUrl ?? null);
+        st.setTunnelError(s.tunnelError ?? null);
         st.setRemoteSessionUrl(s.remoteSessionUrl ?? null);
         st.setPhases(p.phases);
         st.setQuestions(q.questions);

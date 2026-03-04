@@ -621,7 +621,7 @@ Dashboard:
 
       try {
         const url = await tunnelManager.start(config.port);
-        await stateStore.setState({ tunnelUrl: url });
+        await stateStore.setState({ tunnelUrl: url, tunnelError: undefined });
         if (!options.quiet) {
           console.log(`Dashboard available at: ${url}`);
           console.log(`Dashboard local:        http://localhost:${config.port}`);
@@ -642,13 +642,13 @@ Dashboard:
           console.log('    set DEVTUNNEL_TOKEN=<tok>  (Azure AD token)');
           console.log('  Use --no-tunnel to suppress this message.');
         }
-        await stateStore.setState({ tunnelUrl: undefined });
+        await stateStore.setState({ tunnelUrl: undefined, tunnelError: message });
       }
     } else {
       if (!options.quiet) {
         console.log(`Dashboard server: http://localhost:${config.port}`);
       }
-      await stateStore.setState({ tunnelUrl: undefined });
+      await stateStore.setState({ tunnelUrl: undefined, tunnelError: undefined });
     }
 
     // Remote session lifecycle: start claude remote-control after tunnel setup

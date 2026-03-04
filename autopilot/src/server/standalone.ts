@@ -5,7 +5,7 @@
 import { Command } from 'commander';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { FileStateReader } from '../ipc/file-state-reader.js';
 import { EventTailer } from '../ipc/event-tailer.js';
 import { AnswerWriter } from '../ipc/answer-writer.js';
@@ -86,6 +86,20 @@ program
 
     await server.start(port);
 
+    // Helper: merge fields into the state.json file so the dashboard picks them up
+    const statePath = join(projectDir, '.planning', 'autopilot', 'state.json');
+    function patchStateFile(patch: Record<string, unknown>) {
+      try {
+        let state: Record<string, unknown> = {};
+        try {
+          state = JSON.parse(readFileSync(statePath, 'utf-8'));
+        } catch { /* file may not exist yet */ }
+        Object.assign(state, patch);
+        mkdirSync(join(projectDir, '.planning', 'autopilot'), { recursive: true });
+        writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf-8');
+      } catch { /* best-effort */ }
+    }
+
     // Tunnel lifecycle: start tunnel after server is ready
     const enableTunnel = process.env['NO_TUNNEL'] !== 'true';
     let tunnelManager: TunnelManager | null = null;
@@ -102,10 +116,12 @@ program
 
       try {
         const url = await tunnelManager.start(port);
+        patchStateFile({ tunnelUrl: url, tunnelError: undefined });
         console.log(`Dashboard available at: ${url}`);
         console.log(`Dashboard local:        http://localhost:${port}`);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        patchStateFile({ tunnelUrl: undefined, tunnelError: message });
         console.warn('Tunnel creation failed:', message);
         console.log(`Dashboard available at: http://localhost:${port}`);
       }

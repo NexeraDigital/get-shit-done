@@ -26,6 +26,7 @@ export interface DashboardState {
   connected: boolean;
   autopilotAlive: boolean;
   tunnelUrl: string | null; // Public dev-tunnel URL, null if disabled or failed
+  tunnelError: string | null; // Tunnel creation error message, null if no error
   remoteSessionUrl: string | null; // Claude Code remote session URL, null if disabled or failed
 
   // Milestone state
@@ -47,6 +48,7 @@ export interface DashboardState {
   setAutopilotAlive: (alive: boolean) => void;
   updatePhase: (phaseNumber: number, patch: Partial<PhaseState>) => void;
   setTunnelUrl: (url: string | null) => void;
+  setTunnelError: (error: string | null) => void;
   setRemoteSessionUrl: (url: string | null) => void;
 
   // Milestone actions
@@ -68,6 +70,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   connected: false,
   autopilotAlive: true,
   tunnelUrl: null,
+  tunnelError: null,
   remoteSessionUrl: null,
   currentMilestone: null,
   milestones: [],
@@ -103,6 +106,8 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
     })),
 
   setTunnelUrl: (url) => set({ tunnelUrl: url }),
+
+  setTunnelError: (error) => set({ tunnelError: error }),
 
   setRemoteSessionUrl: (url) => set({ remoteSessionUrl: url }),
 

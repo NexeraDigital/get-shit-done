@@ -69,6 +69,7 @@ const AutopilotStateSchema = z.object({
   startedAt: z.string(),
   lastUpdatedAt: z.string(),
   tunnelUrl: z.string().optional(),
+  tunnelError: z.string().optional(),
   remoteSessionUrl: z.string().optional(),
 }).passthrough();
 

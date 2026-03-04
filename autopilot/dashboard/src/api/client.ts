@@ -20,6 +20,7 @@ export interface StatusResponse {
   projectName?: string;
   projectDescription?: string;
   tunnelUrl?: string;
+  tunnelError?: string;
   remoteSessionUrl?: string;
 }
 
