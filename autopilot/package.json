@@ -76,5 +76,8 @@
   },
   "optionalDependencies": {
     "node-notifier": "^10.0.1"
+  },
+  "overrides": {
+    "uuid": "^8.3.2"
   }
 }
