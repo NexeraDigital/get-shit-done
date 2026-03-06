@@ -23,7 +23,7 @@ if [ "$NODE_MAJOR" -lt 20 ]; then
 fi
 
 # 2. Ensure GSD workflows are installed
-if ! npx get-shit-done-cc --version &>/dev/null 2>&1; then
+if ! npm list -g get-shit-done-cc --depth=0 &>/dev/null 2>&1; then
   echo "Warning: GSD workflows not found. Installing get-shit-done-cc..."
   npm install -g get-shit-done-cc@latest
 fi
