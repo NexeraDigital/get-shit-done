@@ -1,15 +1,17 @@
 // Phase overview card (DASH-11).
 // Shows ALL phases with status indicators. Current phase is highlighted.
 // During init (no phases yet), shows an "Initializing" state.
+// Parallel mode: shows worker status badges, per-phase question counts, multi-active dots.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useDashboardStore } from '../store/index.js';
-import type { PhaseState, PhaseStep } from '../types/index.js';
+import type { PhaseState, PhaseStep, QuestionEvent } from '../types/index.js';
 
 interface PhaseCardProps {
   phases: PhaseState[];
   currentPhase: number;
+  questions?: QuestionEvent[];
 }
 
 function padPhaseDisplay(num: number): string {
@@ -25,6 +27,13 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'bg-green-100 text-green-700',
   failed: 'bg-red-100 text-red-700',
   skipped: 'bg-yellow-100 text-yellow-700',
+};
+
+const WORKER_STATUS_COLORS: Record<string, string> = {
+  running: 'bg-blue-100 text-blue-700',
+  queued: 'bg-gray-100 text-gray-500',
+  done: 'bg-green-100 text-green-700',
+  failed: 'bg-red-100 text-red-700',
 };
 
 const STEP_ORDER = ['discuss', 'plan', 'execute', 'verify'] as const;
@@ -53,64 +62,120 @@ function StepDot({ stepName, stepStatus, isActive }: {
   );
 }
 
-function PhaseRow({ phase, isCurrent }: {
+function PhaseRow({ phase, isCurrent, questionCount }: {
   phase: PhaseState;
   isCurrent: boolean;
+  questionCount: number;
 }) {
+  const [errorExpanded, setErrorExpanded] = useState(false);
   const statusColor = STATUS_COLORS[phase.status] ?? STATUS_COLORS['pending']!;
-  const borderClass = isCurrent ? 'border-blue-300 bg-blue-50/30' : 'border-gray-100';
+
+  // In parallel mode (workerStatus defined), highlight running phases.
+  // In sequential mode, fall back to currentPhase match.
+  const isHighlighted = phase.workerStatus != null
+    ? phase.workerStatus === 'running'
+    : isCurrent;
+
+  const borderClass = isHighlighted ? 'border-blue-300 bg-blue-50/30' : 'border-gray-100';
 
   return (
-    <Link
-      to={`/phases/${String(phase.number)}`}
-      data-phase={phase.number}
-      className={`block rounded-lg border ${borderClass} p-3 hover:shadow-sm transition-shadow`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-gray-400">
-            {padPhaseDisplay(phase.number)}
-          </span>
-          <span className={`text-sm font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
-            {phase.name}
-          </span>
-          {phase.inserted && (
-            <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700 uppercase tracking-wide">
-              inserted
+    <div data-phase={phase.number}>
+      <Link
+        to={`/phases/${String(phase.number)}`}
+        className={`block rounded-lg border ${borderClass} p-3 hover:shadow-sm transition-shadow`}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-gray-400">
+              {padPhaseDisplay(phase.number)}
             </span>
+            <span className={`text-sm font-medium ${isHighlighted ? 'text-gray-900' : 'text-gray-700'}`}>
+              {phase.name}
+            </span>
+            {phase.inserted && (
+              <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700 uppercase tracking-wide">
+                inserted
+              </span>
+            )}
+            {/* Per-phase question count badge */}
+            {questionCount > 0 && (
+              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                {questionCount}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Worker status badge (parallel mode only) */}
+            {phase.workerStatus != null && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium whitespace-nowrap ${WORKER_STATUS_COLORS[phase.workerStatus] ?? ''}`}
+              >
+                {phase.workerStatus}
+              </span>
+            )}
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-medium whitespace-nowrap ${statusColor}`}
+            >
+              {phase.status.replace('_', ' ')}
+            </span>
+          </div>
+        </div>
+
+        {/* Step progress dots */}
+        <div className="flex items-center gap-3 ml-6">
+          {STEP_ORDER.map((step) => {
+            const stepStatus = phase.steps[step];
+            // In parallel mode, allow multiple phases to show active dots simultaneously.
+            // Remove isCurrent guard so any phase with an active step pulses.
+            const isActive = phase.workerStatus != null
+              ? stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step
+              : isCurrent && stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step;
+            return (
+              <StepDot
+                key={step}
+                stepName={step}
+                stepStatus={stepStatus}
+                isActive={isActive}
+              />
+            );
+          })}
+        </div>
+      </Link>
+
+      {/* Failed phase error display (collapsible) */}
+      {phase.workerStatus === 'failed' && phase.error && (
+        <div className="mt-1 ml-3 mr-3">
+          <button
+            type="button"
+            onClick={() => { setErrorExpanded((prev) => !prev); }}
+            className="text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+          >
+            <span>{errorExpanded ? '\u25BC' : '\u25B6'}</span>
+            <span>Error details</span>
+          </button>
+          {errorExpanded && (
+            <div className="mt-1 rounded bg-red-50 border border-red-200 p-2 text-xs text-red-700 font-mono whitespace-pre-wrap">
+              {phase.error}
+            </div>
           )}
         </div>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-medium whitespace-nowrap ${statusColor}`}
-        >
-          {phase.status.replace('_', ' ')}
-        </span>
-      </div>
-
-      {/* Step progress dots */}
-      <div className="flex items-center gap-3 ml-6">
-        {STEP_ORDER.map((step) => {
-          const stepStatus = phase.steps[step];
-          const isActive = isCurrent && stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step;
-          return (
-            <StepDot
-              key={step}
-              stepName={step}
-              stepStatus={stepStatus}
-              isActive={isActive}
-            />
-          );
-        })}
-      </div>
-    </Link>
+      )}
+    </div>
   );
 }
 
-export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
+export function PhaseCard({ phases, currentPhase, questions }: PhaseCardProps) {
   const currentMilestone = useDashboardStore((s) => s.currentMilestone);
   const autopilotAlive = useDashboardStore((s) => s.autopilotAlive);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+
+  // Compute per-phase question counts
+  const questionsByPhase = new Map<number, number>();
+  for (const q of (questions ?? [])) {
+    const phase = q.phase ?? 0;
+    questionsByPhase.set(phase, (questionsByPhase.get(phase) ?? 0) + 1);
+  }
 
   // Auto-scroll to the in-progress phase on initial load
   useEffect(() => {
@@ -182,6 +247,7 @@ export function PhaseCard({ phases, currentPhase }: PhaseCardProps) {
             key={phase.number}
             phase={phase}
             isCurrent={phase.number === currentPhase}
+            questionCount={questionsByPhase.get(phase.number) ?? 0}
           />
         ))}
       </div>
