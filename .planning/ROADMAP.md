@@ -29,11 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. When a phase completes, the scheduler automatically identifies and returns newly eligible phases whose dependencies are now satisfied
   4. State mutations from multiple simulated workers are serialized through the single-writer pattern with no lost updates
   5. Each worker writes to its own event file (`events-phase-{N}.ndjson`) and events carry a `workerId` tag
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- DAG scheduler with parseDependsOn and DependencyScheduler (TDD)
+- [ ] 01-02-PLAN.md -- Event writer worker metadata and state write queue
 
 ### Phase 2: Parallel Execution Engine
 **Goal**: Users can run `--parallel` and have multiple phases execute concurrently via git-worktree-isolated workers, with the full discuss/plan/execute/verify lifecycle per phase
@@ -87,7 +87,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scheduler and Isolation Model | 0/? | Not started | - |
+| 1. Scheduler and Isolation Model | 0/2 | Not started | - |
 | 2. Parallel Execution Engine | 0/? | Not started | - |
 | 3. Failure Handling and Git Conflict Resolution | 0/? | Not started | - |
 | 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
