@@ -47,10 +47,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Failure Handling
 
-- [ ] **FAIL-01**: Default fail-fast behavior stops all workers when one phase fails
+- [x] **FAIL-01**: Default fail-fast behavior stops all workers when one phase fails
 - [x] **FAIL-02**: `--continue` flag lets independent phases finish even when one fails
-- [ ] **FAIL-03**: Graceful shutdown on SIGINT/SIGTERM cleans up all child processes and worktrees
-- [ ] **FAIL-04**: Failed phase worktrees are preserved for debugging (not auto-cleaned)
+- [x] **FAIL-03**: Graceful shutdown on SIGINT/SIGTERM cleans up all child processes and worktrees
+- [x] **FAIL-04**: Failed phase worktrees are preserved for debugging (not auto-cleaned)
 
 ### Events & Logging
 
@@ -126,10 +126,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | GIT-04 | Phase 3 | Complete |
 | GIT-05 | Phase 3 | Complete |
 | GIT-06 | Phase 2 | Complete |
-| FAIL-01 | Phase 3 | Pending |
+| FAIL-01 | Phase 3 | Complete |
 | FAIL-02 | Phase 3 | Complete |
-| FAIL-03 | Phase 3 | Pending |
-| FAIL-04 | Phase 3 | Pending |
+| FAIL-03 | Phase 3 | Complete |
+| FAIL-04 | Phase 3 | Complete |
 <<<<<<< HEAD
 | EVNT-01 | Phase 1 | Pending |
 | EVNT-02 | Phase 1 | Pending |

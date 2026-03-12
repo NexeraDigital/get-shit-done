@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Scheduler and Isolation Model** - DAG-based dependency scheduling, single-writer state, per-worker event files (completed 2026-03-12)
 - [ ] **Phase 2: Parallel Execution Engine** - CLI flags, worker pool, git worktrees, parallel phase lifecycle (gap closure in progress)
-- [ ] **Phase 3: Failure Handling and Git Conflict Resolution** - Fail-fast/continue modes, graceful shutdown, merge conflict resolution
+- [x] **Phase 3: Failure Handling and Git Conflict Resolution** - Fail-fast/continue modes, graceful shutdown, merge conflict resolution (completed 2026-03-12)
 - [ ] **Phase 4: Dashboard and Event Stream Integration** - Consolidated event stream, per-phase status and question routing in dashboard
 
 ## Phase Details
@@ -91,5 +91,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Scheduler and Isolation Model | 2/2 | Complete   | 2026-03-12 |
 | 2. Parallel Execution Engine | 3/4 | Gap closure | - |
-| 3. Failure Handling and Git Conflict Resolution | 1/2 | In Progress|  |
+| 3. Failure Handling and Git Conflict Resolution | 2/2 | Complete   | 2026-03-12 |
 | 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
