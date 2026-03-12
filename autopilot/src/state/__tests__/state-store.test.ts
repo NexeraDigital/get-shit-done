@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'node:path';
 import { mkdtemp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { StateStore } from '../index.js';
+import { StateStore, StateWriteQueue } from '../index.js';
 import type { AutopilotState, ErrorRecord, PendingQuestion } from '../../types/index.js';
 
 describe('StateStore', () => {
@@ -270,5 +270,68 @@ describe('StateStore', () => {
 
       await expect(StateStore.restore(filePath)).rejects.toThrow();
     });
+  });
+});
+
+describe('StateWriteQueue', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await mkdtemp(join(tmpdir(), 'gsd-queue-test-'));
+    await mkdir(join(tempDir, '.planning', 'autopilot'), { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('serializes concurrent writes -- no lost updates', async () => {
+    const store = StateStore.createFresh(tempDir);
+    const queue = new StateWriteQueue();
+
+    // Fire 3 concurrent mutations modifying different fields
+    await Promise.all([
+      queue.enqueue(() => store.setState({ status: 'running' })),
+      queue.enqueue(() => store.setState({ currentPhase: 5 })),
+      queue.enqueue(() => store.setState({ currentStep: 'execute' })),
+    ]);
+
+    const state = store.getState();
+    expect(state.status).toBe('running');
+    expect(state.currentPhase).toBe(5);
+    expect(state.currentStep).toBe('execute');
+  });
+
+  it('continues after failed operation -- fault isolation', async () => {
+    const queue = new StateWriteQueue();
+    const results: string[] = [];
+
+    // Enqueue a throwing operation
+    const failPromise = queue.enqueue(async () => {
+      throw new Error('intentional failure');
+    });
+
+    // Enqueue a valid operation after the failure
+    const successPromise = queue.enqueue(async () => {
+      results.push('success');
+    });
+
+    await expect(failPromise).rejects.toThrow('intentional failure');
+    await successPromise;
+
+    expect(results).toEqual(['success']);
+  });
+
+  it('operations execute in order', async () => {
+    const queue = new StateWriteQueue();
+    const order: number[] = [];
+
+    await Promise.all([
+      queue.enqueue(async () => { order.push(1); }),
+      queue.enqueue(async () => { order.push(2); }),
+      queue.enqueue(async () => { order.push(3); }),
+    ]);
+
+    expect(order).toEqual([1, 2, 3]);
   });
 });
