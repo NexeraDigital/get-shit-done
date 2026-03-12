@@ -73,6 +73,30 @@ const AutopilotStateSchema = z.object({
   remoteSessionUrl: z.string().optional(),
 }).passthrough();
 
+/**
+ * StateWriteQueue serializes async state mutations through a promise chain.
+ * Prevents interleaved reads/writes when multiple async paths modify state concurrently.
+ * Each enqueued operation waits for the previous one to complete before executing.
+ * Failed operations are isolated -- subsequent operations still execute.
+ */
+export class StateWriteQueue {
+  private chain: Promise<void> = Promise.resolve();
+
+  /**
+   * Enqueues an async operation to run after all previously enqueued operations complete.
+   * Returns a promise that resolves/rejects with the operation's result.
+   * If the operation throws, subsequent enqueued operations still execute (fault isolation).
+   */
+  enqueue(fn: () => Promise<void>): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.chain = this.chain.then(
+        () => fn().then(resolve, reject),
+        () => fn().then(resolve, reject),
+      );
+    });
+  }
+}
+
 export class StateStore {
   private state: AutopilotState;
   private readonly _filePath: string;
@@ -104,12 +128,20 @@ export class StateStore {
     await this.persist();
   }
 
-  /** Writes state to disk atomically using write-file-atomic */
+  /** Writes state to disk atomically using write-file-atomic (retries on Windows EPERM) */
   private async persist(): Promise<void> {
-    await writeFileAtomic(
-      this._filePath,
-      JSON.stringify(this.state, null, 2) + '\n',
-    );
+    const data = JSON.stringify(this.state, null, 2) + '\n';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await writeFileAtomic(this._filePath, data);
+        return;
+      } catch (err: unknown) {
+        const isRetryable = err instanceof Error &&
+          ('code' in err && (err as NodeJS.ErrnoException).code === 'EPERM');
+        if (!isRetryable || attempt === 2) throw err;
+        await new Promise(r => setTimeout(r, 50 * (attempt + 1)));
+      }
+    }
   }
 
   /**

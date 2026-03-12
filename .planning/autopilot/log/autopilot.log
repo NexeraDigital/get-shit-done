@@ -1,0 +1,19 @@
+{"level":30,"time":"2026-03-12T04:16:22.416Z","pid":72344,"hostname":"DStairsPC1","component":"tunnel","msg":"Creating dev-tunnel..."}
+{"level":40,"time":"2026-03-12T04:16:24.803Z","pid":72344,"hostname":"DStairsPC1","component":"tunnel","msg":"Tunnel creation failed: No dev-tunnel credentials found. Run `devtunnel user login` or set GITHUB_TOKEN / DEVTUNNEL_TOKEN."}
+{"level":30,"time":"2026-03-12T04:16:25.640Z","pid":72344,"hostname":"DStairsPC1","component":"remote-session","msg":"Remote session URL detected: https://claude.ai/code/session_01KhjJ2t9C33dgqc7Wy9jxuF?bridge=env_01WMCotwyar9yEEK4iuYcU82"}
+{"level":30,"time":"2026-03-12T04:16:25.651Z","pid":72344,"hostname":"DStairsPC1","component":"orchestrator","prdPath":"","msg":"Starting autopilot run"}
+{"level":30,"time":"2026-03-12T04:16:25.652Z","pid":72344,"hostname":"DStairsPC1","component":"orchestrator","prdPath":"","msg":"Initializing project"}
+{"level":30,"time":"2026-03-12T04:16:25.667Z","pid":72344,"hostname":"DStairsPC1","component":"orchestrator","phases":4,"msg":"Reusing existing ROADMAP.md"}
+{"level":30,"time":"2026-03-12T04:16:25.672Z","pid":72344,"hostname":"DStairsPC1","component":"orchestrator","msg":"Phase 1 has CONTEXT.md on disk — marking discuss done"}
+{"level":50,"time":"2026-03-12T04:16:25.684Z","pid":72344,"hostname":"DStairsPC1","component":"cli","error":"EPERM: operation not permitted, rename 'C:\\GitHub\\GetShitDone\\get-shit-done\\.planning\\autopilot\\state.json.1973227486' -> 'C:\\GitHub\\GetShitDone\\get-shit-done\\.planning\\autopilot\\state.json'","msg":"Autopilot failed"}
+{"level":30,"time":"2026-03-12T04:35:50.583Z","pid":73948,"hostname":"DStairsPC1","component":"tunnel","msg":"Creating dev-tunnel..."}
+{"level":40,"time":"2026-03-12T04:35:52.555Z","pid":73948,"hostname":"DStairsPC1","component":"tunnel","msg":"Tunnel creation failed: No dev-tunnel credentials found. Run `devtunnel user login` or set GITHUB_TOKEN / DEVTUNNEL_TOKEN."}
+{"level":30,"time":"2026-03-12T04:35:53.355Z","pid":73948,"hostname":"DStairsPC1","component":"remote-session","msg":"Remote session URL detected: https://claude.ai/code/session_01QaSLkg31kkY3jjkfbMatUG?bridge=env_01YG9JgAuP94an5g6XtreT5k"}
+{"level":30,"time":"2026-03-12T04:35:53.365Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","prdPath":"","msg":"Starting autopilot run"}
+{"level":30,"time":"2026-03-12T04:35:53.415Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"plan","msg":"Running command: /gsd:plan-phase 1"}
+{"level":30,"time":"2026-03-12T04:48:50.391Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"plan","msg":"Step plan completed for phase 1"}
+{"level":30,"time":"2026-03-12T04:48:50.414Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"execute","msg":"Running command: /gsd:execute-phase 1"}
+{"level":30,"time":"2026-03-12T04:59:19.137Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"execute","msg":"Step execute completed for phase 1"}
+{"level":30,"time":"2026-03-12T04:59:19.158Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"verify","msg":"Running command: /gsd:verify-work 1"}
+{"level":30,"time":"2026-03-12T05:00:55.124Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","phase":1,"step":"verify","msg":"Step verify completed for phase 1"}
+{"level":30,"time":"2026-03-12T05:00:55.131Z","pid":73948,"hostname":"DStairsPC1","component":"orchestrator","msg":"Build complete"}
