@@ -72,6 +72,7 @@ Created by NexeraDigital — https://github.com/NexeraDigital
   .option('--phases <range>', 'Run specific phases (e.g., 1-3,5,7-9)')
   .option('--parallel', 'Run phases in parallel using git worktrees')
   .option('--concurrency <n>', 'Max concurrent workers (default: 3)', '3')
+  .option('--continue', 'Continue running independent phases after a failure')
   .option('--notify <channel>', 'Notification channel (console, system, teams, slack)', 'console')
   .option('--webhook-url <url>', 'Webhook URL for Teams/Slack notifications')
   .option('--port <number>', 'Dashboard server port (auto-derived from git repo if omitted)')
@@ -102,6 +103,7 @@ Created by NexeraDigital — https://github.com/NexeraDigital
     remote?: boolean;
     parallel?: boolean;
     concurrency?: string;
+    continue?: boolean;
   }) => {
     // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
@@ -238,6 +240,7 @@ Created by NexeraDigital — https://github.com/NexeraDigital
     // h2. Parse parallel execution flags (CLI-only, not persisted to config)
     const parallel = options.parallel ?? false;
     const concurrency = parseInt(options.concurrency ?? '3', 10);
+    const continueOnFailure = options.continue ?? false;
 
     // i. Create NotificationManager and wire adapters
     const notificationManager = new NotificationManager({
@@ -759,6 +762,7 @@ Created by NexeraDigital — https://github.com/NexeraDigital
       await orchestrator.run(prdPath, phaseRange, {
         parallel,
         concurrency,
+        continueOnFailure,
       });
 
       if (!options.quiet) {

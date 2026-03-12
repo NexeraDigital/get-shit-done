@@ -11,11 +11,15 @@ const {
   mockCreateWorktree,
   mockMergeWorktree,
   mockCleanupWorktree,
+  mockResolveConflicts,
+  mockWriteMergeReport,
 } = vi.hoisted(() => ({
   mockEnsureClean: vi.fn(),
   mockCreateWorktree: vi.fn(),
   mockMergeWorktree: vi.fn(),
   mockCleanupWorktree: vi.fn(),
+  mockResolveConflicts: vi.fn(),
+  mockWriteMergeReport: vi.fn(),
 }));
 
 vi.mock('../git-worktree.js', () => ({
@@ -23,6 +27,11 @@ vi.mock('../git-worktree.js', () => ({
   createWorktree: mockCreateWorktree,
   mergeWorktree: mockMergeWorktree,
   cleanupWorktree: mockCleanupWorktree,
+}));
+
+vi.mock('../merge-resolver.js', () => ({
+  resolveConflicts: mockResolveConflicts,
+  writeMergeReport: mockWriteMergeReport,
 }));
 
 vi.mock('../../claude/index.js', async () => {
@@ -67,6 +76,13 @@ describe('WorkerPool', () => {
     );
     mockMergeWorktree.mockResolvedValue(true);
     mockCleanupWorktree.mockResolvedValue(undefined);
+    mockResolveConflicts.mockResolvedValue({
+      phaseNumber: 0,
+      files: [],
+      timestamp: new Date().toISOString(),
+      success: false,
+    });
+    mockWriteMergeReport.mockResolvedValue(undefined);
   });
 
   describe('constructor', () => {
@@ -115,8 +131,14 @@ describe('WorkerPool', () => {
       expect(mockCleanupWorktree).toHaveBeenCalledWith('/test/project', 3);
     });
 
-    it('preserves worktree on merge failure', async () => {
+    it('preserves worktree on merge failure when resolution also fails', async () => {
       mockMergeWorktree.mockResolvedValueOnce(false);
+      mockResolveConflicts.mockResolvedValueOnce({
+        phaseNumber: 4,
+        files: [{ file: 'src/index.ts', strategy: 'theirs', outcome: 'failed' }],
+        timestamp: new Date().toISOString(),
+        success: false,
+      });
 
       const pool = new WorkerPool(defaultOpts({ parallel: true }));
       const runPhaseFn = vi.fn().mockResolvedValue(undefined);
@@ -125,9 +147,11 @@ describe('WorkerPool', () => {
       const result = await pool.waitForAny();
 
       expect(mockMergeWorktree).toHaveBeenCalledWith('/test/project', 4);
+      // Worktree preserved when resolution fails (FAIL-04)
       expect(mockCleanupWorktree).not.toHaveBeenCalled();
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
       expect(result.mergeSuccess).toBe(false);
+      expect(result.mergeReport).toBeDefined();
     });
 
     it('returns failure result when runPhaseFn throws', async () => {
@@ -272,6 +296,83 @@ describe('WorkerPool', () => {
         type: 'text',
         content: 'hello',
       }));
+    });
+  });
+
+  describe('merge conflict resolution', () => {
+    it('triggers resolveConflicts when mergeWorktree returns false', async () => {
+      mockMergeWorktree.mockResolvedValueOnce(false);
+      mockResolveConflicts.mockResolvedValueOnce({
+        phaseNumber: 5,
+        files: [{ file: 'src/a.ts', strategy: 'theirs', outcome: 'resolved' }],
+        timestamp: new Date().toISOString(),
+        success: true,
+      });
+
+      const pool = new WorkerPool(defaultOpts({ parallel: true }));
+      const runPhaseFn = vi.fn().mockResolvedValue(undefined);
+
+      pool.dispatch({ number: 5, name: 'Phase 5', dependencies: [] }, runPhaseFn);
+      const result = await pool.waitForAny();
+
+      expect(mockResolveConflicts).toHaveBeenCalledWith(
+        '/test/project',
+        5,
+        expect.any(Array),
+      );
+      expect(mockWriteMergeReport).toHaveBeenCalled();
+      expect(result.success).toBe(true);
+      expect(result.mergeReport?.success).toBe(true);
+      // Worktree cleaned up on successful resolution
+      expect(mockCleanupWorktree).toHaveBeenCalledWith('/test/project', 5);
+    });
+
+    it('failed phase worktree is preserved (cleanupWorktree not called)', async () => {
+      const pool = new WorkerPool(defaultOpts({ parallel: true }));
+      const runPhaseFn = vi.fn().mockRejectedValue(new Error('phase crashed'));
+
+      pool.dispatch({ number: 6, name: 'Phase 6', dependencies: [] }, runPhaseFn);
+      const result = await pool.waitForAny();
+
+      expect(result.success).toBe(false);
+      // Worktree should NOT be cleaned up for failed phases (FAIL-04)
+      expect(mockCleanupWorktree).not.toHaveBeenCalled();
+    });
+
+    it('abort flag prevents merge after abortAll()', async () => {
+      // Use a slow runPhaseFn so we can call abortAll before it completes
+      let resolvePhase!: () => void;
+      const phasePromise = new Promise<void>((r) => { resolvePhase = r; });
+
+      const pool = new WorkerPool(defaultOpts({ parallel: true }));
+      pool.dispatch({ number: 7, name: 'Phase 7', dependencies: [] }, () => phasePromise);
+
+      // Abort all workers
+      pool.abortAll();
+
+      // Now let the phase "complete"
+      resolvePhase();
+
+      const result = await pool.waitForAny();
+
+      // Merge should NOT have been called because aborted flag was set
+      expect(mockMergeWorktree).not.toHaveBeenCalled();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Aborted');
+    });
+  });
+
+  describe('merge report accumulator', () => {
+    it('addPriorReports seeds the accumulator', () => {
+      const pool = new WorkerPool(defaultOpts());
+      const report = {
+        phaseNumber: 1,
+        files: [],
+        timestamp: new Date().toISOString(),
+        success: true,
+      };
+      pool.addPriorReports([report]);
+      expect(pool.getMergeReports()).toEqual([report]);
     });
   });
 });

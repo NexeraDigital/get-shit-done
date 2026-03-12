@@ -19,6 +19,7 @@ import { WorkerPool } from '../worker/index.js';
 import { writeYoloConfig } from './yolo-config.js';
 import { writeSkipDiscussContext } from './discuss-handler.js';
 import { checkForGaps } from './gap-detector.js';
+import { renderSummary, type PhaseResult } from './summary.js';
 
 export interface OrchestratorOptions {
   stateStore: StateStore;
@@ -258,7 +259,7 @@ export class Orchestrator extends EventEmitter {
   async run(
     prdPath: string,
     phaseRange?: number[],
-    options?: { parallel?: boolean; concurrency?: number },
+    options?: { parallel?: boolean; concurrency?: number; continueOnFailure?: boolean },
   ): Promise<void> {
     this.logger.log('info', 'orchestrator', 'Starting autopilot run', { prdPath });
 
@@ -380,6 +381,7 @@ export class Orchestrator extends EventEmitter {
     // The only difference: concurrency (1 vs N) and worktree usage.
     const parallel = options?.parallel ?? false;
     const concurrency = parallel ? (options?.concurrency ?? 3) : 1;
+    const continueOnFailure = options?.continueOnFailure ?? false;
 
     // Filter to applicable phases (not completed/skipped, in range)
     const applicablePhases = currentState.phases
@@ -395,6 +397,10 @@ export class Orchestrator extends EventEmitter {
 
     const scheduler = new DependencyScheduler(schedulerPhases);
     const workerPool = new WorkerPool({ concurrency, parallel, projectDir: this.projectDir });
+
+    // Track results for summary table
+    const phaseResults: PhaseResult[] = [];
+    const failedPhases: number[] = [];
 
     while (!scheduler.isComplete()) {
       if (this.shutdownRequested) break;
@@ -414,24 +420,80 @@ export class Orchestrator extends EventEmitter {
       // Wait for at least one worker to complete
       if (workerPool.activeCount > 0) {
         const result = await workerPool.waitForAny();
+        const phaseName = applicablePhases.find(p => p.number === result.phaseNumber)?.name ?? `Phase ${result.phaseNumber}`;
+
         if (result.success) {
           scheduler.markComplete(result.phaseNumber);
-          // Newly ready phases will be picked up on the next loop iteration
+
+          // Determine merge status for summary
+          let mergeStatus: PhaseResult['mergeStatus'];
+          if (result.mergeReport) {
+            mergeStatus = 'resolved';
+          } else if (result.mergeSuccess === true) {
+            mergeStatus = 'clean';
+          } else if (result.mergeSuccess === false) {
+            mergeStatus = 'conflict';
+          }
+
+          phaseResults.push({
+            phaseNumber: result.phaseNumber,
+            name: phaseName,
+            success: true,
+            skipped: false,
+            mergeStatus,
+          });
         } else {
-          // Phase failed -- request shutdown (fail-fast default)
+          // Phase failed
           this.logger.log('error', 'orchestrator',
             `Phase ${result.phaseNumber} failed: ${result.error}`);
           if (result.mergeSuccess === false) {
             this.logger.log('warn', 'orchestrator',
               `Merge conflict for phase ${result.phaseNumber} -- worktree preserved`);
           }
-          this.requestShutdown();
+
+          phaseResults.push({
+            phaseNumber: result.phaseNumber,
+            name: phaseName,
+            success: false,
+            skipped: false,
+            error: result.error,
+            mergeStatus: result.mergeSuccess === false ? 'conflict' : undefined,
+          });
+
+          if (continueOnFailure) {
+            // --continue mode: mark failed and skip dependents, keep going
+            const skipped = scheduler.markFailed(result.phaseNumber);
+            failedPhases.push(result.phaseNumber);
+            for (const s of skipped) {
+              this.logger.log('warn', 'orchestrator',
+                `Phase ${s.number} skipped (depends on failed phase ${result.phaseNumber})`);
+              phaseResults.push({
+                phaseNumber: s.number,
+                name: s.name,
+                success: false,
+                skipped: true,
+              });
+            }
+          } else {
+            // Fail-fast (default): abort all workers and stop
+            workerPool.abortAll();
+            this.requestShutdown();
+          }
         }
       }
     }
 
+    // Print summary table at end of every run (both success and failure cases)
+    if (phaseResults.length > 0) {
+      const summary = renderSummary(phaseResults);
+      this.logger.log('info', 'orchestrator', '\n' + summary);
+    }
+
+    // Determine exit status: any failures means the run failed
+    const anyFailed = failedPhases.length > 0 || phaseResults.some(r => !r.success && !r.skipped);
+
     // ORCH-10: If all phases complete without shutdown
-    if (!this.shutdownRequested) {
+    if (!this.shutdownRequested && !anyFailed) {
       this.emit('build:complete');
       this.logger.log('info', 'orchestrator', 'Build complete');
       await this.stateStore.setState({ status: 'complete' });

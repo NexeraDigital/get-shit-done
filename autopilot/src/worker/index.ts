@@ -11,6 +11,7 @@ import {
   mergeWorktree,
   cleanupWorktree,
 } from './git-worktree.js';
+import { resolveConflicts, writeMergeReport, type MergeReport } from './merge-resolver.js';
 import type { WorkerHandle, WorkerResult, WorkerPoolOptions } from './types.js';
 import type { SchedulerPhase } from '../scheduler/index.js';
 
@@ -32,6 +33,8 @@ export class WorkerPool extends EventEmitter {
   private readonly options: WorkerPoolOptions;
   private readonly active = new Map<number, WorkerHandle>();
   private mergeChain: Promise<void> = Promise.resolve();
+  private mergeReports: MergeReport[] = [];
+  private aborted = false;
 
   constructor(options: WorkerPoolOptions) {
     super();
@@ -43,6 +46,20 @@ export class WorkerPool extends EventEmitter {
    */
   get activeCount(): number {
     return this.active.size;
+  }
+
+  /**
+   * Seed the merge report accumulator with prior reports (for --resume support).
+   */
+  addPriorReports(reports: MergeReport[]): void {
+    this.mergeReports.push(...reports);
+  }
+
+  /**
+   * Get accumulated merge reports (for orchestrator summary).
+   */
+  getMergeReports(): MergeReport[] {
+    return [...this.mergeReports];
   }
 
   /**
@@ -103,8 +120,10 @@ export class WorkerPool extends EventEmitter {
 
   /**
    * Abort all active workers by calling abortCurrent() on their ClaudeService instances.
+   * Sets the aborted flag to prevent merge operations after abort.
    */
   abortAll(): void {
+    this.aborted = true;
     for (const handle of this.active.values()) {
       handle.claudeService.abortCurrent();
     }
@@ -141,16 +160,52 @@ export class WorkerPool extends EventEmitter {
 
       // Post-execution: merge and cleanup (parallel only)
       if (parallel) {
+        // Check abort flag before merge to avoid merging after abortAll() (RESEARCH pitfall 5)
+        if (this.aborted) {
+          return {
+            phaseNumber: phase.number,
+            success: false,
+            error: 'Aborted before merge',
+          };
+        }
+
         const mergeResult = await this.serializedMerge(projectDir, phase.number);
 
         if (mergeResult) {
+          // Clean merge -- cleanup worktree
           await cleanupWorktree(projectDir, phase.number);
+
+          return {
+            phaseNumber: phase.number,
+            success: true,
+            mergeSuccess: true,
+          };
         }
 
+        // Merge failed -- attempt conflict resolution
+        const report = await resolveConflicts(projectDir, phase.number, this.mergeReports);
+        const phaseDir = `${projectDir}/.planning/phases`; // writeMergeReport creates subdirs as needed
+        await writeMergeReport(phaseDir, report);
+        this.mergeReports.push(report);
+
+        if (report.success) {
+          // Resolution succeeded -- cleanup worktree
+          await cleanupWorktree(projectDir, phase.number);
+          return {
+            phaseNumber: phase.number,
+            success: true,
+            mergeSuccess: true,
+            mergeReport: report,
+          };
+        }
+
+        // Resolution failed -- preserve worktree for debugging (FAIL-04)
         return {
           phaseNumber: phase.number,
-          success: true,
-          mergeSuccess: mergeResult,
+          success: false,
+          error: `Merge conflict resolution failed for phase ${phase.number}`,
+          mergeSuccess: false,
+          mergeReport: report,
         };
       }
 
@@ -159,6 +214,7 @@ export class WorkerPool extends EventEmitter {
         success: true,
       };
     } catch (err) {
+      // Phase failed -- worktree is preserved (never cleaned up) for debugging (FAIL-04)
       const error = err instanceof Error ? err.message : String(err);
       return {
         phaseNumber: phase.number,
