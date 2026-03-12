@@ -77,10 +77,12 @@ Plans:
   1. The dashboard displays per-phase status (running/queued/done/failed) for all parallel phases simultaneously
   2. Event streams from all active workers are consolidated into a single SSE stream that the dashboard consumes without losing or duplicating events
   3. Questions from each phase appear in the dashboard tagged to their source phase, and the user can answer them independently without affecting other phases
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- ConsolidatedEventTailer: multi-file directory-scanning event tailer (TDD)
+- [ ] 04-02-PLAN.md -- PhaseState parallel type extensions and phase-status-changed SSE event wiring
+- [ ] 04-03-PLAN.md -- Dashboard UI: parallel status badges, phase-tagged questions, completion summary table
 
 ## Progress
 
@@ -92,4 +94,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Scheduler and Isolation Model | 2/2 | Complete   | 2026-03-12 |
 | 2. Parallel Execution Engine | 3/4 | Gap closure | - |
 | 3. Failure Handling and Git Conflict Resolution | 2/2 | Complete   | 2026-03-12 |
-| 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
+| 4. Dashboard and Event Stream Integration | 0/3 | Not started | - |
