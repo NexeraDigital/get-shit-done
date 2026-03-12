@@ -65,7 +65,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: Dashboard shows per-phase status (running/queued/done/failed) for all parallel phases
+- [x] **DASH-01**: Dashboard shows per-phase status (running/queued/done/failed) for all parallel phases
 - [ ] **DASH-02**: Questions from each phase are routed to the correct phase context
 - [ ] **DASH-03**: User can answer questions for specific phases without affecting others
 
@@ -138,7 +138,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | EVNT-02 | Phase 1 | Complete |
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 | EVNT-03 | Phase 4 | Pending |
-| DASH-01 | Phase 4 | Pending |
+| DASH-01 | Phase 4 | Complete |
 | DASH-02 | Phase 4 | Pending |
 | DASH-03 | Phase 4 | Pending |
 
