@@ -63,11 +63,11 @@ Plans:
   3. SIGINT/SIGTERM triggers graceful shutdown that terminates all child processes and cleans up worktrees (except failed ones preserved for debugging)
   4. Merge conflicts between worktree branches are auto-resolved where possible, with a conflict resolution report documenting what was fixed
   5. Resolution reports from prior merges are available as context for resolving future merge conflicts in the same run
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Scheduler failure tracking (markFailed/markSkipped) and merge conflict resolver with auto-resolution and reporting
+- [ ] 03-02-PLAN.md -- Orchestrator failure handling wiring, --continue mode, graceful shutdown, and summary table
 
 ### Phase 4: Dashboard and Event Stream Integration
 **Goal**: The dashboard shows real-time status for all parallel phases and routes questions to the correct phase worker, giving the user full visibility and interaction during parallel execution
@@ -91,5 +91,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Scheduler and Isolation Model | 2/2 | Complete   | 2026-03-12 |
 | 2. Parallel Execution Engine | 3/4 | Gap closure | - |
-| 3. Failure Handling and Git Conflict Resolution | 0/? | Not started | - |
+| 3. Failure Handling and Git Conflict Resolution | 0/2 | Planning complete | - |
 | 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
