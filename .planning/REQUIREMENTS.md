@@ -9,17 +9,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Scheduling
 
-- [ ] **SCHED-01**: User can enable parallel mode with `--parallel` flag (backward compatible, sequential remains default)
+- [x] **SCHED-01**: User can enable parallel mode with `--parallel` flag (backward compatible, sequential remains default)
 <<<<<<< HEAD
 - [ ] **SCHED-02**: Autopilot auto-detects parallelizable phases from ROADMAP.md `dependsOn` fields using DAG scheduling
-- [ ] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
-- [ ] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
+- [x] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
+- [x] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
 - [ ] **SCHED-05**: Phases with unmet dependencies are queued until dependencies complete
 - [ ] **SCHED-06**: As phases complete, newly eligible phases are automatically dispatched
 =======
 - [x] **SCHED-02**: Autopilot auto-detects parallelizable phases from ROADMAP.md `dependsOn` fields using DAG scheduling
-- [ ] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
-- [ ] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
+- [x] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
+- [x] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
 - [x] **SCHED-05**: Phases with unmet dependencies are queued until dependencies complete
 - [x] **SCHED-06**: As phases complete, newly eligible phases are automatically dispatched
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
@@ -98,11 +98,11 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHED-01 | Phase 2 | Pending |
+| SCHED-01 | Phase 2 | Complete |
 <<<<<<< HEAD
 | SCHED-02 | Phase 1 | Pending |
-| SCHED-03 | Phase 2 | Pending |
-| SCHED-04 | Phase 2 | Pending |
+| SCHED-03 | Phase 2 | Complete |
+| SCHED-04 | Phase 2 | Complete |
 | SCHED-05 | Phase 1 | Pending |
 | SCHED-06 | Phase 1 | Pending |
 | EXEC-01 | Phase 2 | Pending |
@@ -111,8 +111,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | EXEC-04 | Phase 1 | Pending |
 =======
 | SCHED-02 | Phase 1 | Complete |
-| SCHED-03 | Phase 2 | Pending |
-| SCHED-04 | Phase 2 | Pending |
+| SCHED-03 | Phase 2 | Complete |
+| SCHED-04 | Phase 2 | Complete |
 | SCHED-05 | Phase 1 | Complete |
 | SCHED-06 | Phase 1 | Complete |
 | EXEC-01 | Phase 2 | Pending |
