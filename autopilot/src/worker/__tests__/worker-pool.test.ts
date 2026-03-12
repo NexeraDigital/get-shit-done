@@ -1,48 +1,44 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventEmitter } from 'node:events';
-import { WorkerPool } from '../index.js';
-import type { WorkerPoolOptions, WorkerResult } from '../types.js';
+import type { WorkerPoolOptions } from '../types.js';
 
 // ---------------------------------------------------------------------------
-// Mock git-worktree functions
+// Hoisted mocks -- vi.hoisted runs before vi.mock factories
 // ---------------------------------------------------------------------------
+
+const {
+  mockEnsureClean,
+  mockCreateWorktree,
+  mockMergeWorktree,
+  mockCleanupWorktree,
+} = vi.hoisted(() => ({
+  mockEnsureClean: vi.fn(),
+  mockCreateWorktree: vi.fn(),
+  mockMergeWorktree: vi.fn(),
+  mockCleanupWorktree: vi.fn(),
+}));
 
 vi.mock('../git-worktree.js', () => ({
-  ensureCleanWorktree: vi.fn().mockResolvedValue(undefined),
-  createWorktree: vi.fn().mockImplementation((_dir: string, phase: number) =>
-    Promise.resolve(`/tmp/worktrees/phase-${phase}`),
-  ),
-  mergeWorktree: vi.fn().mockResolvedValue(true),
-  cleanupWorktree: vi.fn().mockResolvedValue(undefined),
+  ensureCleanWorktree: mockEnsureClean,
+  createWorktree: mockCreateWorktree,
+  mergeWorktree: mockMergeWorktree,
+  cleanupWorktree: mockCleanupWorktree,
 }));
 
-import {
-  ensureCleanWorktree,
-  createWorktree,
-  mergeWorktree,
-  cleanupWorktree,
-} from '../git-worktree.js';
+vi.mock('../../claude/index.js', async () => {
+  const { EventEmitter: EE } = await import('node:events');
+  class MockCS extends EE {
+    runGsdCommand = vi.fn().mockResolvedValue({ success: true });
+    abortCurrent = vi.fn();
+    constructor(_opts?: unknown) {
+      super();
+    }
+  }
+  return { ClaudeService: MockCS };
+});
 
-// ---------------------------------------------------------------------------
-// Mock ClaudeService
-// ---------------------------------------------------------------------------
-
-function createMockClaudeService() {
-  const service = new EventEmitter() as EventEmitter & {
-    runGsdCommand: ReturnType<typeof vi.fn>;
-    abortCurrent: ReturnType<typeof vi.fn>;
-  };
-  service.runGsdCommand = vi.fn().mockResolvedValue({ success: true });
-  service.abortCurrent = vi.fn();
-  return service;
-}
-
-// We need to mock the ClaudeService constructor since WorkerPool creates instances
-vi.mock('../../claude/index.js', () => ({
-  ClaudeService: vi.fn().mockImplementation(() => createMockClaudeService()),
-}));
-
-import { ClaudeService } from '../../claude/index.js';
+// Import the module under test AFTER mocks are set up
+import { WorkerPool } from '../index.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,6 +60,13 @@ function defaultOpts(overrides?: Partial<WorkerPoolOptions>): WorkerPoolOptions 
 describe('WorkerPool', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Re-setup default implementations after clearAllMocks
+    mockEnsureClean.mockResolvedValue(undefined);
+    mockCreateWorktree.mockImplementation((_dir: string, phase: number) =>
+      Promise.resolve(`/tmp/worktrees/phase-${phase}`),
+    );
+    mockMergeWorktree.mockResolvedValue(true);
+    mockCleanupWorktree.mockResolvedValue(undefined);
   });
 
   describe('constructor', () => {
@@ -80,12 +83,10 @@ describe('WorkerPool', () => {
       const runPhaseFn = vi.fn().mockResolvedValue(undefined);
 
       pool.dispatch({ number: 1, name: 'Test', dependencies: [] }, runPhaseFn);
-
-      // Wait for the worker to complete
       const result = await pool.waitForAny();
 
-      expect(ensureCleanWorktree).toHaveBeenCalledWith('/test/project', 1);
-      expect(createWorktree).toHaveBeenCalledWith('/test/project', 1);
+      expect(mockEnsureClean).toHaveBeenCalledWith('/test/project', 1);
+      expect(mockCreateWorktree).toHaveBeenCalledWith('/test/project', 1);
       expect(result.phaseNumber).toBe(1);
       expect(result.success).toBe(true);
     });
@@ -110,12 +111,12 @@ describe('WorkerPool', () => {
       pool.dispatch({ number: 3, name: 'Phase 3', dependencies: [] }, runPhaseFn);
       await pool.waitForAny();
 
-      expect(mergeWorktree).toHaveBeenCalledWith('/test/project', 3);
-      expect(cleanupWorktree).toHaveBeenCalledWith('/test/project', 3);
+      expect(mockMergeWorktree).toHaveBeenCalledWith('/test/project', 3);
+      expect(mockCleanupWorktree).toHaveBeenCalledWith('/test/project', 3);
     });
 
     it('preserves worktree on merge failure', async () => {
-      vi.mocked(mergeWorktree).mockResolvedValueOnce(false);
+      mockMergeWorktree.mockResolvedValueOnce(false);
 
       const pool = new WorkerPool(defaultOpts({ parallel: true }));
       const runPhaseFn = vi.fn().mockResolvedValue(undefined);
@@ -123,8 +124,8 @@ describe('WorkerPool', () => {
       pool.dispatch({ number: 4, name: 'Phase 4', dependencies: [] }, runPhaseFn);
       const result = await pool.waitForAny();
 
-      expect(mergeWorktree).toHaveBeenCalledWith('/test/project', 4);
-      expect(cleanupWorktree).not.toHaveBeenCalled();
+      expect(mockMergeWorktree).toHaveBeenCalledWith('/test/project', 4);
+      expect(mockCleanupWorktree).not.toHaveBeenCalled();
       expect(result.success).toBe(true);
       expect(result.mergeSuccess).toBe(false);
     });
@@ -150,10 +151,10 @@ describe('WorkerPool', () => {
       pool.dispatch({ number: 1, name: 'Phase 1', dependencies: [] }, runPhaseFn);
       await pool.waitForAny();
 
-      expect(ensureCleanWorktree).not.toHaveBeenCalled();
-      expect(createWorktree).not.toHaveBeenCalled();
-      expect(mergeWorktree).not.toHaveBeenCalled();
-      expect(cleanupWorktree).not.toHaveBeenCalled();
+      expect(mockEnsureClean).not.toHaveBeenCalled();
+      expect(mockCreateWorktree).not.toHaveBeenCalled();
+      expect(mockMergeWorktree).not.toHaveBeenCalled();
+      expect(mockCleanupWorktree).not.toHaveBeenCalled();
     });
 
     it('calls runPhaseFn with projectDir in sequential mode', async () => {
@@ -173,7 +174,6 @@ describe('WorkerPool', () => {
   describe('activeCount', () => {
     it('tracks active workers', () => {
       const pool = new WorkerPool(defaultOpts());
-      // Create a long-running phase so the worker stays active
       const neverResolve = vi.fn().mockReturnValue(new Promise(() => {}));
 
       pool.dispatch({ number: 1, name: 'P1', dependencies: [] }, neverResolve);
@@ -212,16 +212,14 @@ describe('WorkerPool', () => {
   describe('merge serialization', () => {
     it('serializes merge operations to prevent concurrent git conflicts', async () => {
       const mergeOrder: number[] = [];
-      vi.mocked(mergeWorktree).mockImplementation(async (_dir, phase) => {
+      mockMergeWorktree.mockImplementation(async (_dir: string, phase: number) => {
         mergeOrder.push(phase);
-        // Simulate some merge work
         await new Promise((r) => setTimeout(r, 10));
         return true;
       });
 
       const pool = new WorkerPool(defaultOpts({ parallel: true }));
 
-      // Dispatch two phases that complete immediately
       pool.dispatch(
         { number: 1, name: 'P1', dependencies: [] },
         vi.fn().mockResolvedValue(undefined),
@@ -249,9 +247,8 @@ describe('WorkerPool', () => {
 
       pool.abortAll();
 
-      // Verify abortCurrent was called on the ClaudeService instances
-      // (via mock constructor)
-      expect(pool.activeCount).toBe(2); // Still tracked; abort doesn't remove
+      // Workers are still tracked (abort doesn't remove from active map)
+      expect(pool.activeCount).toBe(2);
     });
   });
 
@@ -261,10 +258,7 @@ describe('WorkerPool', () => {
       const events: unknown[] = [];
       pool.on('worker:message', (e) => events.push(e));
 
-      // We need to access the ClaudeService created for the worker
-      let workerService: EventEmitter | null = null;
       const runPhaseFn = vi.fn().mockImplementation((_cwd: string, cs: EventEmitter) => {
-        workerService = cs;
         cs.emit('message', { type: 'text', content: 'hello' });
         return Promise.resolve();
       });
