@@ -406,10 +406,8 @@ export class Orchestrator extends EventEmitter {
         scheduler.markInProgress(readyPhase.number);
 
         const phaseState = currentState.phases.find(p => p.number === readyPhase.number)!;
-        workerPool.dispatch(readyPhase, async (_cwd, _claudeService) => {
-          // TODO (Phase 3): In parallel mode, pass worker-specific ClaudeService
-          // For now, sequential mode uses the shared this.claudeService via runPhase
-          await this.runPhase(phaseState);
+        workerPool.dispatch(readyPhase, async (cwd, claudeService) => {
+          await this.runPhase(phaseState, claudeService, cwd);
         });
       }
 
@@ -594,7 +592,15 @@ export class Orchestrator extends EventEmitter {
   // Private: Phase execution
   // ---------------------------------------------------------------------------
 
-  private async runPhase(phase: PhaseState): Promise<void> {
+  private async runPhase(
+    phase: PhaseState,
+    overrideClaudeService?: ClaudeService,
+    overrideCwd?: string,
+  ): Promise<void> {
+    // Resolve worker-specific or shared instances
+    const cs = overrideClaudeService ?? this.claudeService;
+    const cwd = overrideCwd ?? this.projectDir;
+
     // ORCH-09: Emit phase:started
     this.emit('phase:started', { phase: phase.number, name: phase.name });
 
@@ -621,22 +627,22 @@ export class Orchestrator extends EventEmitter {
 
     // Step sequence with resume support (Pitfall 2: check individual step states)
     if (phase.steps.discuss !== 'done') {
-      await this.runStep(phase, 'discuss', () => this.runDiscuss(phase));
+      await this.runStep(phase, 'discuss', () => this.runDiscuss(phase, cs, cwd), cwd);
       if (this.shutdownRequested) return;
     }
 
     if (phase.steps.plan !== 'done') {
-      await this.runStep(phase, 'plan', () => this.runPlan(phase));
+      await this.runStep(phase, 'plan', () => this.runPlan(phase, cs, cwd), cwd);
       if (this.shutdownRequested) return;
     }
 
     if (phase.steps.execute !== 'done') {
-      await this.runStep(phase, 'execute', () => this.runExecute(phase));
+      await this.runStep(phase, 'execute', () => this.runExecute(phase, cs, cwd), cwd);
       if (this.shutdownRequested) return;
     }
 
     if (phase.steps.verify !== 'done' && !this.config.skipVerify) {
-      await this.runVerifyWithGapLoop(phase);
+      await this.runVerifyWithGapLoop(phase, cs, cwd);
       if (this.shutdownRequested) return;
     }
 
@@ -663,16 +669,18 @@ export class Orchestrator extends EventEmitter {
   // Private: Git commit tracking
   // ---------------------------------------------------------------------------
 
-  private async getGitHead(): Promise<string | null> {
+  private async getGitHead(cwd?: string): Promise<string | null> {
+    const gitCwd = cwd ?? this.projectDir;
     return new Promise((resolve) => {
-      execFile('git', ['rev-parse', 'HEAD'], { cwd: this.projectDir }, (err, stdout) => {
+      execFile('git', ['rev-parse', 'HEAD'], { cwd: gitCwd }, (err, stdout) => {
         if (err) resolve(null);
         else resolve(stdout.trim());
       });
     });
   }
 
-  private async getNewCommits(sinceRef: string | null): Promise<CommitInfo[]> {
+  private async getNewCommits(sinceRef: string | null, cwd?: string): Promise<CommitInfo[]> {
+    const gitCwd = cwd ?? this.projectDir;
     const SEP = '<<GSD_SEP>>';
     const format = `%H${SEP}%s`;
     const parseOutput = (stdout: string): CommitInfo[] =>
@@ -684,7 +692,7 @@ export class Orchestrator extends EventEmitter {
     if (!sinceRef) {
       // No prior HEAD — repo was empty before; grab all commits
       return new Promise((resolve) => {
-        execFile('git', ['log', `--format=${format}`], { cwd: this.projectDir }, (err, stdout) => {
+        execFile('git', ['log', `--format=${format}`], { cwd: gitCwd }, (err, stdout) => {
           if (err || !stdout.trim()) resolve([]);
           else resolve(parseOutput(stdout));
         });
@@ -693,7 +701,7 @@ export class Orchestrator extends EventEmitter {
     return new Promise((resolve) => {
       execFile(
         'git', ['log', `--format=${format}`, `${sinceRef}..HEAD`],
-        { cwd: this.projectDir },
+        { cwd: gitCwd },
         (err, stdout) => {
           if (err || !stdout.trim()) resolve([]);
           else resolve(parseOutput(stdout));
@@ -710,6 +718,7 @@ export class Orchestrator extends EventEmitter {
     phase: PhaseState,
     stepName: PhaseStep,
     fn: () => Promise<void>,
+    cwd?: string,
   ): Promise<void> {
     // Check shutdown before starting step
     if (this.shutdownRequested) {
@@ -718,7 +727,7 @@ export class Orchestrator extends EventEmitter {
     }
 
     // Capture git HEAD before step runs
-    const headBefore = await this.getGitHead();
+    const headBefore = await this.getGitHead(cwd);
 
     // Emit step:started
     this.emit('step:started', { phase: phase.number, step: stepName });
@@ -758,7 +767,7 @@ export class Orchestrator extends EventEmitter {
     }
 
     // Collect any new commits made during this step
-    const newCommits = await this.getNewCommits(headBefore);
+    const newCommits = await this.getNewCommits(headBefore, cwd);
     if (newCommits.length > 0) {
       const existing = new Set(phase.commits.map((c) => c.hash));
       for (const commit of newCommits) {
@@ -796,10 +805,16 @@ export class Orchestrator extends EventEmitter {
   // Private: Step implementations
   // ---------------------------------------------------------------------------
 
-  private async runDiscuss(phase: PhaseState): Promise<void> {
+  private async runDiscuss(
+    phase: PhaseState,
+    claudeService?: ClaudeService,
+    cwd?: string,
+  ): Promise<void> {
+    const effectiveCwd = cwd ?? this.projectDir;
+
     if (this.config.skipDiscuss) {
       // DISC-04: Write CONTEXT.md directly
-      await writeSkipDiscussContext(this.projectDir, {
+      await writeSkipDiscussContext(effectiveCwd, {
         number: phase.number,
         name: phase.name,
       });
@@ -809,7 +824,7 @@ export class Orchestrator extends EventEmitter {
     // Check if CONTEXT.md already exists (phase was previously discussed)
     try {
       const padded = formatPhaseNumber(phase.number);
-      const phasesDir = join(this.projectDir, '.planning', 'phases');
+      const phasesDir = join(effectiveCwd, '.planning', 'phases');
       const entries = await readdir(phasesDir, { withFileTypes: true });
       const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
       if (phaseEntry) {
@@ -827,14 +842,22 @@ export class Orchestrator extends EventEmitter {
     await this.executeWithRetry(
       `/gsd:discuss-phase ${phase.number}`,
       { phase: phase.number, step: 'discuss' },
+      claudeService,
+      cwd,
     );
   }
 
-  private async runPlan(phase: PhaseState): Promise<void> {
+  private async runPlan(
+    phase: PhaseState,
+    claudeService?: ClaudeService,
+    cwd?: string,
+  ): Promise<void> {
+    const effectiveCwd = cwd ?? this.projectDir;
+
     // Check if PLAN.md files already exist (phase was previously planned)
     try {
       const padded = formatPhaseNumber(phase.number);
-      const phasesDir = join(this.projectDir, '.planning', 'phases');
+      const phasesDir = join(effectiveCwd, '.planning', 'phases');
       const entries = await readdir(phasesDir, { withFileTypes: true });
       const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
       if (phaseEntry) {
@@ -854,13 +877,21 @@ export class Orchestrator extends EventEmitter {
     await this.executeWithRetry(
       `/gsd:plan-phase ${phase.number}`,
       { phase: phase.number, step: 'plan', maxTurns: 200 },
+      claudeService,
+      cwd,
     );
   }
 
-  private async runExecute(phase: PhaseState): Promise<void> {
+  private async runExecute(
+    phase: PhaseState,
+    claudeService?: ClaudeService,
+    cwd?: string,
+  ): Promise<void> {
     await this.executeWithRetry(
       `/gsd:execute-phase ${phase.number}`,
       { phase: phase.number, step: 'execute', maxTurns: 200 },
+      claudeService,
+      cwd,
     );
   }
 
@@ -868,7 +899,12 @@ export class Orchestrator extends EventEmitter {
   // Private: Verify with gap detection loop (ORCH-05)
   // ---------------------------------------------------------------------------
 
-  private async runVerifyWithGapLoop(phase: PhaseState): Promise<void> {
+  private async runVerifyWithGapLoop(
+    phase: PhaseState,
+    claudeService?: ClaudeService,
+    cwd?: string,
+  ): Promise<void> {
+    const effectiveCwd = cwd ?? this.projectDir;
     const MAX_GAP_ITERATIONS = 3;
 
     for (let iteration = 0; iteration < MAX_GAP_ITERATIONS; iteration++) {
@@ -877,13 +913,15 @@ export class Orchestrator extends EventEmitter {
         await this.executeWithRetry(
           `/gsd:verify-work ${phase.number}`,
           { phase: phase.number, step: 'verify' },
+          claudeService,
+          cwd,
         );
-      });
+      }, cwd);
 
       if (this.shutdownRequested) return;
 
       // Check for gaps
-      const hasGaps = await checkForGaps(this.projectDir, phase.number);
+      const hasGaps = await checkForGaps(effectiveCwd, phase.number);
       if (!hasGaps) return; // Passed -- done
 
       // Gaps found: re-plan with --gaps flag, re-execute with --gaps-only
@@ -896,6 +934,8 @@ export class Orchestrator extends EventEmitter {
       await this.executeWithRetry(
         `/gsd:plan-phase ${phase.number} --gaps`,
         { phase: phase.number, step: 'plan' },
+        claudeService,
+        cwd,
       );
 
       if (this.shutdownRequested) return;
@@ -904,6 +944,8 @@ export class Orchestrator extends EventEmitter {
       await this.executeWithRetry(
         `/gsd:execute-phase ${phase.number} --gaps-only`,
         { phase: phase.number, step: 'execute' },
+        claudeService,
+        cwd,
       );
 
       if (this.shutdownRequested) return;
@@ -932,7 +974,12 @@ export class Orchestrator extends EventEmitter {
   private async executeWithRetry(
     prompt: string,
     meta: { phase: number; step: string; timeoutMs?: number; maxTurns?: number },
+    overrideClaudeService?: ClaudeService,
+    overrideCwd?: string,
   ): Promise<CommandResult> {
+    const cs = overrideClaudeService ?? this.claudeService;
+    const effectiveCwd = overrideCwd ?? this.projectDir;
+
     this.logger.log('info', 'orchestrator', `Running command: ${prompt}`, {
       phase: meta.phase,
       step: meta.step,
@@ -941,8 +988,8 @@ export class Orchestrator extends EventEmitter {
     // First attempt
     let result: CommandResult;
     try {
-      result = await this.claudeService.runGsdCommand(prompt, {
-        cwd: this.projectDir,
+      result = await cs.runGsdCommand(prompt, {
+        cwd: effectiveCwd,
         phase: meta.phase,
         step: meta.step,
         timeoutMs: meta.timeoutMs,
@@ -966,8 +1013,8 @@ export class Orchestrator extends EventEmitter {
     });
 
     try {
-      result = await this.claudeService.runGsdCommand(prompt, {
-        cwd: this.projectDir,
+      result = await cs.runGsdCommand(prompt, {
+        cwd: effectiveCwd,
         phase: meta.phase,
         step: meta.step,
         timeoutMs: meta.timeoutMs,
