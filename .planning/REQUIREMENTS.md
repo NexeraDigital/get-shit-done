@@ -26,8 +26,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Execution
 
-- [ ] **EXEC-01**: Multiple ClaudeService instances run simultaneously, one per parallel phase
-- [ ] **EXEC-02**: Each parallel phase runs the full lifecycle (discuss -> plan -> execute -> verify) independently
+- [x] **EXEC-01**: Multiple ClaudeService instances run simultaneously, one per parallel phase
+- [x] **EXEC-02**: Each parallel phase runs the full lifecycle (discuss -> plan -> execute -> verify) independently
 <<<<<<< HEAD
 - [ ] **EXEC-03**: Phase completion updates are atomic and conflict-free across concurrent workers
 - [ ] **EXEC-04**: State consistency is maintained -- STATE.md and state.json reflect accurate parallel status
@@ -105,8 +105,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | SCHED-04 | Phase 2 | Complete |
 | SCHED-05 | Phase 1 | Pending |
 | SCHED-06 | Phase 1 | Pending |
-| EXEC-01 | Phase 2 | Pending |
-| EXEC-02 | Phase 2 | Pending |
+| EXEC-01 | Phase 2 | Complete |
+| EXEC-02 | Phase 2 | Complete |
 | EXEC-03 | Phase 1 | Pending |
 | EXEC-04 | Phase 1 | Pending |
 =======
@@ -115,8 +115,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | SCHED-04 | Phase 2 | Complete |
 | SCHED-05 | Phase 1 | Complete |
 | SCHED-06 | Phase 1 | Complete |
-| EXEC-01 | Phase 2 | Pending |
-| EXEC-02 | Phase 2 | Pending |
+| EXEC-01 | Phase 2 | Complete |
+| EXEC-02 | Phase 2 | Complete |
 | EXEC-03 | Phase 1 | Complete |
 | EXEC-04 | Phase 1 | Complete |
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
