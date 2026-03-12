@@ -16,6 +16,7 @@ export function QuestionResponse() {
   const { questionId } = useParams();
   const navigate = useNavigate();
   const questions = useDashboardStore((s) => s.questions);
+  const phases = useDashboardStore((s) => s.phases);
   const question = questions.find((q) => q.id === questionId);
 
   // Local form state -- user can change answers before submitting (DASH-16)
@@ -150,12 +151,20 @@ export function QuestionResponse() {
       </button>
 
       {/* Phase context */}
-      {displayQuestion.phase != null && (
-        <div className="text-sm text-gray-500 mb-2">
-          Phase {displayQuestion.phase}
-          {displayQuestion.step ? ` / ${displayQuestion.step}` : ''}
-        </div>
-      )}
+      {displayQuestion.phase != null && (() => {
+        const phaseInfo = phases.find(p => p.number === displayQuestion.phase);
+        return (
+          <div className="mb-3">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-2.5 py-1 text-sm font-medium text-blue-800">
+              Phase {displayQuestion.phase}
+              {phaseInfo ? `: ${phaseInfo.name}` : ''}
+              {displayQuestion.step ? (
+                <span className="text-blue-600"> / {displayQuestion.step}</span>
+              ) : null}
+            </span>
+          </div>
+        );
+      })()}
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
         Respond to Question

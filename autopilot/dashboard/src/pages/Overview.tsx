@@ -9,6 +9,7 @@ import { PhaseCard } from '../components/PhaseCard.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
 import { LogStream } from '../components/LogStream.js';
 import { VictoryScreen } from '../components/VictoryScreen.js';
+import { SummaryTable } from '../components/SummaryTable.js';
 
 export function Overview() {
   const status = useDashboardStore((s) => s.status);
@@ -21,6 +22,7 @@ export function Overview() {
   const projectDescription = useDashboardStore((s) => s.projectDescription);
   const currentMilestone = useDashboardStore((s) => s.currentMilestone);
   const milestones = useDashboardStore((s) => s.milestones);
+  const questions = useDashboardStore((s) => s.questions);
 
   // Victory screen state: Milestone just shipped (status === 'shipped' OR currentMilestone is null but shipped milestones exist)
   const shouldShowVictory =
@@ -38,6 +40,10 @@ export function Overview() {
 
   // No active milestone state: No milestone at all (fresh project or between milestones)
   const showNoMilestone = currentMilestone === null && milestones.length === 0;
+
+  // Show summary table on build-complete when parallel mode was active
+  const isParallelMode = phases.some((p) => p.workerStatus != null);
+  const showSummaryTable = status === 'complete' && isParallelMode;
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,6 +76,11 @@ export function Overview() {
       {/* Progress bar (full width) */}
       <ProgressBar progress={progress} isInitializing={status === 'running' && phases.length === 0} />
 
+      {/* Summary table on build-complete (parallel mode) */}
+      {showSummaryTable && (
+        <SummaryTable phases={phases} />
+      )}
+
       {/* Main content: Left column (Phases + Logs) | Right column (Activity feed spanning both) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Phases then Logs stacked */}
@@ -77,6 +88,7 @@ export function Overview() {
           <PhaseCard
             phases={phases}
             currentPhase={currentPhase}
+            questions={questions}
           />
           <LogStream logs={logs} collapsible={true} />
         </div>
