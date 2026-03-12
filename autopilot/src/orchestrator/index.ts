@@ -13,6 +13,9 @@ import type { StateStore } from '../state/index.js';
 import type { ClaudeService } from '../claude/index.js';
 import type { AutopilotLogger } from '../logger/index.js';
 import type { ActivityStore } from '../activity/index.js';
+import { DependencyScheduler, type SchedulerPhase } from '../scheduler/index.js';
+import { parseDependsOn } from '../scheduler/parse-depends-on.js';
+import { WorkerPool } from '../worker/index.js';
 import { writeYoloConfig } from './yolo-config.js';
 import { writeSkipDiscussContext } from './discuss-handler.js';
 import { checkForGaps } from './gap-detector.js';
@@ -255,6 +258,7 @@ export class Orchestrator extends EventEmitter {
   async run(
     prdPath: string,
     phaseRange?: number[],
+    options?: { parallel?: boolean; concurrency?: number },
   ): Promise<void> {
     this.logger.log('info', 'orchestrator', 'Starting autopilot run', { prdPath });
 
@@ -371,18 +375,61 @@ export class Orchestrator extends EventEmitter {
         `Cleared ${staleQuestions.length} stale unanswered question(s) from previous session`);
     }
 
-    // Phase loop
-    for (const phase of currentState.phases) {
-      // Skip completed or skipped phases
-      if (phase.status === 'completed' || phase.status === 'skipped') continue;
+    // Unified scheduler-driven phase loop
+    // Both sequential and parallel modes use this same loop.
+    // The only difference: concurrency (1 vs N) and worktree usage.
+    const parallel = options?.parallel ?? false;
+    const concurrency = parallel ? (options?.concurrency ?? 3) : 1;
 
-      // Skip if not in phase range
-      if (phaseRange && !phaseRange.includes(phase.number)) continue;
+    // Filter to applicable phases (not completed/skipped, in range)
+    const applicablePhases = currentState.phases
+      .filter(p => p.status !== 'completed' && p.status !== 'skipped')
+      .filter(p => !phaseRange || phaseRange.includes(p.number));
 
-      // Check shutdown before starting new phase
+    // Convert RoadmapPhase-like data to SchedulerPhase format
+    const schedulerPhases: SchedulerPhase[] = applicablePhases.map(p => ({
+      number: p.number,
+      name: p.name,
+      dependencies: parseDependsOn(p.dependsOn ?? null),
+    }));
+
+    const scheduler = new DependencyScheduler(schedulerPhases);
+    const workerPool = new WorkerPool({ concurrency, parallel, projectDir: this.projectDir });
+
+    while (!scheduler.isComplete()) {
       if (this.shutdownRequested) break;
 
-      await this.runPhase(phase);
+      // Dispatch ready phases up to concurrency limit
+      const ready = scheduler.getReady();
+      for (const readyPhase of ready) {
+        if (workerPool.activeCount >= concurrency) break;
+        scheduler.markInProgress(readyPhase.number);
+
+        const phaseState = currentState.phases.find(p => p.number === readyPhase.number)!;
+        workerPool.dispatch(readyPhase, async (_cwd, _claudeService) => {
+          // TODO (Phase 3): In parallel mode, pass worker-specific ClaudeService
+          // For now, sequential mode uses the shared this.claudeService via runPhase
+          await this.runPhase(phaseState);
+        });
+      }
+
+      // Wait for at least one worker to complete
+      if (workerPool.activeCount > 0) {
+        const result = await workerPool.waitForAny();
+        if (result.success) {
+          scheduler.markComplete(result.phaseNumber);
+          // Newly ready phases will be picked up on the next loop iteration
+        } else {
+          // Phase failed -- request shutdown (fail-fast default)
+          this.logger.log('error', 'orchestrator',
+            `Phase ${result.phaseNumber} failed: ${result.error}`);
+          if (result.mergeSuccess === false) {
+            this.logger.log('warn', 'orchestrator',
+              `Merge conflict for phase ${result.phaseNumber} -- worktree preserved`);
+          }
+          this.requestShutdown();
+        }
+      }
     }
 
     // ORCH-10: If all phases complete without shutdown

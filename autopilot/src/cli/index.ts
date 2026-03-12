@@ -756,7 +756,10 @@ Created by NexeraDigital — https://github.com/NexeraDigital
     // p. Run orchestrator
     try {
       const prdPath = options.prd ? resolve(options.prd) : '';
-      await orchestrator.run(prdPath, phaseRange);
+      await orchestrator.run(prdPath, phaseRange, {
+        parallel,
+        concurrency,
+      });
 
       if (!options.quiet) {
         console.log('\nAutopilot run complete.');

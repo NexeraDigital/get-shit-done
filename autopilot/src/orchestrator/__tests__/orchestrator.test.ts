@@ -296,7 +296,9 @@ describe('Orchestrator', () => {
     const escalationEvents: unknown[] = [];
     orchestrator.on('error:escalation', (event) => escalationEvents.push(event));
 
-    await expect(orchestrator.run('/test/prd.md')).rejects.toThrow('Command failed after retry');
+    // The unified scheduler-driven loop catches phase failures via WorkerPool
+    // and requests shutdown instead of throwing. run() resolves normally.
+    await orchestrator.run('/test/prd.md');
 
     // Should have been called exactly 2 times for the discuss step
     // (first attempt + one retry)
