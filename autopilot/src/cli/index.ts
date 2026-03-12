@@ -56,6 +56,9 @@ Examples:
   $ gsd-autopilot                            # Run with existing .planning/
   $ gsd-autopilot --resume                   # Resume from last checkpoint
   $ gsd-autopilot --prd ./spec.md --phases 1-3,5
+  $ gsd-autopilot --parallel                    # Run all phases in parallel
+  $ gsd-autopilot --phases 2-5 --parallel       # Parallel for specific phases
+  $ gsd-autopilot --parallel --concurrency 5    # Parallel with 5 workers
 
 Dashboard:
   Port auto-derived from git repo (override with --port)
@@ -67,6 +70,8 @@ Created by NexeraDigital — https://github.com/NexeraDigital
   .option('--skip-discuss', 'Skip discuss-phase, let Claude decide everything')
   .option('--skip-verify', 'Skip verification step')
   .option('--phases <range>', 'Run specific phases (e.g., 1-3,5,7-9)')
+  .option('--parallel', 'Run phases in parallel using git worktrees')
+  .option('--concurrency <n>', 'Max concurrent workers (default: 3)', '3')
   .option('--notify <channel>', 'Notification channel (console, system, teams, slack)', 'console')
   .option('--webhook-url <url>', 'Webhook URL for Teams/Slack notifications')
   .option('--port <number>', 'Dashboard server port (auto-derived from git repo if omitted)')
@@ -95,6 +100,8 @@ Created by NexeraDigital — https://github.com/NexeraDigital
     embeddedServer?: boolean;
     tunnel?: boolean;
     remote?: boolean;
+    parallel?: boolean;
+    concurrency?: string;
   }) => {
     // a. Launch interactive wizard if no --prd or --resume provided
     if (!options.resume && !options.prd) {
@@ -227,6 +234,10 @@ Created by NexeraDigital — https://github.com/NexeraDigital
 
     // h. Parse phase range (if provided)
     const phaseRange = options.phases ? parsePhaseRange(options.phases) : undefined;
+
+    // h2. Parse parallel execution flags (CLI-only, not persisted to config)
+    const parallel = options.parallel ?? false;
+    const concurrency = parseInt(options.concurrency ?? '3', 10);
 
     // i. Create NotificationManager and wire adapters
     const notificationManager = new NotificationManager({
