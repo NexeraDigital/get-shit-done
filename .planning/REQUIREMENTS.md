@@ -40,15 +40,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **GIT-01**: Each parallel phase executes in its own git worktree
 - [x] **GIT-02**: On phase completion, worktree changes are merged back to the central branch
-- [ ] **GIT-03**: Merge conflicts are auto-resolved where possible
-- [ ] **GIT-04**: A merge conflict resolution report is generated documenting what was fixed
-- [ ] **GIT-05**: Resolution reports are available as context for reconciling future merge conflicts
+- [x] **GIT-03**: Merge conflicts are auto-resolved where possible
+- [x] **GIT-04**: A merge conflict resolution report is generated documenting what was fixed
+- [x] **GIT-05**: Resolution reports are available as context for reconciling future merge conflicts
 - [x] **GIT-06**: Worktree is cleaned up (removed) after successful merge
 
 ### Failure Handling
 
 - [ ] **FAIL-01**: Default fail-fast behavior stops all workers when one phase fails
-- [ ] **FAIL-02**: `--continue` flag lets independent phases finish even when one fails
+- [x] **FAIL-02**: `--continue` flag lets independent phases finish even when one fails
 - [ ] **FAIL-03**: Graceful shutdown on SIGINT/SIGTERM cleans up all child processes and worktrees
 - [ ] **FAIL-04**: Failed phase worktrees are preserved for debugging (not auto-cleaned)
 
@@ -122,12 +122,12 @@ Deferred to future release. Tracked but not in current roadmap.
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 | GIT-01 | Phase 2 | Complete |
 | GIT-02 | Phase 2 | Complete |
-| GIT-03 | Phase 3 | Pending |
-| GIT-04 | Phase 3 | Pending |
-| GIT-05 | Phase 3 | Pending |
+| GIT-03 | Phase 3 | Complete |
+| GIT-04 | Phase 3 | Complete |
+| GIT-05 | Phase 3 | Complete |
 | GIT-06 | Phase 2 | Complete |
 | FAIL-01 | Phase 3 | Pending |
-| FAIL-02 | Phase 3 | Pending |
+| FAIL-02 | Phase 3 | Complete |
 | FAIL-03 | Phase 3 | Pending |
 | FAIL-04 | Phase 3 | Pending |
 <<<<<<< HEAD
