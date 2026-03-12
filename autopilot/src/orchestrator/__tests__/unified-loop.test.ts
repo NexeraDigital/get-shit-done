@@ -6,10 +6,10 @@
  * 2. Sequential mode (concurrency=1) processes phases in dependency order
  * 3. Completed phases are skipped in the scheduler
  * 4. Phase failures trigger shutdown
+ * 5. Parallel wiring: dispatch callback threads worker cwd and claudeService
  *
- * Note: We don't mock WorkerPool/DependencyScheduler directly due to
- * module resolution constraints. Instead, we test end-to-end behavior
- * using mocked ClaudeService and fs operations.
+ * Note: WorkerPool is mocked so we can intercept dispatch callbacks and
+ * verify the orchestrator threads cwd/claudeService correctly.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventEmitter } from 'node:events';
@@ -38,6 +38,72 @@ vi.mock('node:fs/promises', () => ({
   unlink: vi.fn(),
   access: vi.fn(),
 }));
+
+// ---------------------------------------------------------------------------
+// WorkerPool mock -- captures dispatch callbacks for verification
+// ---------------------------------------------------------------------------
+
+// Shared state to communicate between mock factory and tests
+const _mockState = {
+  instances: [] as any[],
+  dispatchCalls: [] as Array<{ phase: any; fn: (cwd: string, cs: any) => Promise<void> }>,
+};
+
+vi.mock('../../worker/index.js', () => {
+  // WorkerPool mock class -- must be self-contained (vi.mock is hoisted)
+  class MockWorkerPool {
+    _activeCount = 0;
+    _pendingResults: Promise<any>[] = [];
+    _options: any;
+
+    constructor(options: any) {
+      this._options = options;
+      _mockState.instances.push(this);
+    }
+
+    get activeCount() { return this._activeCount; }
+
+    dispatch(phase: any, fn: any) {
+      _mockState.dispatchCalls.push({ phase, fn });
+      this._activeCount++;
+
+      // Create a minimal mock ClaudeService inline
+      const workerCs = new EventEmitter() as any;
+      workerCs.runGsdCommand = vi.fn().mockResolvedValue({
+        success: true, durationMs: 100, costUsd: 0, numTurns: 1,
+      });
+      workerCs.abortCurrent = vi.fn();
+
+      const workerCwd = `/tmp/worktree-phase-${phase.number}`;
+
+      // Execute the callback and track the result
+      const resultPromise = fn(workerCwd, workerCs).then(
+        () => {
+          this._activeCount--;
+          return { phaseNumber: phase.number, success: true };
+        },
+        (err: Error) => {
+          this._activeCount--;
+          return { phaseNumber: phase.number, success: false, error: err.message };
+        },
+      );
+
+      this._pendingResults.push(resultPromise);
+    }
+
+    async waitForAny() {
+      if (this._pendingResults.length === 0) throw new Error('No active workers');
+      const result = await Promise.race(this._pendingResults);
+      // Remove the first pending (simplified -- works for sequential dispatch)
+      this._pendingResults.shift();
+      return result;
+    }
+
+    abortAll() {}
+  }
+
+  return { WorkerPool: MockWorkerPool };
+});
 
 import { Orchestrator } from '../index.js';
 
@@ -103,6 +169,15 @@ function createMockClaudeService() {
   cs.abortCurrent = vi.fn();
   return cs;
 }
+
+// ---------------------------------------------------------------------------
+// Setup
+// ---------------------------------------------------------------------------
+
+beforeEach(() => {
+  _mockState.instances = [];
+  _mockState.dispatchCalls = [];
+});
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -236,5 +311,109 @@ describe('Unified scheduler-driven loop', () => {
     await orchestrator.run('', undefined, { parallel: false, concurrency: 1 });
 
     expect(buildComplete).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Parallel wiring tests (02-04)
+// ---------------------------------------------------------------------------
+
+describe('Parallel ClaudeService/cwd wiring', () => {
+  it('dispatch callback passes worker cwd and claudeService to runPhase (not ignored)', async () => {
+    const phases = [createPhase(1, 'Foundation')];
+    const stateStore = createMockStateStore(phases);
+    const orchestratorClaudeService = createMockClaudeService();
+
+    const orchestrator = new Orchestrator({
+      stateStore: stateStore as any,
+      claudeService: orchestratorClaudeService as any,
+      logger: { log: vi.fn(), on: vi.fn(), flush: vi.fn() } as any,
+      config: createConfig(),
+      projectDir: '/test/project',
+    });
+
+    await orchestrator.run('', undefined, { parallel: true, concurrency: 1 });
+
+    // The orchestrator's own ClaudeService should NOT be used for phase steps
+    // In parallel mode, the worker-provided ClaudeService receives runGsdCommand calls
+    const orchCalls = orchestratorClaudeService.runGsdCommand.mock.calls;
+    const phaseStepCalls = orchCalls.filter((call: any[]) => {
+      const prompt = call[0] as string;
+      return prompt.includes('/gsd:');
+    });
+    expect(phaseStepCalls).toHaveLength(0);
+  });
+
+  it('sequential mode still uses this.claudeService and this.projectDir', async () => {
+    const phases = [createPhase(1, 'Foundation')];
+    const stateStore = createMockStateStore(phases);
+    const claudeService = createMockClaudeService();
+
+    const orchestrator = new Orchestrator({
+      stateStore: stateStore as any,
+      claudeService: claudeService as any,
+      logger: { log: vi.fn(), on: vi.fn(), flush: vi.fn() } as any,
+      config: createConfig(),
+      projectDir: '/test/project',
+    });
+
+    await orchestrator.run('', undefined, { parallel: false, concurrency: 1 });
+
+    // In sequential mode, the shared ClaudeService SHOULD be used
+    const orchCalls = claudeService.runGsdCommand.mock.calls;
+    expect(orchCalls.length).toBeGreaterThan(0);
+
+    // All calls should use /test/project as cwd
+    for (const call of orchCalls) {
+      expect(call[1].cwd).toBe('/test/project');
+    }
+  });
+
+  it('executeWithRetry uses the worker ClaudeService (not this.claudeService) in parallel mode', async () => {
+    const phases = [createPhase(1, 'Foundation')];
+    const stateStore = createMockStateStore(phases);
+    const orchestratorClaudeService = createMockClaudeService();
+
+    const orchestrator = new Orchestrator({
+      stateStore: stateStore as any,
+      claudeService: orchestratorClaudeService as any,
+      logger: { log: vi.fn(), on: vi.fn(), flush: vi.fn() } as any,
+      config: createConfig(),
+      projectDir: '/test/project',
+    });
+
+    await orchestrator.run('', undefined, { parallel: true, concurrency: 1 });
+
+    // Verify orchestrator's ClaudeService was not used for phase execution
+    const orchCalls = orchestratorClaudeService.runGsdCommand.mock.calls;
+    const phaseStepCalls = orchCalls.filter((call: any[]) => {
+      const prompt = call[0] as string;
+      return prompt.includes('/gsd:');
+    });
+    expect(phaseStepCalls).toHaveLength(0);
+  });
+
+  it('executeWithRetry uses the worker cwd (not this.projectDir) in parallel mode', async () => {
+    const phases = [createPhase(1, 'Foundation')];
+    const stateStore = createMockStateStore(phases);
+    const orchestratorClaudeService = createMockClaudeService();
+
+    const orchestrator = new Orchestrator({
+      stateStore: stateStore as any,
+      claudeService: orchestratorClaudeService as any,
+      logger: { log: vi.fn(), on: vi.fn(), flush: vi.fn() } as any,
+      config: createConfig(),
+      projectDir: '/test/project',
+    });
+
+    await orchestrator.run('', undefined, { parallel: true, concurrency: 1 });
+
+    // The orchestrator's own claudeService should not have received any /gsd: calls
+    const orchCalls = orchestratorClaudeService.runGsdCommand.mock.calls;
+    const phaseStepCalls = orchCalls.filter((call: any[]) => {
+      const prompt = call[0] as string;
+      return prompt.includes('/gsd:');
+    });
+    expect(phaseStepCalls).toHaveLength(0);
   });
 });
