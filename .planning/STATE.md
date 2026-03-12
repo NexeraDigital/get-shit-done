@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-12T06:49:39Z"
-last_activity: 2026-03-12 -- Completed 02-03 WorkerPool and Unified Orchestrator Loop
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-12T07:16:26Z"
+last_activity: 2026-03-12 -- Completed 02-04 Worker ClaudeService/cwd Wiring
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -26,29 +26,29 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 2 of 4 (Parallel Execution Engine)
-Plan: 3 of 3 in current phase (completed)
-Status: Completed 02-03
-Last activity: 2026-03-12 -- Completed 02-03 WorkerPool and Unified Orchestrator Loop
+Plan: 4 of 4 in current phase (completed)
+Status: Completed 02-04
+Last activity: 2026-03-12 -- Completed 02-04 Worker ClaudeService/cwd Wiring
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 6min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-scheduler-and-isolation-model | 2/2 | 6min | 3min |
-| 02-parallel-execution-engine | 3/3 | 23min | 8min |
+| 02-parallel-execution-engine | 4/4 | 32min | 8min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min), 01-02 (3min), 02-01 (4min), 02-02 (4min), 02-03 (15min)
-- Trend: increasing (02-03 was core integration plan)
+- Last 5 plans: 01-02 (3min), 02-01 (4min), 02-02 (4min), 02-03 (15min), 02-04 (9min)
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -73,6 +73,9 @@ Recent decisions affecting current work:
 - [02-03]: WorkerPool dispatch callback pattern decouples from PhaseState internals
 - [02-03]: Merge serialization via promise-chain (same pattern as StateWriteQueue)
 - [02-03]: Phase failures trigger requestShutdown() instead of throwing -- graceful fail-fast
+- [02-04]: All lifecycle methods use optional-override-with-fallback pattern for claudeService and cwd
+- [02-04]: WorkerPool always provides ClaudeService to callback in both sequential and parallel modes
+- [02-04]: orchestrator.test.ts uses shared ClaudeService reference forwarding for WorkerPool mock compatibility
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T06:49:39Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-12T07:16:26Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: .planning/phases/02-parallel-execution-engine/02-CONTEXT.md
