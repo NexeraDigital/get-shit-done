@@ -13,7 +13,7 @@ This roadmap transforms the sequential GSD Autopilot into a parallel execution e
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Scheduler and Isolation Model** - DAG-based dependency scheduling, single-writer state, per-worker event files (completed 2026-03-12)
-- [x] **Phase 2: Parallel Execution Engine** - CLI flags, worker pool, git worktrees, parallel phase lifecycle (completed 2026-03-12)
+- [ ] **Phase 2: Parallel Execution Engine** - CLI flags, worker pool, git worktrees, parallel phase lifecycle (gap closure in progress)
 - [ ] **Phase 3: Failure Handling and Git Conflict Resolution** - Fail-fast/continue modes, graceful shutdown, merge conflict resolution
 - [ ] **Phase 4: Dashboard and Event Stream Integration** - Consolidated event stream, per-phase status and question routing in dashboard
 
@@ -45,12 +45,13 @@ Plans:
   3. Each parallel phase executes in its own git worktree and the worktree is cleaned up after successful merge back to the central branch
   4. User can specify `--concurrency N` to limit the number of simultaneous workers and `--parallel 2,3,5` to select specific phases
   5. Each parallel phase runs the full lifecycle (discuss, plan, execute, verify) independently without interfering with other active phases
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 02-01-PLAN.md -- Worker types and git worktree lifecycle functions (TDD)
-- [ ] 02-02-PLAN.md -- CLI --parallel and --concurrency flags
-- [ ] 02-03-PLAN.md -- WorkerPool and unified scheduler-driven orchestrator loop
+- [x] 02-02-PLAN.md -- CLI --parallel and --concurrency flags
+- [x] 02-03-PLAN.md -- WorkerPool and unified scheduler-driven orchestrator loop
+- [ ] 02-04-PLAN.md -- Gap closure: wire worker-specific ClaudeService and cwd through orchestrator dispatch
 
 ### Phase 3: Failure Handling and Git Conflict Resolution
 **Goal**: The parallel engine handles errors gracefully -- failed phases do not corrupt the project, merge conflicts are resolved and documented, and the user retains full control over recovery
@@ -89,6 +90,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scheduler and Isolation Model | 2/2 | Complete   | 2026-03-12 |
-| 2. Parallel Execution Engine | 3/3 | Complete   | 2026-03-12 |
+| 2. Parallel Execution Engine | 3/4 | Gap closure | - |
 | 3. Failure Handling and Git Conflict Resolution | 0/? | Not started | - |
 | 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
