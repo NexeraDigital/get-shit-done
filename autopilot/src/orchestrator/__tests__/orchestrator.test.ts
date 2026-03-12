@@ -27,6 +27,54 @@ vi.mock('node:fs/promises', () => ({
   unlink: vi.fn(),
 }));
 
+// Shared reference so the WorkerPool mock can forward to deps.claudeService
+// Set in beforeEach to match the current test's deps.
+let _sharedClaudeServiceRef: { runGsdCommand: any; abortCurrent: any } | null = null;
+
+vi.mock('../../worker/index.js', () => {
+  class MockWorkerPool {
+    _activeCount = 0;
+    _pendingResults: Promise<any>[] = [];
+    _options: any;
+
+    constructor(options: any) {
+      this._options = options;
+    }
+
+    get activeCount() { return this._activeCount; }
+
+    dispatch(phase: any, fn: any) {
+      this._activeCount++;
+
+      // Use the shared ClaudeService reference so tests can inspect calls
+      const workerCs = _sharedClaudeServiceRef ?? {
+        runGsdCommand: vi.fn().mockResolvedValue({ success: true, durationMs: 100, costUsd: 0, numTurns: 1 }),
+        abortCurrent: vi.fn(),
+      };
+
+      const cwd = this._options.projectDir;
+
+      const resultPromise = fn(cwd, workerCs).then(
+        () => { this._activeCount--; return { phaseNumber: phase.number, success: true }; },
+        (err: Error) => { this._activeCount--; return { phaseNumber: phase.number, success: false, error: err.message }; },
+      );
+
+      this._pendingResults.push(resultPromise);
+    }
+
+    async waitForAny() {
+      if (this._pendingResults.length === 0) throw new Error('No active workers');
+      const result = await Promise.race(this._pendingResults);
+      this._pendingResults.shift();
+      return result;
+    }
+
+    abortAll() {}
+  }
+
+  return { WorkerPool: MockWorkerPool };
+});
+
 // Import mocked modules so we can configure them per test
 import { writeYoloConfig } from '../yolo-config.js';
 import { writeSkipDiscussContext } from '../discuss-handler.js';
@@ -173,6 +221,7 @@ describe('Orchestrator', () => {
     mockUnlink.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
 
     deps = createMockDeps();
+    _sharedClaudeServiceRef = deps.claudeService;
     orchestrator = new Orchestrator(deps as unknown as OrchestratorOptions);
   });
 
