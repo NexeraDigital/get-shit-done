@@ -61,7 +61,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EVNT-01**: Events are tagged with phase/worker ID for source identification
 - [x] **EVNT-02**: Per-worker event files prevent concurrent write conflicts
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
-- [ ] **EVNT-03**: Event streams from all workers are consolidated for dashboard consumption
+- [x] **EVNT-03**: Event streams from all workers are consolidated for dashboard consumption
 
 ### Dashboard
 
@@ -137,7 +137,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | EVNT-01 | Phase 1 | Complete |
 | EVNT-02 | Phase 1 | Complete |
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
-| EVNT-03 | Phase 4 | Pending |
+| EVNT-03 | Phase 4 | Complete |
 | DASH-01 | Phase 4 | Complete |
 | DASH-02 | Phase 4 | Pending |
 | DASH-03 | Phase 4 | Pending |
