@@ -26,6 +26,8 @@ export class DependencyScheduler {
   private readonly phases: Map<number, SchedulerPhase>;
   private readonly completed: Set<number> = new Set();
   private readonly inProgress: Set<number> = new Set();
+  private readonly failed: Set<number> = new Set();
+  private readonly skipped: Set<number> = new Set();
 
   constructor(phases: SchedulerPhase[]) {
     this.phases = new Map(phases.map(p => [p.number, p]));
@@ -33,11 +35,13 @@ export class DependencyScheduler {
     this.validateNoCycles();
   }
 
-  /** Returns phases whose dependencies are all satisfied and not yet started or completed. */
+  /** Returns phases whose dependencies are all satisfied and not yet started, completed, failed, or skipped. */
   getReady(): SchedulerPhase[] {
     return [...this.phases.values()].filter(p =>
       !this.completed.has(p.number) &&
       !this.inProgress.has(p.number) &&
+      !this.failed.has(p.number) &&
+      !this.skipped.has(p.number) &&
       p.dependencies.every(dep =>
         this.completed.has(dep) || !this.phases.has(dep),
       ),
@@ -56,9 +60,51 @@ export class DependencyScheduler {
     return this.getReady();
   }
 
-  /** Returns true when all phases have been completed. */
+  /**
+   * Marks a phase as failed, removes from inProgress, and transitively marks
+   * all dependent phases as skipped via BFS. Returns the skipped phases.
+   */
+  markFailed(phaseNumber: number): SchedulerPhase[] {
+    if (this.failed.has(phaseNumber)) return [];
+
+    this.failed.add(phaseNumber);
+    this.inProgress.delete(phaseNumber);
+
+    // BFS to find all transitive dependents and mark them skipped
+    const skippedPhases: SchedulerPhase[] = [];
+    const queue = [phaseNumber];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      for (const phase of this.phases.values()) {
+        if (phase.dependencies.includes(current) && !this.skipped.has(phase.number) && !this.failed.has(phase.number)) {
+          this.skipped.add(phase.number);
+          skippedPhases.push(phase);
+          queue.push(phase.number);
+        }
+      }
+    }
+
+    return skippedPhases;
+  }
+
+  /** Marks a phase as skipped (used internally by markFailed for dependents). */
+  markSkipped(phaseNumber: number): void {
+    this.skipped.add(phaseNumber);
+  }
+
+  /** Returns the status of a phase for summary table support. */
+  getStatus(phaseNumber: number): 'ready' | 'in-progress' | 'completed' | 'failed' | 'skipped' {
+    if (this.failed.has(phaseNumber)) return 'failed';
+    if (this.skipped.has(phaseNumber)) return 'skipped';
+    if (this.completed.has(phaseNumber)) return 'completed';
+    if (this.inProgress.has(phaseNumber)) return 'in-progress';
+    return 'ready';
+  }
+
+  /** Returns true when all phases have been completed, failed, or skipped. */
   isComplete(): boolean {
-    return this.completed.size === this.phases.size;
+    return this.completed.size + this.failed.size + this.skipped.size === this.phases.size;
   }
 
   /** Warns about dependency references to phases not in the scheduler. */
