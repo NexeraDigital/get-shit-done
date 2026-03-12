@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import writeFileAtomic from 'write-file-atomic';
 import { FileStateReader } from '../ipc/file-state-reader.js';
-import { EventTailer } from '../ipc/event-tailer.js';
+import { ConsolidatedEventTailer } from '../ipc/consolidated-event-tailer.js';
 import { AnswerWriter } from '../ipc/answer-writer.js';
 import { FileQuestionProvider } from '../ipc/file-question-provider.js';
 import { ResponseServer } from './index.js';
@@ -36,7 +36,7 @@ program
 
     // Create file-based IPC components
     const stateReader = new FileStateReader(projectDir);
-    const eventTailer = new EventTailer(projectDir);
+    const eventTailer = new ConsolidatedEventTailer(projectDir);
     const answerWriter = new AnswerWriter(projectDir);
     const questionProvider = new FileQuestionProvider(stateReader, answerWriter);
 
