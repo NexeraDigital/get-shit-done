@@ -117,7 +117,7 @@ describe('ShutdownManager', () => {
     expect(listenersAfter).toBeLessThan(listenersBefore);
   });
 
-  it('calls exit function after all handlers complete', async () => {
+  it('signal-triggered shutdown exits with code 1 (not 0)', async () => {
     const handler = vi.fn().mockResolvedValue(undefined);
     manager.register(handler);
 
@@ -128,7 +128,7 @@ describe('ShutdownManager', () => {
     const signalHandler = listeners[listeners.length - 1] as () => void;
     await signalHandler();
 
-    expect(exitFn).toHaveBeenCalledWith(0);
+    expect(exitFn).toHaveBeenCalledWith(1);
   });
 
   it('SIGTERM also triggers shutdown', async () => {
@@ -142,5 +142,87 @@ describe('ShutdownManager', () => {
       await signalHandler();
       expect(onShutdownRequested).toHaveBeenCalledOnce();
     }
+  });
+
+  it('double SIGINT within 3s window triggers immediate force exit', async () => {
+    const handler = vi.fn().mockImplementation(() => new Promise((r) => setTimeout(r, 5000)));
+    manager.register(handler);
+
+    const exitFn = vi.fn();
+    manager.install(vi.fn(), exitFn);
+
+    const listeners = process.listeners('SIGINT');
+    const signalHandler = listeners[listeners.length - 1] as () => void;
+
+    // First signal -- starts cleanup (handler takes 5s)
+    const firstPromise = signalHandler();
+
+    // Second signal immediately (within 3s window) -- should force exit
+    signalHandler();
+
+    expect(exitFn).toHaveBeenCalledWith(1);
+
+    // Clean up the hanging first promise by resolving its timer
+    await firstPromise;
+  });
+
+  it('double SIGINT outside 3s window is ignored (already shutting down)', async () => {
+    const handler = vi.fn().mockImplementation(() => new Promise((r) => setTimeout(r, 5000)));
+    manager.register(handler);
+
+    const exitFn = vi.fn();
+    manager.install(vi.fn(), exitFn);
+
+    const listeners = process.listeners('SIGINT');
+    const signalHandler = listeners[listeners.length - 1] as () => void;
+
+    // First signal
+    const firstPromise = signalHandler();
+
+    // Simulate passage of time beyond the force exit window
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 4000);
+
+    // Second signal outside window -- should NOT force exit (cleanup still running)
+    signalHandler();
+
+    // exitFn should not have been called yet (cleanup is still running)
+    expect(exitFn).not.toHaveBeenCalled();
+
+    vi.restoreAllMocks();
+    await firstPromise;
+  });
+
+  it('hung cleanup handler does not block other handlers (per-handler timeout)', async () => {
+    const order: number[] = [];
+    manager.register(async () => { order.push(1); });
+    // This handler hangs forever
+    manager.register(() => new Promise(() => {}));
+    manager.register(async () => { order.push(3); });
+
+    const exitFn = vi.fn();
+    manager.install(vi.fn(), exitFn);
+
+    const listeners = process.listeners('SIGINT');
+    const signalHandler = listeners[listeners.length - 1] as () => void;
+    await signalHandler();
+
+    // LIFO: handler 3 first, then hung handler (times out), then handler 1
+    // Both non-hung handlers should have run despite the hung one
+    expect(order).toContain(3);
+    expect(order).toContain(1);
+    expect(exitFn).toHaveBeenCalledWith(1);
+  }, 10000);
+
+  it('killChildProcesses callback is invoked during shutdown', async () => {
+    const killChildProcesses = vi.fn().mockResolvedValue(undefined);
+    const exitFn = vi.fn();
+
+    manager.install(vi.fn(), exitFn, { killChildProcesses });
+
+    const listeners = process.listeners('SIGINT');
+    const signalHandler = listeners[listeners.length - 1] as () => void;
+    await signalHandler();
+
+    expect(killChildProcesses).toHaveBeenCalledOnce();
   });
 });
