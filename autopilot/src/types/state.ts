@@ -71,6 +71,13 @@ export interface PhaseState {
   gapIterations: number;
   inserted?: boolean;
   dependsOn?: string | null;
+  // Parallel execution fields (optional -- sequential mode unaffected)
+  workerStatus?: 'running' | 'queued' | 'done' | 'failed';
+  workerId?: string;
+  workerPid?: number;
+  duration?: number;        // ms, populated on completion
+  mergeStatus?: 'clean' | 'resolved' | 'conflict';
+  error?: string;           // populated on failure
 }
 
 export interface AutopilotState {
