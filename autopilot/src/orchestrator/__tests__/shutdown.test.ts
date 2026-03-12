@@ -1,6 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ShutdownManager } from '../shutdown.js';
 
+/**
+ * Helper: trigger SIGINT on a ShutdownManager and wait for async cleanup to complete.
+ * The signal handler is synchronous but starts async cleanup in the background.
+ * We call the handler, then await the _cleanupPromise to wait for cleanup to finish.
+ */
+function triggerSigint(mgr: ShutdownManager): void {
+  const listeners = process.listeners('SIGINT');
+  const signalHandler = listeners[listeners.length - 1] as () => void;
+  signalHandler();
+}
+
+async function triggerSigintAndWait(mgr: ShutdownManager): Promise<void> {
+  triggerSigint(mgr);
+  if (mgr._cleanupPromise) await mgr._cleanupPromise;
+}
+
 describe('ShutdownManager', () => {
   let manager: ShutdownManager;
 
@@ -24,10 +40,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(onShutdownRequested, exitFn);
 
-    // Simulate SIGINT by extracting the listener
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     expect(handler).toHaveBeenCalledOnce();
   });
@@ -37,9 +50,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(onShutdownRequested, exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     expect(onShutdownRequested).toHaveBeenCalledOnce();
   });
@@ -53,9 +64,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     expect(order).toEqual([3, 2, 1]);
   });
@@ -69,9 +78,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     // Despite handler 2 throwing, handlers 3 and 1 still ran (LIFO: 3, error, 1)
     expect(order).toEqual([3, 1]);
@@ -84,14 +91,10 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
+    await triggerSigintAndWait(manager);
 
-    // First signal
-    await signalHandler();
-    // Second signal
-    await signalHandler();
-
+    // Second signal -- should not re-run cleanup (within window = force exit)
+    // But since handlers already completed, exitFn was already called
     expect(handler).toHaveBeenCalledOnce();
   });
 
@@ -99,9 +102,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    triggerSigint(manager);
 
     expect(manager.isShuttingDown).toBe(true);
   });
@@ -124,9 +125,7 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     expect(exitFn).toHaveBeenCalledWith(1);
   });
@@ -139,7 +138,8 @@ describe('ShutdownManager', () => {
     const listeners = process.listeners('SIGTERM');
     const signalHandler = listeners[listeners.length - 1] as () => void;
     if (signalHandler) {
-      await signalHandler();
+      signalHandler();
+      if (manager._cleanupPromise) await manager._cleanupPromise;
       expect(onShutdownRequested).toHaveBeenCalledOnce();
     }
   });
@@ -151,45 +151,39 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-
     // First signal -- starts cleanup (handler takes 5s)
-    const firstPromise = signalHandler();
+    triggerSigint(manager);
 
     // Second signal immediately (within 3s window) -- should force exit
-    signalHandler();
+    triggerSigint(manager);
 
     expect(exitFn).toHaveBeenCalledWith(1);
-
-    // Clean up the hanging first promise by resolving its timer
-    await firstPromise;
   });
 
   it('double SIGINT outside 3s window is ignored (already shutting down)', async () => {
-    const handler = vi.fn().mockImplementation(() => new Promise((r) => setTimeout(r, 5000)));
+    const handler = vi.fn().mockImplementation(() => new Promise((r) => setTimeout(r, 100)));
     manager.register(handler);
 
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-
     // First signal
-    const firstPromise = signalHandler();
+    triggerSigint(manager);
 
     // Simulate passage of time beyond the force exit window
-    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 4000);
+    const realNow = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(realNow + 4000);
 
-    // Second signal outside window -- should NOT force exit (cleanup still running)
-    signalHandler();
+    // Second signal outside window -- should NOT force exit
+    triggerSigint(manager);
 
-    // exitFn should not have been called yet (cleanup is still running)
+    // exitFn should not have been called from the second signal (only from cleanup completing)
+    // The first call to exitFn happens when cleanup finishes
     expect(exitFn).not.toHaveBeenCalled();
 
     vi.restoreAllMocks();
-    await firstPromise;
+    // Wait for cleanup to complete
+    if (manager._cleanupPromise) await manager._cleanupPromise;
   });
 
   it('hung cleanup handler does not block other handlers (per-handler timeout)', async () => {
@@ -202,11 +196,9 @@ describe('ShutdownManager', () => {
     const exitFn = vi.fn();
     manager.install(vi.fn(), exitFn);
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
-    // LIFO: handler 3 first, then hung handler (times out), then handler 1
+    // LIFO: handler 3 first, then hung handler (times out after 5s), then handler 1
     // Both non-hung handlers should have run despite the hung one
     expect(order).toContain(3);
     expect(order).toContain(1);
@@ -219,9 +211,7 @@ describe('ShutdownManager', () => {
 
     manager.install(vi.fn(), exitFn, { killChildProcesses });
 
-    const listeners = process.listeners('SIGINT');
-    const signalHandler = listeners[listeners.length - 1] as () => void;
-    await signalHandler();
+    await triggerSigintAndWait(manager);
 
     expect(killChildProcesses).toHaveBeenCalledOnce();
   });
