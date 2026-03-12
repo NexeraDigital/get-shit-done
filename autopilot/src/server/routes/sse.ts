@@ -109,6 +109,9 @@ export function setupSSE(deps: SSEDeps): {
     orchestrator.on('phase:completed', (data: unknown) =>
       broadcast('phase-completed', data),
     );
+    orchestrator.on('phase:status-changed', (data: unknown) =>
+      broadcast('phase-status-changed', data),
+    );
     orchestrator.on('step:completed', (data: unknown) =>
       broadcast('step-completed', data),
     );

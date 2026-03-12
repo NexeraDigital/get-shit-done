@@ -97,6 +97,22 @@ export function useSSE(): void {
       });
     });
 
+    // Phase status changed (parallel execution updates)
+    es.addEventListener('phase-status-changed', () => {
+      void Promise.all([fetchStatus(), fetchPhases(), fetchActivities()]).then(([s, p, a]) => {
+        const st = useDashboardStore.getState();
+        st.setStatus({
+          status: s.status,
+          currentPhase: s.currentPhase,
+          currentStep: s.currentStep,
+          progress: s.progress,
+        });
+        st.setAutopilotAlive(s.alive);
+        st.setPhases(p.phases);
+        st.setActivities(a.activities);
+      });
+    });
+
     // Step completed — refresh phases to pick up new commits immediately
     es.addEventListener('step-completed', () => {
       void Promise.all([fetchStatus(), fetchPhases(), fetchActivities()]).then(([s, p, a]) => {
