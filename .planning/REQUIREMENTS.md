@@ -10,18 +10,31 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Scheduling
 
 - [ ] **SCHED-01**: User can enable parallel mode with `--parallel` flag (backward compatible, sequential remains default)
+<<<<<<< HEAD
 - [ ] **SCHED-02**: Autopilot auto-detects parallelizable phases from ROADMAP.md `dependsOn` fields using DAG scheduling
 - [ ] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
 - [ ] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
 - [ ] **SCHED-05**: Phases with unmet dependencies are queued until dependencies complete
 - [ ] **SCHED-06**: As phases complete, newly eligible phases are automatically dispatched
+=======
+- [x] **SCHED-02**: Autopilot auto-detects parallelizable phases from ROADMAP.md `dependsOn` fields using DAG scheduling
+- [ ] **SCHED-03**: User can manually specify which phases run in parallel (e.g., `--parallel 2,3,5`)
+- [ ] **SCHED-04**: User can limit max concurrent workers with `--concurrency N` flag (default ~3)
+- [x] **SCHED-05**: Phases with unmet dependencies are queued until dependencies complete
+- [x] **SCHED-06**: As phases complete, newly eligible phases are automatically dispatched
+>>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 
 ### Execution
 
 - [ ] **EXEC-01**: Multiple ClaudeService instances run simultaneously, one per parallel phase
 - [ ] **EXEC-02**: Each parallel phase runs the full lifecycle (discuss -> plan -> execute -> verify) independently
+<<<<<<< HEAD
 - [ ] **EXEC-03**: Phase completion updates are atomic and conflict-free across concurrent workers
 - [ ] **EXEC-04**: State consistency is maintained -- STATE.md and state.json reflect accurate parallel status
+=======
+- [x] **EXEC-03**: Phase completion updates are atomic and conflict-free across concurrent workers
+- [x] **EXEC-04**: State consistency is maintained -- STATE.md and state.json reflect accurate parallel status
+>>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 
 ### Git Isolation
 
@@ -41,8 +54,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Events & Logging
 
+<<<<<<< HEAD
 - [ ] **EVNT-01**: Events are tagged with phase/worker ID for source identification
 - [ ] **EVNT-02**: Per-worker event files prevent concurrent write conflicts
+=======
+- [x] **EVNT-01**: Events are tagged with phase/worker ID for source identification
+- [x] **EVNT-02**: Per-worker event files prevent concurrent write conflicts
+>>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 - [ ] **EVNT-03**: Event streams from all workers are consolidated for dashboard consumption
 
 ### Dashboard
@@ -81,6 +99,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SCHED-01 | Phase 2 | Pending |
+<<<<<<< HEAD
 | SCHED-02 | Phase 1 | Pending |
 | SCHED-03 | Phase 2 | Pending |
 | SCHED-04 | Phase 2 | Pending |
@@ -90,6 +109,17 @@ Deferred to future release. Tracked but not in current roadmap.
 | EXEC-02 | Phase 2 | Pending |
 | EXEC-03 | Phase 1 | Pending |
 | EXEC-04 | Phase 1 | Pending |
+=======
+| SCHED-02 | Phase 1 | Complete |
+| SCHED-03 | Phase 2 | Pending |
+| SCHED-04 | Phase 2 | Pending |
+| SCHED-05 | Phase 1 | Complete |
+| SCHED-06 | Phase 1 | Complete |
+| EXEC-01 | Phase 2 | Pending |
+| EXEC-02 | Phase 2 | Pending |
+| EXEC-03 | Phase 1 | Complete |
+| EXEC-04 | Phase 1 | Complete |
+>>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 | GIT-01 | Phase 2 | Pending |
 | GIT-02 | Phase 2 | Pending |
 | GIT-03 | Phase 3 | Pending |
@@ -100,8 +130,13 @@ Deferred to future release. Tracked but not in current roadmap.
 | FAIL-02 | Phase 3 | Pending |
 | FAIL-03 | Phase 3 | Pending |
 | FAIL-04 | Phase 3 | Pending |
+<<<<<<< HEAD
 | EVNT-01 | Phase 1 | Pending |
 | EVNT-02 | Phase 1 | Pending |
+=======
+| EVNT-01 | Phase 1 | Complete |
+| EVNT-02 | Phase 1 | Complete |
+>>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
 | EVNT-03 | Phase 4 | Pending |
 | DASH-01 | Phase 4 | Pending |
 | DASH-02 | Phase 4 | Pending |
