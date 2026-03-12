@@ -119,6 +119,14 @@ export class WorkerPool extends EventEmitter {
   }
 
   /**
+   * Returns all currently active worker handles.
+   * Used by the orchestrator to route answer submissions to the correct worker ClaudeService.
+   */
+  getActiveHandles(): WorkerHandle[] {
+    return [...this.active.values()];
+  }
+
+  /**
    * Abort all active workers by calling abortCurrent() on their ClaudeService instances.
    * Sets the aborted flag to prevent merge operations after abort.
    */

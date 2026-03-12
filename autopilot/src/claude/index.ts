@@ -40,6 +40,7 @@ export class ClaudeService extends EventEmitter {
   private currentAbort: AbortController | null = null;
   private currentPhase: number | undefined;
   private currentStep: string | undefined;
+  private fallbackSubmit?: (questionId: string, answers: Record<string, string>) => boolean;
 
   constructor(options?: ClaudeServiceOptions) {
     super();
@@ -219,14 +220,27 @@ export class ClaudeService extends EventEmitter {
   }
 
   /**
+   * Sets a fallback submit function for routing answer submissions to worker
+   * ClaudeService instances. When submitAnswer() fails on the local QuestionHandler,
+   * it tries this fallback (which iterates active worker handles).
+   */
+  setFallbackSubmit(fn: (questionId: string, answers: Record<string, string>) => boolean): void {
+    this.fallbackSubmit = fn;
+  }
+
+  /**
    * Resolves a pending question by ID.
+   * Tries the local QuestionHandler first, then falls back to worker routing.
    *
    * @param questionId - The ID from the QuestionEvent
    * @param answers - Record mapping question text to selected label
    * @returns true if the question was found and resolved, false otherwise
    */
   submitAnswer(questionId: string, answers: Record<string, string>): boolean {
-    return this.questionHandler.submitAnswer(questionId, answers);
+    const result = this.questionHandler.submitAnswer(questionId, answers);
+    if (result) return result;
+    // Try fallback (routes to active worker ClaudeService instances)
+    return this.fallbackSubmit?.(questionId, answers) ?? false;
   }
 
   /**

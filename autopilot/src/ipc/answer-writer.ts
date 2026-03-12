@@ -30,6 +30,11 @@ export class AnswerWriter {
       answeredAt: new Date().toISOString(),
     };
     const filePath = IPC_PATHS.answer(this.projectDir, questionId);
-    await writeFileAtomic(filePath, JSON.stringify(answer, null, 2) + '\n');
+    try {
+      await writeFileAtomic(filePath, JSON.stringify(answer, null, 2) + '\n');
+    } catch (err) {
+      console.error(`[AnswerWriter] Failed to write answer file ${filePath}:`, err);
+      throw err;
+    }
   }
 }

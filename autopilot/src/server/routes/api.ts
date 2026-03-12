@@ -32,7 +32,7 @@ export interface StateProvider {
 /** Provides question listing and answer submission */
 export interface QuestionProvider {
   getPendingQuestions(): QuestionEvent[];
-  submitAnswer(questionId: string, answers: Record<string, string>): boolean;
+  submitAnswer(questionId: string, answers: Record<string, string>): boolean | Promise<boolean>;
 }
 
 /** Provides autopilot process liveness check */
@@ -136,22 +136,27 @@ export function createApiRoutes(deps: ApiRouteDeps): Router {
   });
 
   // DASH-06: Submit answer for a question
-  router.post('/questions/:questionId', (req: Request, res: Response) => {
+  router.post('/questions/:questionId', async (req: Request, res: Response) => {
     const questionId = String(req.params['questionId']);
     const { answers } = req.body as { answers?: unknown };
     if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
       res.status(400).json({ error: 'Missing or invalid answers object' });
       return;
     }
-    const resolved = questionProvider.submitAnswer(
-      questionId,
-      answers as Record<string, string>,
-    );
-    if (!resolved) {
-      res.status(404).json({ error: 'Question not found or already answered' });
-      return;
+    try {
+      const resolved = await questionProvider.submitAnswer(
+        questionId,
+        answers as Record<string, string>,
+      );
+      if (!resolved) {
+        res.status(404).json({ error: 'Question not found or already answered' });
+        return;
+      }
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(`[API] Failed to submit answer for ${questionId}:`, err);
+      res.status(500).json({ error: 'Failed to write answer file' });
     }
-    res.json({ ok: true });
   });
 
   // DASH-17: Activities endpoint

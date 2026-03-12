@@ -33,15 +33,19 @@ export class FileQuestionProvider implements QuestionProvider {
   }
 
   /** Writes an answer file for the autopilot to pick up */
-  submitAnswer(questionId: string, answers: Record<string, string>): boolean {
+  async submitAnswer(questionId: string, answers: Record<string, string>): Promise<boolean> {
     const state = this.stateReader.getState();
     const question = state.pendingQuestions.find(
       (q) => q.id === questionId && !q.answeredAt,
     );
     if (!question) return false;
 
-    // Fire and forget -- the answer file write is async but submitAnswer is sync
-    void this.answerWriter.writeAnswer(questionId, answers).catch(() => {});
-    return true;
+    try {
+      await this.answerWriter.writeAnswer(questionId, answers);
+      return true;
+    } catch (err) {
+      console.error(`[FileQuestionProvider] Failed to write answer for ${questionId}:`, err);
+      return false;
+    }
   }
 }

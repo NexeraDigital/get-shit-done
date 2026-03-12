@@ -398,6 +398,26 @@ export class Orchestrator extends EventEmitter {
     const scheduler = new DependencyScheduler(schedulerPhases);
     const workerPool = new WorkerPool({ concurrency, parallel, projectDir: this.projectDir });
 
+    // Forward worker question/message events so CLI listeners (state persistence,
+    // event writer, notifications) receive them on the shared claudeService
+    workerPool.on('worker:question:pending', (event: unknown) => {
+      this.claudeService.emit('question:pending', event);
+    });
+    workerPool.on('worker:question:answered', (event: unknown) => {
+      this.claudeService.emit('question:answered', event);
+    });
+    workerPool.on('worker:message', (event: unknown) => {
+      this.claudeService.emit('message', event);
+    });
+
+    // Route answer submissions to active worker ClaudeService instances
+    this.claudeService.setFallbackSubmit((qId, answers) => {
+      for (const handle of workerPool.getActiveHandles()) {
+        if (handle.claudeService.submitAnswer(qId, answers)) return true;
+      }
+      return false;
+    });
+
     // Track results for summary table
     const phaseResults: PhaseResult[] = [];
     const failedPhases: number[] = [];

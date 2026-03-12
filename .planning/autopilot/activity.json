@@ -1,6 +1,1114 @@
 {
   "activities": [
     {
+      "type": "question-pending",
+      "message": "Question: Should the consolidated stream preserve the original...",
+      "timestamp": "2026-03-12T22:42:09.427Z",
+      "metadata": {
+        "questionId": "d2a5f89a-163e-4ef9-9460-14ad38ba0aa7",
+        "phase": 4
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T22:42:04.131Z",
+      "metadata": {
+        "questionId": "0e1bc3ae-8fd8-4468-8a9c-2bc428bf6528"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should the EventTailer discover worker event files?",
+      "timestamp": "2026-03-12T22:41:42.233Z",
+      "metadata": {
+        "questionId": "0e1bc3ae-8fd8-4468-8a9c-2bc428bf6528",
+        "phase": 4
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T22:41:35.836Z",
+      "metadata": {
+        "questionId": "095160e4-e585-4748-82a6-4c8dac413c2a"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Dashboard and Event...",
+      "timestamp": "2026-03-12T22:36:45.528Z",
+      "metadata": {
+        "questionId": "095160e4-e585-4748-82a6-4c8dac413c2a",
+        "phase": 4
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 4: discuss started",
+      "timestamp": "2026-03-12T22:35:09.473Z",
+      "metadata": {
+        "phase": 4,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 4: Dashboard and Event Stream Integration — started",
+      "timestamp": "2026-03-12T22:35:09.420Z",
+      "metadata": {
+        "phase": 4
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 4: discuss started",
+      "timestamp": "2026-03-12T21:46:36.783Z",
+      "metadata": {
+        "phase": 4,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 4: Dashboard and Event Stream Integration — started",
+      "timestamp": "2026-03-12T21:46:36.686Z",
+      "metadata": {
+        "phase": 4
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 4: discuss started",
+      "timestamp": "2026-03-12T17:16:40.567Z",
+      "metadata": {
+        "phase": 4,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 4: Dashboard and Event Stream Integration — started",
+      "timestamp": "2026-03-12T17:16:40.524Z",
+      "metadata": {
+        "phase": 4
+      }
+    },
+    {
+      "type": "error",
+      "message": "Command timed out after 3600000ms",
+      "timestamp": "2026-03-12T17:12:23.425Z",
+      "metadata": {
+        "phase": 4,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Dashboard and Event...",
+      "timestamp": "2026-03-12T16:13:57.314Z",
+      "metadata": {
+        "questionId": "ff25a1d4-7631-4cf6-9b67-b37e83e7b50d",
+        "phase": 4
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Dashboard and Event...",
+      "timestamp": "2026-03-12T15:14:20.568Z",
+      "metadata": {
+        "questionId": "0ed0d747-8757-4d8d-a8de-57b3a1a9beb8",
+        "phase": 4
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 4: discuss started",
+      "timestamp": "2026-03-12T15:12:23.362Z",
+      "metadata": {
+        "phase": 4,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 4: Dashboard and Event Stream Integration — started",
+      "timestamp": "2026-03-12T15:12:23.280Z",
+      "metadata": {
+        "phase": 4
+      }
+    },
+    {
+      "type": "phase-completed",
+      "message": "Phase 3: Failure Handling and Git Conflict Resolution — completed",
+      "timestamp": "2026-03-12T15:12:23.275Z",
+      "metadata": {
+        "phase": 3
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 3: verify completed",
+      "timestamp": "2026-03-12T15:12:23.263Z",
+      "metadata": {
+        "phase": 3,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 3: verify started",
+      "timestamp": "2026-03-12T15:11:09.439Z",
+      "metadata": {
+        "phase": 3,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 3: execute completed",
+      "timestamp": "2026-03-12T15:11:09.410Z",
+      "metadata": {
+        "phase": 3,
+        "step": "execute"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 3: execute started",
+      "timestamp": "2026-03-12T14:16:55.130Z",
+      "metadata": {
+        "phase": 3,
+        "step": "execute"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 3: plan completed",
+      "timestamp": "2026-03-12T14:16:55.108Z",
+      "metadata": {
+        "phase": 3,
+        "step": "plan"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 3: plan started",
+      "timestamp": "2026-03-12T13:58:43.613Z",
+      "metadata": {
+        "phase": 3,
+        "step": "plan"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 3: discuss completed",
+      "timestamp": "2026-03-12T13:58:43.594Z",
+      "metadata": {
+        "phase": 3,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:57:19.816Z",
+      "metadata": {
+        "questionId": "5cdf027e-95ca-423c-acff-5f9a47fa48dd"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about resolution context chaining, or move to...",
+      "timestamp": "2026-03-12T13:57:15.384Z",
+      "metadata": {
+        "questionId": "5cdf027e-95ca-423c-acff-5f9a47fa48dd",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:57:11.733Z",
+      "metadata": {
+        "questionId": "164ed807-11f9-4712-9928-d76f9de915c2"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should the resolution context be surfaced to the user in the...",
+      "timestamp": "2026-03-12T13:56:53.234Z",
+      "metadata": {
+        "questionId": "164ed807-11f9-4712-9928-d76f9de915c2",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:56:47.489Z",
+      "metadata": {
+        "questionId": "6f763f9a-8f53-46ce-a595-49eae6c93aee"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What information from a resolution report is most useful as...",
+      "timestamp": "2026-03-12T13:56:44.486Z",
+      "metadata": {
+        "questionId": "6f763f9a-8f53-46ce-a595-49eae6c93aee",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:56:37.394Z",
+      "metadata": {
+        "questionId": "b9cca74c-d124-474d-861f-17f7ec6d3857"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should resolution context from a previous run (on disk) be...",
+      "timestamp": "2026-03-12T13:56:26.326Z",
+      "metadata": {
+        "questionId": "b9cca74c-d124-474d-861f-17f7ec6d3857",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:56:20.257Z",
+      "metadata": {
+        "questionId": "a06e6825-1535-4c79-a0ba-547eafedcee2"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should resolution reports from earlier merges be made...",
+      "timestamp": "2026-03-12T13:56:14.801Z",
+      "metadata": {
+        "questionId": "a06e6825-1535-4c79-a0ba-547eafedcee2",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:56:08.121Z",
+      "metadata": {
+        "questionId": "a96a6ba4-ebdb-491e-b117-940e288d3653"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about merge conflict resolution, or move to...",
+      "timestamp": "2026-03-12T13:56:01.608Z",
+      "metadata": {
+        "questionId": "a96a6ba4-ebdb-491e-b117-940e288d3653",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:55:58.008Z",
+      "metadata": {
+        "questionId": "08585cd0-1782-4ae2-8ba8-e71a0ecc0a4e"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: If a merge fails and can't be auto-resolved, should the run...",
+      "timestamp": "2026-03-12T13:55:40.256Z",
+      "metadata": {
+        "questionId": "08585cd0-1782-4ae2-8ba8-e71a0ecc0a4e",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:55:33.791Z",
+      "metadata": {
+        "questionId": "07a93f14-62d6-4463-99a2-71164eece5e9"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Where should merge resolution reports be stored?",
+      "timestamp": "2026-03-12T13:55:27.176Z",
+      "metadata": {
+        "questionId": "07a93f14-62d6-4463-99a2-71164eece5e9",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:55:20.659Z",
+      "metadata": {
+        "questionId": "dbf7e391-6a46-471a-8468-d591f39c2fd7"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: When a merge conflict is resolved (auto or manual), what...",
+      "timestamp": "2026-03-12T13:55:06.409Z",
+      "metadata": {
+        "questionId": "dbf7e391-6a46-471a-8468-d591f39c2fd7",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:55:00.474Z",
+      "metadata": {
+        "questionId": "debdf463-1655-4b90-ae86-2d85b00b7ffe"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What types of conflicts should be auto-resolved vs flagged...",
+      "timestamp": "2026-03-12T13:54:39.580Z",
+      "metadata": {
+        "questionId": "debdf463-1655-4b90-ae86-2d85b00b7ffe",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:54:31.205Z",
+      "metadata": {
+        "questionId": "3c8f9f11-67d5-493a-b487-45bbb3fd6db6"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about graceful shutdown, or move to next?",
+      "timestamp": "2026-03-12T13:54:24.327Z",
+      "metadata": {
+        "questionId": "3c8f9f11-67d5-493a-b487-45bbb3fd6db6",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:54:21.104Z",
+      "metadata": {
+        "questionId": "fb00f583-8078-4254-a558-7bd52c6c28df"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: After graceful shutdown completes, should the process exit...",
+      "timestamp": "2026-03-12T13:54:08.444Z",
+      "metadata": {
+        "questionId": "fb00f583-8078-4254-a558-7bd52c6c28df",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:54:02.925Z",
+      "metadata": {
+        "questionId": "a036518f-dc62-4d02-9402-c417588f795d"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should a double Ctrl+C force immediate exit (skip cleanup),...",
+      "timestamp": "2026-03-12T13:49:29.093Z",
+      "metadata": {
+        "questionId": "a036518f-dc62-4d02-9402-c417588f795d",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:49:23.302Z",
+      "metadata": {
+        "questionId": "536ce1e5-e3ae-4135-94ae-18f1893f129c"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should child ClaudeService processes be terminated...",
+      "timestamp": "2026-03-12T13:49:14.313Z",
+      "metadata": {
+        "questionId": "536ce1e5-e3ae-4135-94ae-18f1893f129c",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:49:09.134Z",
+      "metadata": {
+        "questionId": "0a623483-f8d2-40d6-8bb4-b404f8804189"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: On SIGINT/SIGTERM, should all worker worktrees be cleaned...",
+      "timestamp": "2026-03-12T13:47:33.781Z",
+      "metadata": {
+        "questionId": "0a623483-f8d2-40d6-8bb4-b404f8804189",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:47:24.134Z",
+      "metadata": {
+        "questionId": "4558d6cb-c9d4-4807-898e-1ed65de39341"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about failure modes, or move to next?",
+      "timestamp": "2026-03-12T13:43:54.908Z",
+      "metadata": {
+        "questionId": "4558d6cb-c9d4-4807-898e-1ed65de39341",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:43:50.095Z",
+      "metadata": {
+        "questionId": "a2f34252-15b7-4079-9f3e-a6250c849337"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should the --continue flag also be configurable via...",
+      "timestamp": "2026-03-12T13:43:34.616Z",
+      "metadata": {
+        "questionId": "a2f34252-15b7-4079-9f3e-a6250c849337",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:43:29.893Z",
+      "metadata": {
+        "questionId": "6b9a5e97-8074-43ea-9f21-c44526a10923"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: In fail-fast mode (default), should currently-running...",
+      "timestamp": "2026-03-12T13:42:55.582Z",
+      "metadata": {
+        "questionId": "6b9a5e97-8074-43ea-9f21-c44526a10923",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:42:48.461Z",
+      "metadata": {
+        "questionId": "96792227-ac5c-4549-a564-ed7b5acd2e7c"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What should the failure output look like when a phase fails?",
+      "timestamp": "2026-03-12T13:42:41.160Z",
+      "metadata": {
+        "questionId": "96792227-ac5c-4549-a564-ed7b5acd2e7c",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:42:36.345Z",
+      "metadata": {
+        "questionId": "1608c1d0-34a9-4c5e-a487-0228bc81fa7f"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: When a phase fails in --continue mode, how should dependent...",
+      "timestamp": "2026-03-12T13:42:06.475Z",
+      "metadata": {
+        "questionId": "1608c1d0-34a9-4c5e-a487-0228bc81fa7f",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T13:41:57.987Z",
+      "metadata": {
+        "questionId": "e15bad3d-5a94-4a96-86c5-0539512ff2cd"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Failure Handling and...",
+      "timestamp": "2026-03-12T13:41:50.642Z",
+      "metadata": {
+        "questionId": "e15bad3d-5a94-4a96-86c5-0539512ff2cd",
+        "phase": 3
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 3: discuss started",
+      "timestamp": "2026-03-12T13:40:25.090Z",
+      "metadata": {
+        "phase": 3,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 3: Failure Handling and Git Conflict Resolution — started",
+      "timestamp": "2026-03-12T13:40:25.051Z",
+      "metadata": {
+        "phase": 3
+      }
+    },
+    {
+      "type": "error",
+      "message": "Command timed out after 3600000ms",
+      "timestamp": "2026-03-12T09:28:24.882Z",
+      "metadata": {
+        "phase": 3,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Failure Handling and...",
+      "timestamp": "2026-03-12T08:30:09.014Z",
+      "metadata": {
+        "questionId": "ef6d023c-c11e-4f16-b865-7953fc80faad",
+        "phase": 3
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Failure Handling and...",
+      "timestamp": "2026-03-12T07:29:33.108Z",
+      "metadata": {
+        "questionId": "0401f460-c11b-408a-a82a-5a6ca281b099",
+        "phase": 3
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 3: discuss started",
+      "timestamp": "2026-03-12T07:28:24.911Z",
+      "metadata": {
+        "phase": 3,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 3: Failure Handling and Git Conflict Resolution — started",
+      "timestamp": "2026-03-12T07:28:24.886Z",
+      "metadata": {
+        "phase": 3
+      }
+    },
+    {
+      "type": "phase-completed",
+      "message": "Phase 2: Parallel Execution Engine — completed",
+      "timestamp": "2026-03-12T07:28:24.882Z",
+      "metadata": {
+        "phase": 2
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: verify completed",
+      "timestamp": "2026-03-12T07:26:42.924Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: verify started",
+      "timestamp": "2026-03-12T07:26:14.013Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: verify completed",
+      "timestamp": "2026-03-12T07:24:31.457Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: verify started",
+      "timestamp": "2026-03-12T07:24:05.441Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: verify completed",
+      "timestamp": "2026-03-12T06:57:05.065Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: verify started",
+      "timestamp": "2026-03-12T06:55:55.718Z",
+      "metadata": {
+        "phase": 2,
+        "step": "verify"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: execute completed",
+      "timestamp": "2026-03-12T06:55:55.698Z",
+      "metadata": {
+        "phase": 2,
+        "step": "execute"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: execute started",
+      "timestamp": "2026-03-12T06:24:54.571Z",
+      "metadata": {
+        "phase": 2,
+        "step": "execute"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: plan completed",
+      "timestamp": "2026-03-12T06:24:54.555Z",
+      "metadata": {
+        "phase": 2,
+        "step": "plan"
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: plan started",
+      "timestamp": "2026-03-12T06:09:13.119Z",
+      "metadata": {
+        "phase": 2,
+        "step": "plan"
+      }
+    },
+    {
+      "type": "step-completed",
+      "message": "Phase 2: discuss completed",
+      "timestamp": "2026-03-12T06:09:13.103Z",
+      "metadata": {
+        "phase": 2,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:07:47.103Z",
+      "metadata": {
+        "questionId": "57b1fe37-3f1e-455b-b8bc-bff004b229bd"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about git worktree lifecycle, or are we done?",
+      "timestamp": "2026-03-12T06:07:38.110Z",
+      "metadata": {
+        "questionId": "57b1fe37-3f1e-455b-b8bc-bff004b229bd",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:07:34.003Z",
+      "metadata": {
+        "questionId": "4b1e9e76-1f3b-499c-9293-0d996c2cd8d1"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What should happen if a merge fails (conflict) in Phase 2?...",
+      "timestamp": "2026-03-12T06:07:12.915Z",
+      "metadata": {
+        "questionId": "4b1e9e76-1f3b-499c-9293-0d996c2cd8d1",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:07:06.766Z",
+      "metadata": {
+        "questionId": "3031669c-c1f7-45a5-8fc6-611181aff413"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: When should worktree changes be merged back to the main...",
+      "timestamp": "2026-03-12T06:06:53.203Z",
+      "metadata": {
+        "questionId": "3031669c-c1f7-45a5-8fc6-611181aff413",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:06:47.602Z",
+      "metadata": {
+        "questionId": "617ea43b-3461-4c83-b5ef-12b366233590"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What branch naming convention for worktree branches?",
+      "timestamp": "2026-03-12T06:06:28.075Z",
+      "metadata": {
+        "questionId": "617ea43b-3461-4c83-b5ef-12b366233590",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:06:23.370Z",
+      "metadata": {
+        "questionId": "826cc2c4-58ca-4821-91dc-0de56cb549b1"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Where should worktrees be created on disk?",
+      "timestamp": "2026-03-12T06:05:47.590Z",
+      "metadata": {
+        "questionId": "826cc2c4-58ca-4821-91dc-0de56cb549b1",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:05:40.977Z",
+      "metadata": {
+        "questionId": "edd5578d-25bb-4b60-b35c-192794f9aa5f"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about sequential compatibility, or move to...",
+      "timestamp": "2026-03-12T06:05:37.034Z",
+      "metadata": {
+        "questionId": "edd5578d-25bb-4b60-b35c-192794f9aa5f",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:05:32.905Z",
+      "metadata": {
+        "questionId": "1fb18208-2505-40a3-9c1e-cbcfc2d8d741"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should the unified loop use the DependencyScheduler even for...",
+      "timestamp": "2026-03-12T06:04:49.289Z",
+      "metadata": {
+        "questionId": "1fb18208-2505-40a3-9c1e-cbcfc2d8d741",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:04:44.438Z",
+      "metadata": {
+        "questionId": "a7b93aec-1e4a-4c3f-847b-dfcc2012d122"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should --resume work when the previous run was parallel?",
+      "timestamp": "2026-03-12T06:03:46.209Z",
+      "metadata": {
+        "questionId": "a7b93aec-1e4a-4c3f-847b-dfcc2012d122",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:03:40.843Z",
+      "metadata": {
+        "questionId": "2e9746e9-99fb-47de-9975-5f3370ed0a79"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: In sequential mode (no --parallel), should phases still use...",
+      "timestamp": "2026-03-12T06:03:26.969Z",
+      "metadata": {
+        "questionId": "2e9746e9-99fb-47de-9975-5f3370ed0a79",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:03:19.673Z",
+      "metadata": {
+        "questionId": "d70c8869-df03-4889-8a5d-7a6c9fb58edc"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should the orchestrator handle the parallel vs...",
+      "timestamp": "2026-03-12T06:02:57.232Z",
+      "metadata": {
+        "questionId": "d70c8869-df03-4889-8a5d-7a6c9fb58edc",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:02:51.422Z",
+      "metadata": {
+        "questionId": "4fa6a883-130e-4baf-ac2f-cad7bb24e8e2"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about CLI flag semantics, or move to next...",
+      "timestamp": "2026-03-12T06:02:39.193Z",
+      "metadata": {
+        "questionId": "4fa6a883-130e-4baf-ac2f-cad7bb24e8e2",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:02:36.291Z",
+      "metadata": {
+        "questionId": "bc412d7f-bee5-4c01-8e99-e36b4f7d74e8"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Should --parallel be a persistent config option...",
+      "timestamp": "2026-03-12T06:02:10.410Z",
+      "metadata": {
+        "questionId": "bc412d7f-bee5-4c01-8e99-e36b4f7d74e8",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:02:04.999Z",
+      "metadata": {
+        "questionId": "53417565-d8c4-492d-91c7-76ac9a6fb896"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should --parallel interact with the existing --phases...",
+      "timestamp": "2026-03-12T06:01:09.957Z",
+      "metadata": {
+        "questionId": "53417565-d8c4-492d-91c7-76ac9a6fb896",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:01:04.402Z",
+      "metadata": {
+        "questionId": "6343c354-0285-4cdd-9123-778dc4176b62"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: What should the default concurrency cap be?",
+      "timestamp": "2026-03-12T06:00:49.375Z",
+      "metadata": {
+        "questionId": "6343c354-0285-4cdd-9123-778dc4176b62",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:00:44.188Z",
+      "metadata": {
+        "questionId": "a82e21f9-070b-473d-acd4-6fea065d004f"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should --parallel work when no phase list is given?",
+      "timestamp": "2026-03-12T06:00:28.402Z",
+      "metadata": {
+        "questionId": "a82e21f9-070b-473d-acd4-6fea065d004f",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:00:21.971Z",
+      "metadata": {
+        "questionId": "ec7866c0-9b52-4f87-8e2a-855e00259f03"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: More questions about worker pool design, or move to next...",
+      "timestamp": "2026-03-12T06:00:11.777Z",
+      "metadata": {
+        "questionId": "ec7866c0-9b52-4f87-8e2a-855e00259f03",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T06:00:05.801Z",
+      "metadata": {
+        "questionId": "5bd46d6a-0655-4389-a8a9-e5275f313960"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should questions from parallel phases be routed to the...",
+      "timestamp": "2026-03-12T05:59:03.379Z",
+      "metadata": {
+        "questionId": "5bd46d6a-0655-4389-a8a9-e5275f313960",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T05:58:57.177Z",
+      "metadata": {
+        "questionId": "24ac02ec-1227-4863-979c-46d72b2e236f"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Where should per-worker metadata (worker ID, worktree path,...",
+      "timestamp": "2026-03-12T05:58:20.152Z",
+      "metadata": {
+        "questionId": "24ac02ec-1227-4863-979c-46d72b2e236f",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T05:58:13.721Z",
+      "metadata": {
+        "questionId": "1a9e9cc0-e8f5-41eb-bc8b-30c4ab8c5987"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: When the concurrency limit is reached and a phase finishes,...",
+      "timestamp": "2026-03-12T05:58:02.042Z",
+      "metadata": {
+        "questionId": "1a9e9cc0-e8f5-41eb-bc8b-30c4ab8c5987",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T05:57:54.508Z",
+      "metadata": {
+        "questionId": "fd444202-75d3-4b84-a827-a6dbc8c1e08c"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: How should workers be assigned to phases?",
+      "timestamp": "2026-03-12T05:57:45.471Z",
+      "metadata": {
+        "questionId": "fd444202-75d3-4b84-a827-a6dbc8c1e08c",
+        "phase": 2
+      }
+    },
+    {
+      "type": "question-answered",
+      "message": "Question answered",
+      "timestamp": "2026-03-12T05:57:39.379Z",
+      "metadata": {
+        "questionId": "753245bf-add5-4e40-98b6-d36785f72442"
+      }
+    },
+    {
+      "type": "question-pending",
+      "message": "Question: Which areas do you want to discuss for Parallel Execution...",
+      "timestamp": "2026-03-12T05:50:29.230Z",
+      "metadata": {
+        "questionId": "753245bf-add5-4e40-98b6-d36785f72442",
+        "phase": 2
+      }
+    },
+    {
+      "type": "step-started",
+      "message": "Phase 2: discuss started",
+      "timestamp": "2026-03-12T05:48:09.169Z",
+      "metadata": {
+        "phase": 2,
+        "step": "discuss"
+      }
+    },
+    {
+      "type": "phase-started",
+      "message": "Phase 2: Parallel Execution Engine — started",
+      "timestamp": "2026-03-12T05:48:09.131Z",
+      "metadata": {
+        "phase": 2
+      }
+    },
+    {
       "type": "build-complete",
       "message": "Build complete — all phases finished",
       "timestamp": "2026-03-12T05:00:55.134Z"

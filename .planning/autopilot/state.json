@@ -1,7 +1,7 @@
 {
-  "status": "complete",
-  "currentPhase": 1,
-  "currentStep": "done",
+  "status": "running",
+  "currentPhase": 4,
+  "currentStep": "discuss",
   "phases": [
     {
       "number": 1,
@@ -14,6 +14,7 @@
         "verify": "done"
       },
       "startedAt": "2026-03-12T04:16:25.679Z",
+      "completedAt": "2026-03-12T05:00:55.125Z",
       "commits": [
         {
           "hash": "e3d226b7e588a7d158d2d958d0bb3f0270b3a004",
@@ -66,35 +67,164 @@
       ],
       "gapIterations": 0,
       "inserted": false,
-      "dependsOn": null,
-      "completedAt": "2026-03-12T05:00:55.125Z"
+      "dependsOn": null
     },
     {
       "number": 2,
       "name": "Parallel Execution Engine",
-      "status": "pending",
+      "status": "completed",
       "steps": {
-        "discuss": "idle",
-        "plan": "idle",
-        "execute": "idle",
+        "discuss": "done",
+        "plan": "done",
+        "execute": "done",
         "verify": "idle"
       },
-      "commits": [],
-      "gapIterations": 0,
+      "startedAt": "2026-03-12T05:48:09.134Z",
+      "completedAt": "2026-03-12T07:28:24.879Z",
+      "commits": [
+        {
+          "hash": "00b53a56b823df38e47e4c182e0e635a6b828ed2",
+          "message": "docs(state): record phase 2 context session"
+        },
+        {
+          "hash": "d43bc2802f7d77db58488e8d23a783fcc0a308a5",
+          "message": "docs(02): capture phase context"
+        },
+        {
+          "hash": "80002619c0549969143d6bf8338f5a39edad9dc2",
+          "message": "docs(02): create phase plan for parallel execution engine"
+        },
+        {
+          "hash": "587ea2f3046af57c8ae52100d7c200ec24c2e802",
+          "message": "docs(02): add research and validation strategy"
+        },
+        {
+          "hash": "760dadf1420b2ca1f8b5190a42b344e4b0122c03",
+          "message": "docs(02): research parallel execution engine domain"
+        },
+        {
+          "hash": "0ae79b52791abc6e9736ab0e5888347d59db5a56",
+          "message": "docs(02-03): complete WorkerPool and Unified Orchestrator Loop plan"
+        },
+        {
+          "hash": "81b5f6ba396455074aaa7f5c799a9b178d89fc8a",
+          "message": "feat(02-03): unified scheduler-driven orchestrator loop with CLI wiring"
+        },
+        {
+          "hash": "0b6af09c60d02381f6d408612a3fe263ee0f5865",
+          "message": "feat(02-03): implement WorkerPool with worktree lifecycle and serialized merges"
+        },
+        {
+          "hash": "25e76bc84bfb03aae0c4cc668abcd819879de82c",
+          "message": "test(02-03): add failing WorkerPool tests (TDD RED)"
+        },
+        {
+          "hash": "4df08997e3b563b75f0e29a2e16672c225ab925a",
+          "message": "docs(02-02): complete CLI parallel flags plan"
+        },
+        {
+          "hash": "971015b10e7220ea50a9c25090d0c1abbdfaedbf",
+          "message": "docs(02-01): complete worker types and git worktree plan"
+        },
+        {
+          "hash": "b2f120afdc014303f7191be742c1cda1eba4b5fc",
+          "message": "feat(02-02): add --parallel and --concurrency CLI flags"
+        },
+        {
+          "hash": "d40db5329e6160e4ad42c75d59371da67839be81",
+          "message": "feat(02-01): implement git worktree lifecycle functions"
+        },
+        {
+          "hash": "6ad24553f0819599c97b58db2f15b50f48db435c",
+          "message": "test(02-01): add failing tests for git worktree lifecycle"
+        },
+        {
+          "hash": "c448d4f70534d027329284af04bdb35dc7d7ab95",
+          "message": "test(02-02): add failing tests for --parallel and --concurrency CLI flags"
+        },
+        {
+          "hash": "b05286b5689e4642d17cedc436e509c71a960381",
+          "message": "feat(02-01): define worker type contracts"
+        }
+      ],
+      "gapIterations": 3,
       "inserted": false,
       "dependsOn": null
     },
     {
       "number": 3,
       "name": "Failure Handling and Git Conflict Resolution",
-      "status": "pending",
+      "status": "completed",
       "steps": {
-        "discuss": "idle",
-        "plan": "idle",
-        "execute": "idle",
-        "verify": "idle"
+        "discuss": "done",
+        "plan": "done",
+        "execute": "done",
+        "verify": "done"
       },
-      "commits": [],
+      "startedAt": "2026-03-12T07:28:24.890Z",
+      "completedAt": "2026-03-12T15:12:23.267Z",
+      "commits": [
+        {
+          "hash": "d9ab84a622f9e6ca8f95c44592943091e08ff9b7",
+          "message": "docs(state): record phase 3 context session"
+        },
+        {
+          "hash": "1f6cd6855bd5fe2e779f7847d77c0f56650c8d76",
+          "message": "docs(03): capture phase context"
+        },
+        {
+          "hash": "4cfaf5fba00a342c8249c7ff32c5ef9ef26e123c",
+          "message": "docs(03): create phase plan for failure handling and git conflict resolution"
+        },
+        {
+          "hash": "5be132765c56d27ba41197d781098d533040332e",
+          "message": "docs(phase-03): add validation strategy"
+        },
+        {
+          "hash": "d5391b4b2672818d1f2b26b3ab53dd55b9ebbfd2",
+          "message": "docs(03): research phase domain"
+        },
+        {
+          "hash": "54ca77bedb814c5554aa60caf59ec3e828c1c432",
+          "message": "docs(phase-03): complete phase execution and verification"
+        },
+        {
+          "hash": "710337bbadc9b7f44f56538a3f5ce2ded94a39d3",
+          "message": "docs(03-02): complete failure handling and summary reporting plan"
+        },
+        {
+          "hash": "9cf7189a0ad066fbc505c15855526e3c5c0e5d7b",
+          "message": "feat(03-02): wire failure handling, --continue mode, merge resolution, and summary into orchestrator"
+        },
+        {
+          "hash": "37874d6a811a8441f979f88c4d57fecbc8d6021d",
+          "message": "feat(03-02): extend ShutdownManager with double-SIGINT, exit code 1, handler timeouts"
+        },
+        {
+          "hash": "0d6adcbe35677b70357b7e77ce9edad74487e7d2",
+          "message": "test(03-02): add failing tests for ShutdownManager double-SIGINT, exit code 1, handler timeouts"
+        },
+        {
+          "hash": "3da1e40ec4cac0f1c78a12dcc59038db33da8e71",
+          "message": "docs(03-01): complete scheduler failure tracking and merge resolver plan"
+        },
+        {
+          "hash": "ba41f6b0a99d5492b66df3adaa5ce2fde499d846",
+          "message": "feat(03-01): create merge-resolver with auto-resolution and reporting"
+        },
+        {
+          "hash": "0841129825a712a459f6406f06f11216ea77a158",
+          "message": "test(03-01): add failing tests for merge-resolver"
+        },
+        {
+          "hash": "e8f67007c76f41a35259d4e156e15f21feee2dfd",
+          "message": "feat(03-01): extend DependencyScheduler with markFailed/markSkipped/getStatus"
+        },
+        {
+          "hash": "33a1b88665331fcaa30ba7d1655868b3660e2416",
+          "message": "test(03-01): add failing tests for markFailed/markSkipped/getStatus"
+        }
+      ],
       "gapIterations": 0,
       "inserted": false,
       "dependsOn": null
@@ -102,23 +232,1548 @@
     {
       "number": 4,
       "name": "Dashboard and Event Stream Integration",
-      "status": "pending",
+      "status": "in_progress",
       "steps": {
-        "discuss": "idle",
+        "discuss": "discuss",
         "plan": "idle",
         "execute": "idle",
         "verify": "idle"
       },
+      "startedAt": "2026-03-12T15:12:23.304Z",
       "commits": [],
       "gapIterations": 0,
       "inserted": false,
       "dependsOn": null
     }
   ],
-  "pendingQuestions": [],
-  "errorHistory": [],
+  "pendingQuestions": [
+    {
+      "id": "753245bf-add5-4e40-98b6-d36785f72442",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "Which areas do you want to discuss for Parallel Execution Engine?"
+      ],
+      "createdAt": "2026-03-12T05:50:29.229Z",
+      "answeredAt": "2026-03-12T05:57:39.379Z",
+      "answers": {
+        "Which areas do you want to discuss for Parallel Execution Engine?": "Worker pool design, CLI flag semantics, Sequential compatibility, Git worktree lifecycle"
+      },
+      "questionItems": [
+        {
+          "question": "Which areas do you want to discuss for Parallel Execution Engine?",
+          "header": "Discuss",
+          "options": [
+            {
+              "label": "Worker pool design",
+              "description": "How workers are created, assigned phases, and recycled. One ClaudeService per phase or reusable pool? (DependencyScheduler.getReady() feeds this — already built)"
+            },
+            {
+              "label": "CLI flag semantics",
+              "description": "How --parallel, --concurrency N, and --parallel 2,3,5 interact. Default concurrency cap? (Existing CLI has --phases flag for range selection)"
+            },
+            {
+              "label": "Git worktree lifecycle",
+              "description": "Branch naming, worktree location, merge-back strategy, cleanup timing. (No existing worktree code — built from scratch)"
+            },
+            {
+              "label": "Sequential compatibility",
+              "description": "How parallel mode coexists with sequential. Shared orchestrator code or separate paths? (Current sequential loop at orchestrator line 375)"
+            }
+          ],
+          "multiSelect": true
+        }
+      ]
+    },
+    {
+      "id": "fd444202-75d3-4b84-a827-a6dbc8c1e08c",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should workers be assigned to phases?"
+      ],
+      "createdAt": "2026-03-12T05:57:45.471Z",
+      "answeredAt": "2026-03-12T05:57:54.508Z",
+      "answers": {
+        "How should workers be assigned to phases?": "One worker per phase (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should workers be assigned to phases?",
+          "header": "Pool design",
+          "options": [
+            {
+              "label": "One worker per phase (Recommended)",
+              "description": "Spawn a new ClaudeService for each ready phase, up to concurrency limit. Simple, no reuse complexity. Worker dies when phase completes."
+            },
+            {
+              "label": "Reusable pool",
+              "description": "Pre-create N ClaudeService instances that pick up phases as they finish. More complex but potentially faster startup for later phases."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the approach based on ClaudeService startup cost and implementation complexity."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "1a9e9cc0-e8f5-41eb-bc8b-30c4ab8c5987",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "When the concurrency limit is reached and a phase finishes, how should the next phase be assigned?"
+      ],
+      "createdAt": "2026-03-12T05:58:02.042Z",
+      "answeredAt": "2026-03-12T05:58:13.721Z",
+      "answers": {
+        "When the concurrency limit is reached and a phase finishes, how should the next phase be assigned?": "Immediate dispatch (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "When the concurrency limit is reached and a phase finishes, how should the next phase be assigned?",
+          "header": "Scheduling",
+          "options": [
+            {
+              "label": "Immediate dispatch (Recommended)",
+              "description": "As soon as a worker finishes and scheduler.markComplete() returns newly eligible phases, dispatch the next one immediately."
+            },
+            {
+              "label": "Batch dispatch",
+              "description": "Wait until all currently running phases finish, then dispatch the next batch of ready phases together."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what produces better throughput and simpler code."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "24ac02ec-1227-4863-979c-46d72b2e236f",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "Where should per-worker metadata (worker ID, worktree path, PID, phase number) be tracked?"
+      ],
+      "createdAt": "2026-03-12T05:58:20.152Z",
+      "answeredAt": "2026-03-12T05:58:57.176Z",
+      "answers": {
+        "Where should per-worker metadata (worker ID, worktree path, PID, phase number) be tracked?": "In-memory only (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Where should per-worker metadata (worker ID, worktree path, PID, phase number) be tracked?",
+          "header": "Worker state",
+          "options": [
+            {
+              "label": "In-memory only (Recommended)",
+              "description": "WorkerPool tracks workers in memory. If autopilot crashes, resume logic re-detects state from disk (worktrees, phase completion markers)."
+            },
+            {
+              "label": "Persisted to state.json",
+              "description": "Write worker metadata to state.json alongside phase state. Enables precise resume after crash but adds write complexity."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on crash recovery needs and state complexity."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "5bd46d6a-0655-4389-a8a9-e5275f313960",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should questions from parallel phases be routed to the dashboard?"
+      ],
+      "createdAt": "2026-03-12T05:59:03.379Z",
+      "answeredAt": "2026-03-12T06:00:05.801Z",
+      "answers": {
+        "How should questions from parallel phases be routed to the dashboard?": "Phase-tagged queue (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should questions from parallel phases be routed to the dashboard?",
+          "header": "Questions",
+          "options": [
+            {
+              "label": "Phase-tagged queue (Recommended)",
+              "description": "All questions go to a shared queue but tagged with phase number. Dashboard shows phase context. One answer file, orchestrator routes answers."
+            },
+            {
+              "label": "Per-worker question files",
+              "description": "Each worker has its own questions-phase-{N}.json file. Dashboard polls all files. More isolated but more file I/O."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on existing IPC patterns and dashboard complexity."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "ec7866c0-9b52-4f87-8e2a-855e00259f03",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "More questions about worker pool design, or move to next area?"
+      ],
+      "createdAt": "2026-03-12T06:00:11.777Z",
+      "answeredAt": "2026-03-12T06:00:21.971Z",
+      "answers": {
+        "More questions about worker pool design, or move to next area?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about worker pool design, or move to next area?",
+          "header": "Pool design",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move to CLI flag semantics"
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing worker pool design"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a82e21f9-070b-473d-acd4-6fea065d004f",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should --parallel work when no phase list is given?"
+      ],
+      "createdAt": "2026-03-12T06:00:28.402Z",
+      "answeredAt": "2026-03-12T06:00:44.188Z",
+      "answers": {
+        "How should --parallel work when no phase list is given?": "All eligible phases (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should --parallel work when no phase list is given?",
+          "header": "Parallel flag",
+          "options": [
+            {
+              "label": "All eligible phases (Recommended)",
+              "description": "--parallel with no arguments runs all phases from the roadmap, using the DependencyScheduler to determine which can run concurrently."
+            },
+            {
+              "label": "Require explicit phases",
+              "description": "--parallel always requires a phase list (e.g., --parallel 2,3,5). Running --parallel alone is an error."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the most intuitive CLI behavior."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "6343c354-0285-4cdd-9123-778dc4176b62",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "What should the default concurrency cap be?"
+      ],
+      "createdAt": "2026-03-12T06:00:49.375Z",
+      "answeredAt": "2026-03-12T06:01:04.402Z",
+      "answers": {
+        "What should the default concurrency cap be?": "3 workers (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "What should the default concurrency cap be?",
+          "header": "Concurrency",
+          "options": [
+            {
+              "label": "3 workers (Recommended)",
+              "description": "Default --concurrency 3. Each ClaudeService uses ~200-500MB. Keeps memory reasonable on most machines."
+            },
+            {
+              "label": "2 workers",
+              "description": "Conservative default. Safer for lower-spec machines but slower throughput."
+            },
+            {
+              "label": "Auto-detect",
+              "description": "Base on available CPU cores or memory. More adaptive but harder to predict behavior."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "53417565-d8c4-492d-91c7-76ac9a6fb896",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should --parallel interact with the existing --phases flag?"
+      ],
+      "createdAt": "2026-03-12T06:01:09.957Z",
+      "answeredAt": "2026-03-12T06:02:04.999Z",
+      "answers": {
+        "How should --parallel interact with the existing --phases flag?": "Combine them (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should --parallel interact with the existing --phases flag?",
+          "header": "Flag combo",
+          "options": [
+            {
+              "label": "Combine them (Recommended)",
+              "description": "--phases 2-5 --parallel runs phases 2-5 in parallel (respecting dependencies). --phases alone stays sequential. --parallel alone runs all."
+            },
+            {
+              "label": "--parallel takes a list directly",
+              "description": "--parallel 2,3,5 selects AND enables parallel. --phases is ignored when --parallel has arguments."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the most ergonomic combination."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "bc412d7f-bee5-4c01-8e99-e36b4f7d74e8",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "Should --parallel be a persistent config option (config.json) or CLI-only?"
+      ],
+      "createdAt": "2026-03-12T06:02:10.410Z",
+      "answeredAt": "2026-03-12T06:02:36.291Z",
+      "answers": {
+        "Should --parallel be a persistent config option (config.json) or CLI-only?": "CLI flag only (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should --parallel be a persistent config option (config.json) or CLI-only?",
+          "header": "Persistence",
+          "options": [
+            {
+              "label": "CLI flag only (Recommended)",
+              "description": "Parallel mode is opt-in per run. User explicitly chooses each time. Simpler, no surprise behavior."
+            },
+            {
+              "label": "Also in config.json",
+              "description": "Can set parallel: true in config so --resume also runs parallel. More convenient for repeated use."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on resume semantics and user safety."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "4fa6a883-130e-4baf-ac2f-cad7bb24e8e2",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "More questions about CLI flag semantics, or move to next area?"
+      ],
+      "createdAt": "2026-03-12T06:02:39.193Z",
+      "answeredAt": "2026-03-12T06:02:51.422Z",
+      "answers": {
+        "More questions about CLI flag semantics, or move to next area?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about CLI flag semantics, or move to next area?",
+          "header": "CLI flags",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move to sequential compatibility"
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing CLI flags"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "d70c8869-df03-4889-8a5d-7a6c9fb58edc",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should the orchestrator handle the parallel vs sequential code paths?"
+      ],
+      "createdAt": "2026-03-12T06:02:57.232Z",
+      "answeredAt": "2026-03-12T06:03:19.673Z",
+      "answers": {
+        "How should the orchestrator handle the parallel vs sequential code paths?": "Unified loop (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should the orchestrator handle the parallel vs sequential code paths?",
+          "header": "Architecture",
+          "options": [
+            {
+              "label": "Unified loop (Recommended)",
+              "description": "One orchestrator loop uses the scheduler always. Sequential mode = concurrency 1 (one phase at a time). Parallel mode = concurrency N. Same code path, different limit."
+            },
+            {
+              "label": "Separate paths",
+              "description": "Keep the existing sequential for-loop unchanged. Add a parallel execution path that only activates with --parallel. More code but zero risk to existing behavior."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on code complexity and regression risk."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "2e9746e9-99fb-47de-9975-5f3370ed0a79",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "In sequential mode (no --parallel), should phases still use git worktrees?"
+      ],
+      "createdAt": "2026-03-12T06:03:26.969Z",
+      "answeredAt": "2026-03-12T06:03:40.843Z",
+      "answers": {
+        "In sequential mode (no --parallel), should phases still use git worktrees?": "No worktrees in sequential (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "In sequential mode (no --parallel), should phases still use git worktrees?",
+          "header": "Sequential WT",
+          "options": [
+            {
+              "label": "No worktrees in sequential (Recommended)",
+              "description": "Sequential mode runs phases directly in the main repo, exactly as today. Worktrees are a parallel-only concept. Zero behavior change for existing users."
+            },
+            {
+              "label": "Always use worktrees",
+              "description": "Even sequential phases run in worktrees for consistency. Adds overhead but simplifies the merge path (always the same)."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on backward compatibility requirements."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a7b93aec-1e4a-4c3f-847b-dfcc2012d122",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "How should --resume work when the previous run was parallel?"
+      ],
+      "createdAt": "2026-03-12T06:03:46.209Z",
+      "answeredAt": "2026-03-12T06:04:44.438Z",
+      "answers": {
+        "How should --resume work when the previous run was parallel?": "Resume as sequential (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should --resume work when the previous run was parallel?",
+          "header": "Resume",
+          "options": [
+            {
+              "label": "Resume as sequential (Recommended)",
+              "description": "--resume without --parallel resumes remaining phases sequentially. User must explicitly add --parallel to resume in parallel mode."
+            },
+            {
+              "label": "Remember mode from state",
+              "description": "State records whether the run was parallel. --resume automatically uses the same mode. Could surprise the user."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on safety and predictability."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "1fb18208-2505-40a3-9c1e-cbcfc2d8d741",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "Should the unified loop use the DependencyScheduler even for the sequential --phases range case?"
+      ],
+      "createdAt": "2026-03-12T06:04:49.289Z",
+      "answeredAt": "2026-03-12T06:05:32.905Z",
+      "answers": {
+        "Should the unified loop use the DependencyScheduler even for the sequential --phases range case?": "Always use scheduler (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should the unified loop use the DependencyScheduler even for the sequential --phases range case?",
+          "header": "Scheduler use",
+          "options": [
+            {
+              "label": "Always use scheduler (Recommended)",
+              "description": "Even --phases 2-5 without --parallel feeds through the scheduler (concurrency=1). Consistent code path, respects dependency ordering."
+            },
+            {
+              "label": "Scheduler only for parallel",
+              "description": "Sequential uses simple numeric ordering. Scheduler only activates with --parallel. Less risk but two code paths."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on complexity vs consistency."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "edd5578d-25bb-4b60-b35c-192794f9aa5f",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "More questions about sequential compatibility, or move to next area?"
+      ],
+      "createdAt": "2026-03-12T06:05:37.034Z",
+      "answeredAt": "2026-03-12T06:05:40.977Z",
+      "answers": {
+        "More questions about sequential compatibility, or move to next area?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about sequential compatibility, or move to next area?",
+          "header": "Compat",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move to git worktree lifecycle"
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing sequential compatibility"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "826cc2c4-58ca-4821-91dc-0de56cb549b1",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "Where should worktrees be created on disk?"
+      ],
+      "createdAt": "2026-03-12T06:05:47.590Z",
+      "answeredAt": "2026-03-12T06:06:23.369Z",
+      "answers": {
+        "Where should worktrees be created on disk?": "Adjacent to repo (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Where should worktrees be created on disk?",
+          "header": "WT location",
+          "options": [
+            {
+              "label": "Adjacent to repo (Recommended)",
+              "description": "Create worktrees at ../{repo}-worktrees/phase-{N}/ next to the main repo. Avoids nested .git issues and keeps repo clean."
+            },
+            {
+              "label": "Inside .planning/",
+              "description": "Create at .planning/worktrees/phase-{N}/. Contained within project but adds to .planning/ bloat."
+            },
+            {
+              "label": "System temp directory",
+              "description": "Use OS temp dir (e.g., /tmp/gsd-worktree-{hash}-{N}/). Clean separation but harder to find for debugging."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on git worktree best practices and cleanup ergonomics."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "617ea43b-3461-4c83-b5ef-12b366233590",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "What branch naming convention for worktree branches?"
+      ],
+      "createdAt": "2026-03-12T06:06:28.075Z",
+      "answeredAt": "2026-03-12T06:06:47.602Z",
+      "answers": {
+        "What branch naming convention for worktree branches?": "gsd/phase-{N} (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "What branch naming convention for worktree branches?",
+          "header": "Branch names",
+          "options": [
+            {
+              "label": "gsd/phase-{N} (Recommended)",
+              "description": "e.g., gsd/phase-2, gsd/phase-3. Clear namespace, easy to identify GSD branches. Branched from current HEAD."
+            },
+            {
+              "label": "gsd/autopilot/{timestamp}/phase-{N}",
+              "description": "Includes run timestamp to avoid conflicts across runs. More verbose but guarantees uniqueness."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks a clean convention that avoids conflicts."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "3031669c-c1f7-45a5-8fc6-611181aff413",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "When should worktree changes be merged back to the main branch?"
+      ],
+      "createdAt": "2026-03-12T06:06:53.203Z",
+      "answeredAt": "2026-03-12T06:07:06.766Z",
+      "answers": {
+        "When should worktree changes be merged back to the main branch?": "Immediately on phase complete (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "When should worktree changes be merged back to the main branch?",
+          "header": "Merge timing",
+          "options": [
+            {
+              "label": "Immediately on phase complete (Recommended)",
+              "description": "As soon as a phase finishes successfully, merge its worktree branch back to main. Keeps main up-to-date, surfaces conflicts early."
+            },
+            {
+              "label": "All at end",
+              "description": "Wait until all parallel phases complete, then merge all worktree branches in dependency order. Defers conflicts but risks big merge at the end."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on conflict resolution timing and Phase 3 requirements."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "4b1e9e76-1f3b-499c-9293-0d996c2cd8d1",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "What should happen if a merge fails (conflict) in Phase 2? (Phase 3 adds auto-resolution)"
+      ],
+      "createdAt": "2026-03-12T06:07:12.915Z",
+      "answeredAt": "2026-03-12T06:07:34.002Z",
+      "answers": {
+        "What should happen if a merge fails (conflict) in Phase 2? (Phase 3 adds auto-resolution)": "Fail the phase, preserve worktree (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "What should happen if a merge fails (conflict) in Phase 2? (Phase 3 adds auto-resolution)",
+          "header": "Merge fail",
+          "options": [
+            {
+              "label": "Fail the phase, preserve worktree (Recommended)",
+              "description": "Mark the phase as failed, keep the worktree for manual resolution. Log the conflict. Phase 3 will add auto-resolution later."
+            },
+            {
+              "label": "Abort entire run",
+              "description": "Treat merge conflict as fatal — stop all workers. Conservative but safe."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what gives the best Phase 3 upgrade path."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "57b1fe37-3f1e-455b-b8bc-bff004b229bd",
+      "phase": 2,
+      "step": "discuss",
+      "questions": [
+        "More questions about git worktree lifecycle, or are we done?"
+      ],
+      "createdAt": "2026-03-12T06:07:38.110Z",
+      "answeredAt": "2026-03-12T06:07:47.103Z",
+      "answers": {
+        "More questions about git worktree lifecycle, or are we done?": "I'm ready for context"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about git worktree lifecycle, or are we done?",
+          "header": "Worktrees",
+          "options": [
+            {
+              "label": "More questions",
+              "description": "Continue discussing git worktree lifecycle"
+            },
+            {
+              "label": "I'm ready for context",
+              "description": "All areas covered — generate CONTEXT.md"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "e15bad3d-5a94-4a96-86c5-0539512ff2cd",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Which areas do you want to discuss for Failure Handling and Git Conflict Resolution?"
+      ],
+      "createdAt": "2026-03-12T13:41:50.642Z",
+      "answeredAt": "2026-03-12T13:41:57.987Z",
+      "answers": {
+        "Which areas do you want to discuss for Failure Handling and Git Conflict Resolution?": "Failure modes, Graceful shutdown, Resolution context chaining, Merge conflict resolution"
+      },
+      "questionItems": [
+        {
+          "question": "Which areas do you want to discuss for Failure Handling and Git Conflict Resolution?",
+          "header": "Discuss",
+          "options": [
+            {
+              "label": "Failure modes",
+              "description": "Fail-fast vs --continue behavior. How should dependent phases react when a dependency fails? What info does the user see on failure? (ShutdownManager and requestShutdown() already exist — this extends them)"
+            },
+            {
+              "label": "Graceful shutdown",
+              "description": "SIGINT/SIGTERM cleanup behavior. Should failed worktrees be preserved? How are child ClaudeService processes terminated? (ShutdownManager has LIFO handlers — this wires WorkerPool into them)"
+            },
+            {
+              "label": "Merge conflict resolution",
+              "description": "Auto-resolution strategy for worktree merges. What conflicts can be auto-resolved vs need manual intervention? How is the resolution report structured? (mergeWorktree() currently just returns false on conflict)"
+            },
+            {
+              "label": "Resolution context chaining",
+              "description": "How do resolution reports from earlier merges inform later conflict resolution in the same run? What gets captured and passed forward? (GIT-05 requirement)"
+            }
+          ],
+          "multiSelect": true
+        }
+      ]
+    },
+    {
+      "id": "1608c1d0-34a9-4c5e-a487-0228bc81fa7f",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "When a phase fails in --continue mode, how should dependent phases be handled?"
+      ],
+      "createdAt": "2026-03-12T13:42:06.475Z",
+      "answeredAt": "2026-03-12T13:42:36.345Z",
+      "answers": {
+        "When a phase fails in --continue mode, how should dependent phases be handled?": "Skip dependents (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "When a phase fails in --continue mode, how should dependent phases be handled?",
+          "header": "Fail modes",
+          "options": [
+            {
+              "label": "Skip dependents (Recommended)",
+              "description": "Dependent phases are automatically skipped with a clear message. Independent phases keep running. Simplest and safest — no risk of running a phase on incomplete foundations."
+            },
+            {
+              "label": "Queue dependents",
+              "description": "Dependent phases stay queued (not skipped). After the run, user sees which phases couldn't start and why. Allows re-running with --resume after fixing the failed phase."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the approach during implementation based on what fits the scheduler best."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "96792227-ac5c-4549-a564-ed7b5acd2e7c",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "What should the failure output look like when a phase fails?"
+      ],
+      "createdAt": "2026-03-12T13:42:41.159Z",
+      "answeredAt": "2026-03-12T13:42:48.461Z",
+      "answers": {
+        "What should the failure output look like when a phase fails?": "Summary table (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "What should the failure output look like when a phase fails?",
+          "header": "Fail output",
+          "options": [
+            {
+              "label": "Summary table (Recommended)",
+              "description": "A table at run end showing all phases with status (passed/failed/skipped/running). Failed phases show error reason. Similar to test runner output — scannable at a glance."
+            },
+            {
+              "label": "Inline log only",
+              "description": "Error logged immediately when failure occurs. No summary at end. User reads the log to piece together what happened."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks output format based on what existing logging patterns support."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "6b9a5e97-8074-43ea-9f21-c44526a10923",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "In fail-fast mode (default), should currently-running workers finish their current step before stopping, or abort immediately?"
+      ],
+      "createdAt": "2026-03-12T13:42:55.582Z",
+      "answeredAt": "2026-03-12T13:43:29.893Z",
+      "answers": {
+        "In fail-fast mode (default), should currently-running workers finish their current step before stopping, or abort immediately?": "Abort immediately (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "In fail-fast mode (default), should currently-running workers finish their current step before stopping, or abort immediately?",
+          "header": "Fail speed",
+          "options": [
+            {
+              "label": "Abort immediately (Recommended)",
+              "description": "Call abortAll() on WorkerPool to kill in-progress ClaudeService processes. Fastest shutdown. Worktrees preserved for debugging."
+            },
+            {
+              "label": "Finish current step",
+              "description": "Let running workers complete their current lifecycle step (e.g., finish 'plan' if mid-plan). More graceful but slower — a stuck step could block shutdown."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what ClaudeService.abortCurrent() supports cleanly."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a2f34252-15b7-4079-9f3e-a6250c849337",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Should the --continue flag also be configurable via config.json, or CLI-only like --parallel?"
+      ],
+      "createdAt": "2026-03-12T13:43:34.616Z",
+      "answeredAt": "2026-03-12T13:43:50.095Z",
+      "answers": {
+        "Should the --continue flag also be configurable via config.json, or CLI-only like --parallel?": "CLI-only (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should the --continue flag also be configurable via config.json, or CLI-only like --parallel?",
+          "header": "Continue cfg",
+          "options": [
+            {
+              "label": "CLI-only (Recommended)",
+              "description": "Like --parallel, user explicitly opts in each run. Fail-fast is always the safe default. Consistent with Phase 2 pattern."
+            },
+            {
+              "label": "Configurable",
+              "description": "Allow workflow.continue_on_failure in config.json. Users who always want continue behavior don't have to pass the flag every time."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on consistency with existing flag patterns."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "4558d6cb-c9d4-4807-898e-1ed65de39341",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "More questions about failure modes, or move to next?"
+      ],
+      "createdAt": "2026-03-12T13:43:54.908Z",
+      "answeredAt": "2026-03-12T13:47:24.134Z",
+      "answers": {
+        "More questions about failure modes, or move to next?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about failure modes, or move to next?",
+          "header": "Fail modes",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to Graceful Shutdown"
+            },
+            {
+              "label": "More questions",
+              "description": "Dig deeper into failure mode behavior"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "0a623483-f8d2-40d6-8bb4-b404f8804189",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "On SIGINT/SIGTERM, should all worker worktrees be cleaned up, or preserved for inspection?"
+      ],
+      "createdAt": "2026-03-12T13:47:33.781Z",
+      "answeredAt": "2026-03-12T13:49:09.134Z",
+      "answers": {
+        "On SIGINT/SIGTERM, should all worker worktrees be cleaned up, or preserved for inspection?": "Clean up successful, preserve failed (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "On SIGINT/SIGTERM, should all worker worktrees be cleaned up, or preserved for inspection?",
+          "header": "Shutdown wt",
+          "options": [
+            {
+              "label": "Clean up successful, preserve failed (Recommended)",
+              "description": "Workers that completed successfully get their worktrees cleaned. Failed or in-progress worktrees are preserved so the user can inspect or resume. Matches FAIL-04 requirement."
+            },
+            {
+              "label": "Preserve all",
+              "description": "Keep all worktrees on shutdown regardless of status. User manually cleans up. Safest but leaves clutter."
+            },
+            {
+              "label": "Clean up all",
+              "description": "Remove all worktrees on shutdown. Clean state but loses debugging context for failed phases."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "536ce1e5-e3ae-4135-94ae-18f1893f129c",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "How should child ClaudeService processes be terminated during shutdown?"
+      ],
+      "createdAt": "2026-03-12T13:49:14.313Z",
+      "answeredAt": "2026-03-12T13:49:23.302Z",
+      "answers": {
+        "How should child ClaudeService processes be terminated during shutdown?": "SIGTERM then force kill (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should child ClaudeService processes be terminated during shutdown?",
+          "header": "Kill procs",
+          "options": [
+            {
+              "label": "SIGTERM then force kill (Recommended)",
+              "description": "Send SIGTERM to each child process, wait a short timeout (e.g., 5s), then SIGKILL any survivors. Gives Claude Code a chance to clean up gracefully."
+            },
+            {
+              "label": "Immediate SIGKILL",
+              "description": "Kill all child processes immediately. Fastest but no cleanup opportunity for Claude Code processes."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what Node.js child_process supports cross-platform (especially Windows)."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a036518f-dc62-4d02-9402-c417588f795d",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Should a double Ctrl+C force immediate exit (skip cleanup), or always run the full shutdown sequence?"
+      ],
+      "createdAt": "2026-03-12T13:49:29.093Z",
+      "answeredAt": "2026-03-12T13:54:02.924Z",
+      "answers": {
+        "Should a double Ctrl+C force immediate exit (skip cleanup), or always run the full shutdown sequence?": "Double = force exit (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should a double Ctrl+C force immediate exit (skip cleanup), or always run the full shutdown sequence?",
+          "header": "Double SIGINT",
+          "options": [
+            {
+              "label": "Double = force exit (Recommended)",
+              "description": "First Ctrl+C starts graceful shutdown. Second Ctrl+C within a few seconds forces immediate process.exit(1) with no cleanup. Familiar pattern from many CLI tools."
+            },
+            {
+              "label": "Always graceful",
+              "description": "Every Ctrl+C runs the full shutdown sequence. If stuck, user must kill -9 from another terminal."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what ShutdownManager already supports."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "fb00f583-8078-4254-a558-7bd52c6c28df",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "After graceful shutdown completes, should the process exit with code 0 or non-zero?"
+      ],
+      "createdAt": "2026-03-12T13:54:08.444Z",
+      "answeredAt": "2026-03-12T13:54:21.104Z",
+      "answers": {
+        "After graceful shutdown completes, should the process exit with code 0 or non-zero?": "Non-zero (1) (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "After graceful shutdown completes, should the process exit with code 0 or non-zero?",
+          "header": "Exit code",
+          "options": [
+            {
+              "label": "Non-zero (1) (Recommended)",
+              "description": "Exit 1 when shutdown was triggered by failure or signal. Makes it CI-friendly — pipelines detect the interrupted run."
+            },
+            {
+              "label": "Context-dependent",
+              "description": "Exit 0 if all completed phases succeeded (some just didn't run). Exit 1 only if a phase actually failed. More nuanced but harder to reason about."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks exit code semantics based on CI best practices."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "3c8f9f11-67d5-493a-b487-45bbb3fd6db6",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "More questions about graceful shutdown, or move to next?"
+      ],
+      "createdAt": "2026-03-12T13:54:24.327Z",
+      "answeredAt": "2026-03-12T13:54:31.205Z",
+      "answers": {
+        "More questions about graceful shutdown, or move to next?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about graceful shutdown, or move to next?",
+          "header": "Shutdown",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to Merge Conflict Resolution"
+            },
+            {
+              "label": "More questions",
+              "description": "Dig deeper into shutdown behavior"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "debdf463-1655-4b90-ae86-2d85b00b7ffe",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "What types of conflicts should be auto-resolved vs flagged for manual intervention?"
+      ],
+      "createdAt": "2026-03-12T13:54:39.580Z",
+      "answeredAt": "2026-03-12T13:55:00.474Z",
+      "answers": {
+        "What types of conflicts should be auto-resolved vs flagged for manual intervention?": "You decide"
+      },
+      "questionItems": [
+        {
+          "question": "What types of conflicts should be auto-resolved vs flagged for manual intervention?",
+          "header": "Auto resolve",
+          "options": [
+            {
+              "label": "Disjoint files only (Recommended)",
+              "description": "Auto-resolve when phases touched completely different files (git can merge cleanly with retry). If same file has conflicting changes, mark phase as failed and preserve worktree. Conservative and predictable."
+            },
+            {
+              "label": "Disjoint + non-overlapping hunks",
+              "description": "Also auto-resolve when phases edited different parts of the same file (non-overlapping hunks). More aggressive — handles most real cases but risk of semantic conflicts."
+            },
+            {
+              "label": "Full auto with AI assist",
+              "description": "Use Claude to analyze and resolve even overlapping conflicts. Most powerful but expensive (extra API calls) and harder to trust for correctness."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the resolution strategy based on what git merge supports natively."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "dbf7e391-6a46-471a-8468-d591f39c2fd7",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "When a merge conflict is resolved (auto or manual), what should the resolution report contain?"
+      ],
+      "createdAt": "2026-03-12T13:55:06.409Z",
+      "answeredAt": "2026-03-12T13:55:20.658Z",
+      "answers": {
+        "When a merge conflict is resolved (auto or manual), what should the resolution report contain?": "Structured file (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "When a merge conflict is resolved (auto or manual), what should the resolution report contain?",
+          "header": "Report",
+          "options": [
+            {
+              "label": "Structured file (Recommended)",
+              "description": "A JSON or markdown file per merge with: conflicting files, resolution strategy used, before/after snippets, and which phase's changes won. Machine-readable for context chaining (GIT-05)."
+            },
+            {
+              "label": "Log entries only",
+              "description": "Conflict details logged to the event stream. No separate file. Simpler but harder to use as context for future merges."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks report format based on what's most useful for downstream consumption."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "07a93f14-62d6-4463-99a2-71164eece5e9",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Where should merge resolution reports be stored?"
+      ],
+      "createdAt": "2026-03-12T13:55:27.176Z",
+      "answeredAt": "2026-03-12T13:55:33.791Z",
+      "answers": {
+        "Where should merge resolution reports be stored?": "Phase directory (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Where should merge resolution reports be stored?",
+          "header": "Report path",
+          "options": [
+            {
+              "label": "Phase directory (Recommended)",
+              "description": "Store at .planning/phases/XX-name/merge-report.md alongside other phase artifacts. Each phase owns its merge outcome. Easy to find and review."
+            },
+            {
+              "label": "Central merges directory",
+              "description": "Store all reports in .planning/merges/phase-{N}-report.md. All merge history in one place. Better for cross-phase comparison."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks location based on how it integrates with existing .planning/ structure."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "08585cd0-1782-4ae2-8ba8-e71a0ecc0a4e",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "If a merge fails and can't be auto-resolved, should the run continue (in --continue mode) with remaining phases, or stop merges entirely?"
+      ],
+      "createdAt": "2026-03-12T13:55:40.256Z",
+      "answeredAt": "2026-03-12T13:55:58.008Z",
+      "answers": {
+        "If a merge fails and can't be auto-resolved, should the run continue (in --continue mode) with remaining phases, or stop merges entirely?": "Continue, skip merge-blocked (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "If a merge fails and can't be auto-resolved, should the run continue (in --continue mode) with remaining phases, or stop merges entirely?",
+          "header": "Merge fail",
+          "options": [
+            {
+              "label": "Continue, skip merge-blocked (Recommended)",
+              "description": "The failed-merge phase is marked failed. Other completed phases still attempt their merges (serialized). Maximizes progress — one bad merge doesn't block unrelated phase merges."
+            },
+            {
+              "label": "Stop all merges",
+              "description": "Once any merge fails, no further merges are attempted. All remaining worktrees preserved. Safest but may leave good work unmerged."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on git safety considerations."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a96a6ba4-ebdb-491e-b117-940e288d3653",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "More questions about merge conflict resolution, or move to next?"
+      ],
+      "createdAt": "2026-03-12T13:56:01.607Z",
+      "answeredAt": "2026-03-12T13:56:08.121Z",
+      "answers": {
+        "More questions about merge conflict resolution, or move to next?": "Next area"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about merge conflict resolution, or move to next?",
+          "header": "Merge",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to Resolution Context Chaining"
+            },
+            {
+              "label": "More questions",
+              "description": "Dig deeper into merge resolution behavior"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "a06e6825-1535-4c79-a0ba-547eafedcee2",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "How should resolution reports from earlier merges be made available to later merge attempts in the same run?"
+      ],
+      "createdAt": "2026-03-12T13:56:14.800Z",
+      "answeredAt": "2026-03-12T13:56:20.257Z",
+      "answers": {
+        "How should resolution reports from earlier merges be made available to later merge attempts in the same run?": "In-memory accumulator (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "How should resolution reports from earlier merges be made available to later merge attempts in the same run?",
+          "header": "Chaining",
+          "options": [
+            {
+              "label": "In-memory accumulator (Recommended)",
+              "description": "The orchestrator maintains a list of resolution reports in memory during the run. When a new merge is attempted, prior reports are passed as context. No disk I/O overhead. Reports are also written to disk for post-run review."
+            },
+            {
+              "label": "Read from disk each time",
+              "description": "Each merge reads all existing report files from .planning/phases/*/merge-report.md before attempting resolution. Simpler (no in-memory state) but slower with filesystem overhead."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the context passing mechanism based on what's simplest."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "b9cca74c-d124-474d-861f-17f7ec6d3857",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Should resolution context from a previous run (on disk) be loaded when starting a new run with --resume?"
+      ],
+      "createdAt": "2026-03-12T13:56:26.326Z",
+      "answeredAt": "2026-03-12T13:56:37.394Z",
+      "answers": {
+        "Should resolution context from a previous run (on disk) be loaded when starting a new run with --resume?": "Yes, load prior reports (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should resolution context from a previous run (on disk) be loaded when starting a new run with --resume?",
+          "header": "Cross-run",
+          "options": [
+            {
+              "label": "Yes, load prior reports (Recommended)",
+              "description": "On --resume, read existing merge-report.md files from disk and seed the in-memory accumulator. Gives continuity across interrupted runs."
+            },
+            {
+              "label": "No, fresh each run",
+              "description": "Each run starts with empty context. Reports from previous runs exist on disk for human review but aren't fed back in. Simpler and avoids stale context."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on how --resume works with the rest of the system."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "6f763f9a-8f53-46ce-a595-49eae6c93aee",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "What information from a resolution report is most useful as context for resolving future conflicts?"
+      ],
+      "createdAt": "2026-03-12T13:56:44.486Z",
+      "answeredAt": "2026-03-12T13:56:47.488Z",
+      "answers": {
+        "What information from a resolution report is most useful as context for resolving future conflicts?": "Files + strategy used (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "What information from a resolution report is most useful as context for resolving future conflicts?",
+          "header": "Context data",
+          "options": [
+            {
+              "label": "Files + strategy used (Recommended)",
+              "description": "Which files conflicted, what resolution strategy was applied (e.g., 'took phase 3 changes for src/worker/'), and the outcome. Enough to pattern-match without being overwhelming."
+            },
+            {
+              "label": "Full diffs",
+              "description": "Include complete before/after diffs of resolved conflicts. Maximum context but could be very large and noisy for later merges."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the level of detail based on what's practical for context window constraints."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "164ed807-11f9-4712-9928-d76f9de915c2",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "Should the resolution context be surfaced to the user in the summary table at run end?"
+      ],
+      "createdAt": "2026-03-12T13:56:53.233Z",
+      "answeredAt": "2026-03-12T13:57:11.733Z",
+      "answers": {
+        "Should the resolution context be surfaced to the user in the summary table at run end?": "Yes, brief merge column (Recommended)"
+      },
+      "questionItems": [
+        {
+          "question": "Should the resolution context be surfaced to the user in the summary table at run end?",
+          "header": "Show context",
+          "options": [
+            {
+              "label": "Yes, brief merge column (Recommended)",
+              "description": "Summary table includes a 'Merge' column showing: clean/resolved/conflict for each phase. Users who want details check the report file."
+            },
+            {
+              "label": "No, reports only",
+              "description": "Summary table shows pass/fail status. Merge details only in the report files. Keeps the table clean."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the level of merge visibility in the summary."
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "5cdf027e-95ca-423c-acff-5f9a47fa48dd",
+      "phase": 3,
+      "step": "discuss",
+      "questions": [
+        "More questions about resolution context chaining, or move to next?"
+      ],
+      "createdAt": "2026-03-12T13:57:15.384Z",
+      "answeredAt": "2026-03-12T13:57:19.816Z",
+      "answers": {
+        "More questions about resolution context chaining, or move to next?": "I'm ready for context"
+      },
+      "questionItems": [
+        {
+          "question": "More questions about resolution context chaining, or move to next?",
+          "header": "Chaining",
+          "options": [
+            {
+              "label": "I'm ready for context",
+              "description": "All areas discussed — create CONTEXT.md"
+            },
+            {
+              "label": "More questions",
+              "description": "Dig deeper into context chaining"
+            }
+          ],
+          "multiSelect": false
+        }
+      ]
+    },
+    {
+      "id": "095160e4-e585-4748-82a6-4c8dac413c2a",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Which areas do you want to discuss for Dashboard and Event Stream Integration?"
+      ],
+      "questionItems": [
+        {
+          "question": "Which areas do you want to discuss for Dashboard and Event Stream Integration?",
+          "header": "Discuss",
+          "options": [
+            {
+              "label": "Event stream consolidation",
+              "description": "How per-worker event files merge into a single SSE stream. EventTailer currently tails one file — needs to handle N worker files. (EVNT-03)"
+            },
+            {
+              "label": "Per-phase status display",
+              "description": "How the dashboard shows running/queued/done/failed per phase simultaneously. GET /api/phases currently returns flat phase list — needs parallel status states. (DASH-01)"
+            },
+            {
+              "label": "Question routing by phase",
+              "description": "How questions are tagged to their source phase and answered independently. FileQuestionProvider currently has no phase filtering. (DASH-02, DASH-03)"
+            },
+            {
+              "label": "Live progress visualization",
+              "description": "How parallel progress is shown — multi-progress-bar, timeline, dependency graph? Current progress is a single percentage. (UX of parallel visibility)"
+            }
+          ],
+          "multiSelect": true
+        }
+      ],
+      "createdAt": "2026-03-12T22:36:45.528Z",
+      "answeredAt": "2026-03-12T22:41:35.836Z",
+      "answers": {
+        "Which areas do you want to discuss for Dashboard and Event Stream Integration?": "Event stream consolidation, Per-phase status display, Live progress visualization, Question routing by phase"
+      }
+    },
+    {
+      "id": "0e1bc3ae-8fd8-4468-8a9c-2bc428bf6528",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should the EventTailer discover worker event files?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should the EventTailer discover worker event files?",
+          "header": "Discovery",
+          "options": [
+            {
+              "label": "Directory polling (Recommended)",
+              "description": "EventTailer scans the log/ directory for events-phase-*.ndjson files on each tick. Auto-discovers new workers as they start. No orchestrator coordination needed."
+            },
+            {
+              "label": "Orchestrator registration",
+              "description": "Orchestrator explicitly tells the EventTailer which files to tail via an API call when a worker starts/stops. More precise but requires coupling."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the best approach based on the existing architecture."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:41:42.233Z",
+      "answeredAt": "2026-03-12T22:42:04.130Z",
+      "answers": {
+        "How should the EventTailer discover worker event files?": "Directory polling (Recommended)"
+      }
+    },
+    {
+      "id": "d2a5f89a-163e-4ef9-9460-14ad38ba0aa7",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the consolidated stream preserve the original per-worker event files, or merge them into a single events.ndjson?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the consolidated stream preserve the original per-worker event files, or merge them into a single events.ndjson?",
+          "header": "Output",
+          "options": [
+            {
+              "label": "Read-only fan-in (Recommended)",
+              "description": "EventTailer reads all per-worker files and fans them into a single SSE stream. Worker files remain untouched. Simple, no write contention."
+            },
+            {
+              "label": "Merge into single file",
+              "description": "A consolidator process merges per-worker files into one events.ndjson. Single file for tailing but adds write coordination."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:42:09.427Z"
+    }
+  ],
+  "errorHistory": [
+    {
+      "timestamp": "2026-03-12T09:28:24.883Z",
+      "phase": 3,
+      "step": "discuss",
+      "message": "Command timed out after 3600000ms"
+    },
+    {
+      "timestamp": "2026-03-12T17:12:23.433Z",
+      "phase": 4,
+      "step": "discuss",
+      "message": "Command timed out after 3600000ms"
+    }
+  ],
   "startedAt": "2026-03-12T04:16:22.407Z",
-  "lastUpdatedAt": "2026-03-12T05:00:55.131Z",
+  "lastUpdatedAt": "2026-03-12T22:42:09.427Z",
   "tunnelError": "No dev-tunnel credentials found. Run `devtunnel user login` or set GITHUB_TOKEN / DEVTUNNEL_TOKEN.",
-  "remoteSessionUrl": "https://claude.ai/code/session_01QaSLkg31kkY3jjkfbMatUG?bridge=env_01YG9JgAuP94an5g6XtreT5k"
+  "remoteSessionUrl": "https://claude.ai/code/session_01AD34NeEUPZX6Az9codwQ6R"
 }

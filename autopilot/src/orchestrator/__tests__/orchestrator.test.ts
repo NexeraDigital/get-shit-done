@@ -43,6 +43,10 @@ vi.mock('../../worker/index.js', () => {
 
     get activeCount() { return this._activeCount; }
 
+    // Stub EventEmitter methods used by orchestrator event forwarding
+    on() { return this; }
+    getActiveHandles() { return []; }
+
     dispatch(phase: any, fn: any) {
       this._activeCount++;
 
@@ -161,6 +165,8 @@ interface MockDeps {
   claudeService: {
     runGsdCommand: ReturnType<typeof vi.fn>;
     abortCurrent: ReturnType<typeof vi.fn>;
+    setFallbackSubmit: ReturnType<typeof vi.fn>;
+    emit: ReturnType<typeof vi.fn>;
     isRunning: boolean;
   };
   logger: {
@@ -184,6 +190,8 @@ function createMockDeps(overrides?: Partial<MockDeps>): MockDeps {
     claudeService: {
       runGsdCommand: vi.fn().mockResolvedValue(successResult()),
       abortCurrent: vi.fn(),
+      setFallbackSubmit: vi.fn(),
+      emit: vi.fn(),
       isRunning: false,
       ...overrides?.claudeService,
     },
@@ -857,3 +865,4 @@ describe('extractPhasesFromContent', () => {
     expect(numbers).toEqual([1, 3, 3.1, 3.2, 6.1, 7, 8]);
   });
 });
+

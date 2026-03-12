@@ -135,7 +135,7 @@ describe('FileQuestionProvider', () => {
     await new Promise((r) => setTimeout(r, 1500));
 
     const provider = new FileQuestionProvider(reader, new AnswerWriter(testDir));
-    const result = provider.submitAnswer('nonexistent', { a: 'b' });
+    const result = await provider.submitAnswer('nonexistent', { a: 'b' });
     expect(result).toBe(false);
 
     reader.stop();
@@ -159,7 +159,7 @@ describe('FileQuestionProvider', () => {
     await new Promise((r) => setTimeout(r, 1500));
 
     const provider = new FileQuestionProvider(reader, new AnswerWriter(testDir));
-    const result = provider.submitAnswer('q-submit', { 'Which option?': 'A' });
+    const result = await provider.submitAnswer('q-submit', { 'Which option?': 'A' });
     expect(result).toBe(true);
 
     reader.stop();
