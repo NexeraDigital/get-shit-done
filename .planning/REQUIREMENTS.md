@@ -38,12 +38,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Git Isolation
 
-- [ ] **GIT-01**: Each parallel phase executes in its own git worktree
-- [ ] **GIT-02**: On phase completion, worktree changes are merged back to the central branch
+- [x] **GIT-01**: Each parallel phase executes in its own git worktree
+- [x] **GIT-02**: On phase completion, worktree changes are merged back to the central branch
 - [ ] **GIT-03**: Merge conflicts are auto-resolved where possible
 - [ ] **GIT-04**: A merge conflict resolution report is generated documenting what was fixed
 - [ ] **GIT-05**: Resolution reports are available as context for reconciling future merge conflicts
-- [ ] **GIT-06**: Worktree is cleaned up (removed) after successful merge
+- [x] **GIT-06**: Worktree is cleaned up (removed) after successful merge
 
 ### Failure Handling
 
@@ -120,12 +120,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | EXEC-03 | Phase 1 | Complete |
 | EXEC-04 | Phase 1 | Complete |
 >>>>>>> 3e2a08594c184203d755c0e98ce20c92b00cc89a
-| GIT-01 | Phase 2 | Pending |
-| GIT-02 | Phase 2 | Pending |
+| GIT-01 | Phase 2 | Complete |
+| GIT-02 | Phase 2 | Complete |
 | GIT-03 | Phase 3 | Pending |
 | GIT-04 | Phase 3 | Pending |
 | GIT-05 | Phase 3 | Pending |
-| GIT-06 | Phase 2 | Pending |
+| GIT-06 | Phase 2 | Complete |
 | FAIL-01 | Phase 3 | Pending |
 | FAIL-02 | Phase 3 | Pending |
 | FAIL-03 | Phase 3 | Pending |

@@ -48,7 +48,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Worker types and git worktree lifecycle functions (TDD)
+- [x] 02-01-PLAN.md -- Worker types and git worktree lifecycle functions (TDD)
 - [ ] 02-02-PLAN.md -- CLI --parallel and --concurrency flags
 - [ ] 02-03-PLAN.md -- WorkerPool and unified scheduler-driven orchestrator loop
 
@@ -89,6 +89,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scheduler and Isolation Model | 2/2 | Complete   | 2026-03-12 |
-| 2. Parallel Execution Engine | 0/3 | Not started | - |
+| 2. Parallel Execution Engine | 1/3 | In progress | - |
 | 3. Failure Handling and Git Conflict Resolution | 0/? | Not started | - |
 | 4. Dashboard and Event Stream Integration | 0/? | Not started | - |
