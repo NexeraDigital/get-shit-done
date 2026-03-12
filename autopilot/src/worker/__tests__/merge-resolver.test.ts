@@ -182,7 +182,7 @@ describe('writeMergeReport()', () => {
     const content = await readFile(join(dir, 'merge-report.md'), 'utf-8');
 
     expect(content).toContain('# Merge Report');
-    expect(content).toContain('Phase 5');
+    expect(content).toContain('**Phase:** 5');
     expect(content).toContain('2026-03-12T12:00:00Z');
     expect(content).toContain('src/main.ts');
     expect(content).toContain('src/util.ts');

@@ -1,4 +1,5 @@
 import type { ClaudeService } from '../claude/index.js';
+import type { MergeReport } from './merge-resolver.js';
 
 export interface WorkerHandle {
   phaseNumber: number;
@@ -13,6 +14,7 @@ export interface WorkerResult {
   success: boolean;
   error?: string;
   mergeSuccess?: boolean; // true if worktree merged cleanly
+  mergeReport?: MergeReport; // detailed conflict resolution report
 }
 
 export interface WorkerPoolOptions {

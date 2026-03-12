@@ -31,7 +31,7 @@ function worktreePath(projectDir: string, phaseNumber: number): string {
  * Compute the branch name for a given phase.
  * Pattern: gsd/phase-{N}
  */
-function branchName(phaseNumber: number): string {
+export function branchName(phaseNumber: number): string {
   return `gsd/phase-${phaseNumber}`;
 }
 
