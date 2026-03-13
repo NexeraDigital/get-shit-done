@@ -1,7 +1,7 @@
 {
-  "status": "running",
+  "status": "complete",
   "currentPhase": 4,
-  "currentStep": "discuss",
+  "currentStep": "done",
   "phases": [
     {
       "number": 1,
@@ -232,18 +232,80 @@
     {
       "number": 4,
       "name": "Dashboard and Event Stream Integration",
-      "status": "in_progress",
+      "status": "completed",
       "steps": {
-        "discuss": "discuss",
-        "plan": "idle",
-        "execute": "idle",
-        "verify": "idle"
+        "discuss": "done",
+        "plan": "done",
+        "execute": "done",
+        "verify": "done"
       },
       "startedAt": "2026-03-12T15:12:23.304Z",
-      "commits": [],
+      "commits": [
+        {
+          "hash": "1ef0694951d26da1be85f028955c3285854c9404",
+          "message": "docs(state): record phase 4 context session"
+        },
+        {
+          "hash": "21c7eea11eaef7173f2bcf40c0fceeb26d317c88",
+          "message": "docs(04): capture phase context"
+        },
+        {
+          "hash": "571e3e7bd5d4fcd1166e8567c8f3b28117b49867",
+          "message": "feat: enhance answer submission handling and parallel execution"
+        },
+        {
+          "hash": "9fffbcdb349a955eddb66f25a05300c71e8a9580",
+          "message": "docs(04): create phase plan for dashboard and event stream integration"
+        },
+        {
+          "hash": "aae7d30d889faea7f0677fc02893029790c05212",
+          "message": "docs(phase-4): add validation strategy"
+        },
+        {
+          "hash": "dd960a6175123f7a5b1568ebab5d008cb04cf339",
+          "message": "docs(04): research dashboard and event stream integration"
+        },
+        {
+          "hash": "b9fd3f40737a121a5b9784ccd6e451f69163618e",
+          "message": "feat(04-03): add phase-tagged questions, SummaryTable, and Overview wiring"
+        },
+        {
+          "hash": "bc153c7b530ed1c11ecad5f2431074a9c33157c1",
+          "message": "feat(04-03): enhance PhaseCard with parallel status badges and question counts"
+        },
+        {
+          "hash": "ded34ba87d28e3c3736b083bc4ae0036d871e936",
+          "message": "docs(04-01): complete ConsolidatedEventTailer plan"
+        },
+        {
+          "hash": "e1eb99ad7ea1930bcd38e1cf1e29bf197ae46212",
+          "message": "docs(04-02): complete state types and SSE event wiring plan"
+        },
+        {
+          "hash": "6244a9b2b0107d5600c96c4ac94c8b879ebc0126",
+          "message": "feat(04-01): wire ConsolidatedEventTailer into standalone dashboard"
+        },
+        {
+          "hash": "56b4da13316def855f1bf6c8354dbc96c25c0e30",
+          "message": "feat(04-01): implement ConsolidatedEventTailer"
+        },
+        {
+          "hash": "bb720e068820665f811229a6a5e5061b509bee33",
+          "message": "feat(04-02): wire phase-status-changed SSE event through server and dashboard"
+        },
+        {
+          "hash": "0e2d2079cddbf1be6bd66d35d8ff7a747f659f66",
+          "message": "test(04-01): add failing tests for ConsolidatedEventTailer"
+        },
+        {
+          "hash": "d999363c64b292e4167fc9b29f89cc8b806fd223",
+          "message": "feat(04-02): extend PhaseState with parallel execution fields"
+        }
+      ],
       "gapIterations": 0,
       "inserted": false,
-      "dependsOn": null
+      "dependsOn": null,
+      "completedAt": "2026-03-12T23:43:49.282Z"
     }
   ],
   "pendingQuestions": [
@@ -1755,7 +1817,591 @@
           "multiSelect": false
         }
       ],
-      "createdAt": "2026-03-12T22:42:09.427Z"
+      "createdAt": "2026-03-12T22:42:09.427Z",
+      "answeredAt": "2026-03-12T22:43:07.872Z",
+      "answers": {
+        "Should the consolidated stream preserve the original per-worker event files, or merge them into a single events.ndjson?": "Read-only fan-in (Recommended)"
+      }
+    },
+    {
+      "id": "7705f8ee-8e91-4306-a0f8-48c09c580b4d",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should events from multiple workers be ordered in the SSE stream?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should events from multiple workers be ordered in the SSE stream?",
+          "header": "Ordering",
+          "options": [
+            {
+              "label": "Timestamp-sorted (Recommended)",
+              "description": "Events from all workers interleaved by timestamp. Gives a true chronological view of what happened across all phases."
+            },
+            {
+              "label": "Per-worker groups",
+              "description": "Events grouped by worker/phase, not interleaved. Easier to follow one phase at a time but loses global timeline."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on what the dashboard frontend needs."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:43:12.931Z",
+      "answeredAt": "2026-03-12T22:43:52.341Z",
+      "answers": {
+        "How should events from multiple workers be ordered in the SSE stream?": "You decide"
+      }
+    },
+    {
+      "id": "79416c98-9c2f-4c9d-b08e-f8fd0dd57663",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the consolidated EventTailer also work in sequential mode (single worker), or should there be two code paths?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the consolidated EventTailer also work in sequential mode (single worker), or should there be two code paths?",
+          "header": "Compat",
+          "options": [
+            {
+              "label": "Unified tailer (Recommended)",
+              "description": "One EventTailer handles both: in sequential mode it finds one file, in parallel mode it finds N files. Same code path, zero branching."
+            },
+            {
+              "label": "Separate tailers",
+              "description": "Keep existing single-file EventTailer for sequential mode, new multi-file tailer for parallel. More isolation but duplicated logic."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:43:57.503Z",
+      "answeredAt": "2026-03-12T22:44:25.697Z",
+      "answers": {
+        "Should the consolidated EventTailer also work in sequential mode (single worker), or should there be two code paths?": "Unified tailer (Recommended)"
+      }
+    },
+    {
+      "id": "c1e1861a-6d59-42c0-bfd7-aecd3a49be9c",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "More questions about event stream consolidation, or move to next area?"
+      ],
+      "questionItems": [
+        {
+          "question": "More questions about event stream consolidation, or move to next area?",
+          "header": "Events",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to per-phase status display."
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing event stream details."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:44:29.634Z",
+      "answeredAt": "2026-03-12T22:45:34.468Z",
+      "answers": {
+        "More questions about event stream consolidation, or move to next area?": "Next area"
+      }
+    },
+    {
+      "id": "f2a49336-9584-4ea6-bfe9-c2b38d2741d9",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should parallel phase statuses be represented in the API?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should parallel phase statuses be represented in the API?",
+          "header": "API shape",
+          "options": [
+            {
+              "label": "Extend existing phases (Recommended)",
+              "description": "Add parallel-specific fields to the existing PhaseState (e.g., workerStatus: running/queued/done/failed, workerId, workerPid). GET /api/phases returns the same array, richer data."
+            },
+            {
+              "label": "New /api/workers endpoint",
+              "description": "Separate endpoint for parallel worker state. Keeps phase data clean but dashboard needs two calls."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks the best approach based on existing StateStore patterns."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:45:40.472Z",
+      "answeredAt": "2026-03-12T22:46:02.743Z",
+      "answers": {
+        "How should parallel phase statuses be represented in the API?": "Extend existing phases (Recommended)"
+      }
+    },
+    {
+      "id": "aeff4b02-1313-4b9f-b5d8-2618ecac30f3",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the dashboard show queued phases (waiting for dependencies) or only active/completed ones?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the dashboard show queued phases (waiting for dependencies) or only active/completed ones?",
+          "header": "Visibility",
+          "options": [
+            {
+              "label": "Show all phases (Recommended)",
+              "description": "All phases visible: queued (grayed out with dependency info), running (active), done (checkmark), failed (error). Full picture at a glance."
+            },
+            {
+              "label": "Only active + completed",
+              "description": "Hide queued phases until they start. Simpler view but user can't see what's coming next."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:46:07.670Z",
+      "answeredAt": "2026-03-12T22:46:17.912Z",
+      "answers": {
+        "Should the dashboard show queued phases (waiting for dependencies) or only active/completed ones?": "Show all phases (Recommended)"
+      }
+    },
+    {
+      "id": "eeb65de3-e3c9-4400-857d-8c72b853105d",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should per-phase status updates be pushed via SSE events, or should the dashboard poll GET /api/phases?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should per-phase status updates be pushed via SSE events, or should the dashboard poll GET /api/phases?",
+          "header": "Updates",
+          "options": [
+            {
+              "label": "SSE push (Recommended)",
+              "description": "Emit phase-status-changed SSE events with the updated phase data. Dashboard reacts instantly. Consistent with existing SSE pattern."
+            },
+            {
+              "label": "Polling",
+              "description": "Dashboard polls /api/phases every N seconds. Simpler server-side but adds latency and unnecessary requests."
+            },
+            {
+              "label": "Both",
+              "description": "SSE for real-time updates, polling as fallback for reconnection. Belt and suspenders."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:46:23.894Z",
+      "answeredAt": "2026-03-12T22:46:36.106Z",
+      "answers": {
+        "Should per-phase status updates be pushed via SSE events, or should the dashboard poll GET /api/phases?": "SSE push (Recommended)"
+      }
+    },
+    {
+      "id": "b8d2b712-5bbe-4073-bf1e-d7eb518b6871",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should failed phases be displayed — just a status badge, or expanded error details inline?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should failed phases be displayed — just a status badge, or expanded error details inline?",
+          "header": "Failures",
+          "options": [
+            {
+              "label": "Badge + expandable detail",
+              "description": "Red badge with one-line error summary. Click/expand to see full error, affected dependencies, and preserved worktree path."
+            },
+            {
+              "label": "Inline error always visible",
+              "description": "Failed phases always show the full error message. No click needed but can be noisy with multiple failures."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on dashboard UI patterns."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:46:41.294Z",
+      "answeredAt": "2026-03-12T22:47:01.392Z",
+      "answers": {
+        "How should failed phases be displayed — just a status badge, or expanded error details inline?": "You decide"
+      }
+    },
+    {
+      "id": "a20eaf48-390f-45b7-bf79-d791ede5aad7",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "More questions about per-phase status display, or move to next area?"
+      ],
+      "questionItems": [
+        {
+          "question": "More questions about per-phase status display, or move to next area?",
+          "header": "Status",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to live progress visualization."
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing status display details."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:47:04.385Z",
+      "answeredAt": "2026-03-12T22:47:08.472Z",
+      "answers": {
+        "More questions about per-phase status display, or move to next area?": "Next area"
+      }
+    },
+    {
+      "id": "698388a5-8ca8-44af-8a4b-ca4e0836076b",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should overall parallel progress be represented — replacing the current single percentage?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should overall parallel progress be represented — replacing the current single percentage?",
+          "header": "Progress",
+          "options": [
+            {
+              "label": "Per-phase progress bars (Recommended)",
+              "description": "Each phase gets its own progress indicator (4 steps: discuss/plan/execute/verify). Overall progress derived from sum. Clear per-phase visibility."
+            },
+            {
+              "label": "Single progress + phase chips",
+              "description": "Keep one overall progress bar, but add colored phase chips/badges showing each phase's current step. Compact view."
+            },
+            {
+              "label": "Timeline/Gantt view",
+              "description": "Horizontal timeline showing phases as bars: started time, current duration, dependencies as arrows. Most informative but complex to build."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:47:14.780Z",
+      "answeredAt": "2026-03-12T22:48:06.129Z",
+      "answers": {
+        "How should overall parallel progress be represented — replacing the current single percentage?": "Per-phase progress bars (Recommended)"
+      }
+    },
+    {
+      "id": "b927e876-bbc3-468e-8a38-d86eceb3b26d",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the dashboard show dependency relationships between phases visually?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the dashboard show dependency relationships between phases visually?",
+          "header": "Dependencies",
+          "options": [
+            {
+              "label": "Simple text annotation",
+              "description": "Each phase shows \"Depends on: Phase 1, 2\" as text. No graph, just informational. Low effort, clear enough."
+            },
+            {
+              "label": "Arrows/lines between phases",
+              "description": "Visual connector lines between dependent phases. Shows the DAG structure at a glance. Medium effort."
+            },
+            {
+              "label": "Defer to v2 (Recommended)",
+              "description": "DASH-04 (dependency graph visualization) is already in v2 requirements. Keep Phase 4 focused on core DASH-01/02/03. Add text annotation only."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:48:12.812Z",
+      "answeredAt": "2026-03-12T22:49:12.886Z",
+      "answers": {
+        "Should the dashboard show dependency relationships between phases visually?": "Defer to v2 (Recommended)"
+      }
+    },
+    {
+      "id": "c24f4f8f-21fc-4120-8a90-0050ede37465",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should phase step transitions (e.g., discuss → plan) be animated or instant in the dashboard?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should phase step transitions (e.g., discuss → plan) be animated or instant in the dashboard?",
+          "header": "Transitions",
+          "options": [
+            {
+              "label": "Instant update",
+              "description": "Status changes immediately. No animations. Clean and functional."
+            },
+            {
+              "label": "Subtle transition",
+              "description": "Brief highlight/pulse when a step completes. Draws attention to progress without being distracting."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on existing dashboard styling patterns."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:49:21.617Z",
+      "answeredAt": "2026-03-12T22:49:39.187Z",
+      "answers": {
+        "Should phase step transitions (e.g., discuss → plan) be animated or instant in the dashboard?": "Instant update"
+      }
+    },
+    {
+      "id": "42a81efb-f9cc-465a-886a-74fd7de3fb80",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the dashboard show a summary/completion view when all parallel phases finish?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the dashboard show a summary/completion view when all parallel phases finish?",
+          "header": "Completion",
+          "options": [
+            {
+              "label": "Summary table (Recommended)",
+              "description": "When build completes, show a summary table: phase name, status, duration, merge result. Matches the CLI summary table from Phase 3."
+            },
+            {
+              "label": "Just final state",
+              "description": "No special completion view. Dashboard stays as-is showing all phases in their final state (done/failed)."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks what makes sense with the existing build-complete event."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:49:44.313Z",
+      "answeredAt": "2026-03-12T22:50:13.582Z",
+      "answers": {
+        "Should the dashboard show a summary/completion view when all parallel phases finish?": "Summary table (Recommended)"
+      }
+    },
+    {
+      "id": "68f69ceb-828e-4947-9db5-b954bfe44a63",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "More questions about live progress visualization, or move to next area?"
+      ],
+      "questionItems": [
+        {
+          "question": "More questions about live progress visualization, or move to next area?",
+          "header": "Progress",
+          "options": [
+            {
+              "label": "Next area",
+              "description": "Move on to question routing by phase."
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing progress visualization."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:50:16.394Z",
+      "answeredAt": "2026-03-12T22:50:20.663Z",
+      "answers": {
+        "More questions about live progress visualization, or move to next area?": "Next area"
+      }
+    },
+    {
+      "id": "bed5d190-00b4-4281-b291-c8669ec3b301",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should questions from different phases be presented in the dashboard?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should questions from different phases be presented in the dashboard?",
+          "header": "Layout",
+          "options": [
+            {
+              "label": "Single list with phase tags (Recommended)",
+              "description": "All questions in one list, each tagged with its source phase (e.g., \"Phase 2: Parallel Engine\"). Compact, familiar. Filter by phase optional."
+            },
+            {
+              "label": "Grouped by phase",
+              "description": "Questions grouped under phase headers. Each group is a collapsible section. More organized but takes more vertical space."
+            },
+            {
+              "label": "Tabbed by phase",
+              "description": "Tab per active phase, each tab shows that phase's questions. Clean separation but requires clicking between phases."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:50:26.488Z",
+      "answeredAt": "2026-03-12T22:51:00.083Z",
+      "answers": {
+        "How should questions from different phases be presented in the dashboard?": "Single list with phase tags (Recommended)"
+      }
+    },
+    {
+      "id": "bfbab263-2fa9-4565-885d-a31ee4f1bb88",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should answering a question for one phase be possible while another phase's question is open?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should answering a question for one phase be possible while another phase's question is open?",
+          "header": "Independence",
+          "options": [
+            {
+              "label": "Fully independent (Recommended)",
+              "description": "Each question is self-contained. Answering Phase 2's question doesn't block or affect Phase 3's question. No modal lock."
+            },
+            {
+              "label": "One at a time",
+              "description": "Only one question expanded/answerable at a time. Simpler interaction model but slower when multiple phases ask simultaneously."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:51:05.225Z",
+      "answeredAt": "2026-03-12T22:51:46.604Z",
+      "answers": {
+        "Should answering a question for one phase be possible while another phase's question is open?": "Fully independent (Recommended)"
+      }
+    },
+    {
+      "id": "bb93f678-201f-4375-a11f-15fb5f10e853",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "How should the answer file routing work — one shared answers/ directory or per-phase?"
+      ],
+      "questionItems": [
+        {
+          "question": "How should the answer file routing work — one shared answers/ directory or per-phase?",
+          "header": "Answer files",
+          "options": [
+            {
+              "label": "Shared directory (Recommended)",
+              "description": "All answer files go to .planning/autopilot/answers/{questionId}.json as today. Orchestrator routes to correct worker using the phase tag in the question. Minimal change."
+            },
+            {
+              "label": "Per-worker directories",
+              "description": "Each worker gets its own answers directory in its worktree. Dashboard writes to the correct worktree's directory. More isolated but requires worktree path knowledge in dashboard."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:51:52.471Z",
+      "answeredAt": "2026-03-12T22:52:06.825Z",
+      "answers": {
+        "How should the answer file routing work — one shared answers/ directory or per-phase?": "Shared directory (Recommended)"
+      }
+    },
+    {
+      "id": "a726e8e1-ef2b-452c-ac86-6de9d977b7b2",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "Should the dashboard show a notification badge/count for pending questions per phase?"
+      ],
+      "questionItems": [
+        {
+          "question": "Should the dashboard show a notification badge/count for pending questions per phase?",
+          "header": "Badges",
+          "options": [
+            {
+              "label": "Yes, per-phase badge (Recommended)",
+              "description": "Each phase card shows a badge with pending question count (e.g., \"2 questions\"). User can see at a glance which phases need attention."
+            },
+            {
+              "label": "Global count only",
+              "description": "Single badge with total pending questions across all phases. Simpler but user has to scan the list to find which phase needs input."
+            },
+            {
+              "label": "You decide",
+              "description": "Claude picks based on dashboard patterns."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:52:11.700Z",
+      "answeredAt": "2026-03-12T22:52:24.023Z",
+      "answers": {
+        "Should the dashboard show a notification badge/count for pending questions per phase?": "Yes, per-phase badge (Recommended)"
+      }
+    },
+    {
+      "id": "8bebd69f-efc3-44bc-bacb-aa2133506248",
+      "phase": 4,
+      "step": "discuss",
+      "questions": [
+        "More questions about question routing, or move on?"
+      ],
+      "questionItems": [
+        {
+          "question": "More questions about question routing, or move on?",
+          "header": "Questions",
+          "options": [
+            {
+              "label": "I'm ready for context",
+              "description": "All areas discussed. Create CONTEXT.md with the captured decisions."
+            },
+            {
+              "label": "More questions",
+              "description": "Continue discussing question routing details."
+            }
+          ],
+          "multiSelect": false
+        }
+      ],
+      "createdAt": "2026-03-12T22:52:27.807Z",
+      "answeredAt": "2026-03-12T22:52:34.143Z",
+      "answers": {
+        "More questions about question routing, or move on?": "I'm ready for context"
+      }
     }
   ],
   "errorHistory": [
@@ -1773,7 +2419,7 @@
     }
   ],
   "startedAt": "2026-03-12T04:16:22.407Z",
-  "lastUpdatedAt": "2026-03-12T22:42:09.427Z",
+  "lastUpdatedAt": "2026-03-12T23:43:49.289Z",
   "tunnelError": "No dev-tunnel credentials found. Run `devtunnel user login` or set GITHUB_TOKEN / DEVTUNNEL_TOKEN.",
   "remoteSessionUrl": "https://claude.ai/code/session_01AD34NeEUPZX6Az9codwQ6R"
 }
