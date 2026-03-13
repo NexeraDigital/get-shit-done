@@ -84,15 +84,52 @@ export async function ensureCleanWorktree(projectDir: string, phaseNumber: numbe
   const wtPath = worktreePath(projectDir, phaseNumber);
   const branch = branchName(phaseNumber);
 
-  // Try removing existing worktree (may not exist -- that's fine)
+  // Remove existing worktree directory (may not exist -- that's fine)
   try {
     await execGit(projectDir, ['worktree', 'remove', wtPath, '--force']);
   } catch { /* Not found -- OK */ }
 
-  // Try deleting existing branch (force delete to handle unmerged branches)
+  // Check if branch exists before attempting cleanup
+  let branchExists = false;
   try {
-    await execGit(projectDir, ['branch', '-D', branch]);
-  } catch { /* Not found -- OK */ }
+    await execGit(projectDir, ['rev-parse', '--verify', branch]);
+    branchExists = true;
+  } catch { /* Branch doesn't exist -- nothing to clean */ }
+
+  if (branchExists) {
+    // Check if branch is already merged into HEAD
+    let isMerged = false;
+    try {
+      const merged = await execGit(projectDir, ['branch', '--merged', 'HEAD']);
+      isMerged = merged.split('\n').some(b => b.trim() === branch);
+    } catch { /* Assume not merged */ }
+
+    if (!isMerged) {
+      // Branch has unmerged work — attempt to merge it before deleting
+      try {
+        await execGit(projectDir, ['merge', branch, '--no-edit']);
+      } catch {
+        // Merge conflict — abort merge, then force-merge with --theirs strategy
+        try { await execGit(projectDir, ['merge', '--abort']); } catch { /* clean state */ }
+        // Use merge with theirs strategy to preserve the branch work
+        try {
+          await execGit(projectDir, ['merge', '-X', 'theirs', branch, '--no-edit']);
+        } catch {
+          // Last resort: abort and leave branch for manual recovery
+          try { await execGit(projectDir, ['merge', '--abort']); } catch { /* already clean */ }
+          throw new Error(
+            `Cannot safely clean worktree for phase ${phaseNumber}: ` +
+            `branch ${branch} has unmerged commits. Resolve manually.`
+          );
+        }
+      }
+    }
+
+    // Branch is now merged (or was already) — safe to delete
+    try {
+      await execGit(projectDir, ['branch', '-d', branch]);
+    } catch { /* Already deleted or other issue */ }
+  }
 
   // Prune stale worktree entries from .git/worktrees
   await execGit(projectDir, ['worktree', 'prune']);
