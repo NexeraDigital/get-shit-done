@@ -181,7 +181,11 @@ export class WorkerPool extends EventEmitter {
 
         if (mergeResult) {
           // Clean merge -- cleanup worktree
-          await cleanupWorktree(projectDir, phase.number);
+          try {
+            await cleanupWorktree(projectDir, phase.number);
+          } catch {
+            // Non-fatal: worktree will be cleaned up on next run by ensureCleanWorktree()
+          }
 
           return {
             phaseNumber: phase.number,
@@ -198,7 +202,11 @@ export class WorkerPool extends EventEmitter {
 
         if (report.success) {
           // Resolution succeeded -- cleanup worktree
-          await cleanupWorktree(projectDir, phase.number);
+          try {
+            await cleanupWorktree(projectDir, phase.number);
+          } catch {
+            // Non-fatal: worktree will be cleaned up on next run by ensureCleanWorktree()
+          }
           return {
             phaseNumber: phase.number,
             success: true,

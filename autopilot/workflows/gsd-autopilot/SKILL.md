@@ -1,7 +1,7 @@
 ---
 name: gsd:autopilot
 description: Launch, monitor, stop, or authenticate GSD Autopilot for the current git branch
-argument-hint: "[show|status|stop|login [github]|--prd path|--phases range|--notify channel]"
+argument-hint: "[show|status|stop|login [github]|--prd path|--phases range|--notify channel|--parallel|--concurrency n|--continue]"
 allowed-tools:
   - Bash
 ---
@@ -18,6 +18,14 @@ Launch and manage the GSD Autopilot workflow orchestrator. Each git branch gets 
 /gsd:autopilot --prd path/to/prd.md
 /gsd:autopilot --phases 3-5
 /gsd:autopilot --notify teams
+```
+
+**Launch in parallel mode** (runs independent phases concurrently via git worktrees):
+```
+/gsd:autopilot --parallel
+/gsd:autopilot --parallel --concurrency 5
+/gsd:autopilot --phases 2-5 --parallel
+/gsd:autopilot --parallel --continue
 ```
 
 **Show dashboard** (starts dashboard if needed, opens browser — no autopilot):

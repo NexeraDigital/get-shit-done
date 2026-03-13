@@ -125,11 +125,10 @@ function PhaseRow({ phase, isCurrent, questionCount }: {
         <div className="flex items-center gap-3 ml-6">
           {STEP_ORDER.map((step) => {
             const stepStatus = phase.steps[step];
-            // In parallel mode, allow multiple phases to show active dots simultaneously.
-            // Remove isCurrent guard so any phase with an active step pulses.
-            const isActive = phase.workerStatus != null
-              ? stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step
-              : isCurrent && stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step;
+            // Show active (blue pulsing) dot for any in-progress phase whose step matches,
+            // not just the single "currentPhase". This supports parallel execution.
+            const isActive = (phase.status === 'in_progress' || isCurrent)
+              && stepStatus !== 'idle' && stepStatus !== 'done' && stepStatus === step;
             return (
               <StepDot
                 key={step}

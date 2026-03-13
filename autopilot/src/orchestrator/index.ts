@@ -309,7 +309,18 @@ export class Orchestrator extends EventEmitter {
 
         const padded = formatPhaseNumber(phase.number);
         const phaseEntry = entries.find(e => e.isDirectory() && e.name.startsWith(padded + '-'));
-        if (!phaseEntry) continue;
+        if (!phaseEntry) {
+          // No phase directory at all — demote any 'done' steps back to idle
+          let demoted = false;
+          if (phase.steps.discuss === 'done') { phase.steps.discuss = 'idle'; demoted = true; }
+          if (phase.steps.plan === 'done') { phase.steps.plan = 'idle'; demoted = true; }
+          if (demoted) {
+            corrected = true;
+            this.logger.log('warn', 'orchestrator',
+              `Phase ${phase.number} has no directory on disk — demoting stale steps to idle`);
+          }
+          continue;
+        }
 
         try {
           const vPath = join(phasesDir, phaseEntry.name, `${padded}-VERIFICATION.md`);
@@ -340,6 +351,19 @@ export class Orchestrator extends EventEmitter {
           }
         }
 
+        // Demote discuss: state says 'done' but CONTEXT.md missing on disk
+        if (phase.steps.discuss === 'done' && phase.status !== 'completed') {
+          try {
+            const cPath = join(phasesDir, phaseEntry.name, `${padded}-CONTEXT.md`);
+            await access(cPath);
+          } catch {
+            phase.steps.discuss = 'idle';
+            corrected = true;
+            this.logger.log('warn', 'orchestrator',
+              `Phase ${phase.number} has discuss='done' but no CONTEXT.md — demoting to idle`);
+          }
+        }
+
         // Reconcile plan step: detect PLAN.md artifacts on disk
         if (phase.steps.plan !== 'done') {
           try {
@@ -354,6 +378,26 @@ export class Orchestrator extends EventEmitter {
             }
           } catch {
             // Can't read phase dir — plan genuinely needed
+          }
+        }
+
+        // Demote plan: state says 'done' but no PLAN.md files on disk
+        if (phase.steps.plan === 'done' && phase.status !== 'completed') {
+          try {
+            const phaseFiles = await readdir(join(phasesDir, phaseEntry.name));
+            const hasPlan = phaseFiles.some(f =>
+              f.startsWith(`${padded}-`) && f.endsWith('-PLAN.md'));
+            if (!hasPlan) {
+              phase.steps.plan = 'idle';
+              corrected = true;
+              this.logger.log('warn', 'orchestrator',
+                `Phase ${phase.number} has plan='done' but no PLAN.md files — demoting to idle`);
+            }
+          } catch {
+            phase.steps.plan = 'idle';
+            corrected = true;
+            this.logger.log('warn', 'orchestrator',
+              `Phase ${phase.number} has plan='done' but phase dir unreadable — demoting to idle`);
           }
         }
       }
@@ -701,11 +745,13 @@ export class Orchestrator extends EventEmitter {
     if (!phase.startedAt) {
       phase.startedAt = new Date().toISOString();
     }
-    await this.stateStore.setState({
+    await this.stateStore.update((state) => ({
       currentPhase: phase.number,
       status: 'running',
-    });
-    await this.persistPhaseUpdate(phase);
+      phases: state.phases.map((p) =>
+        p.number === phase.number ? { ...phase } : p,
+      ),
+    }));
 
     // Step sequence with resume support (Pitfall 2: check individual step states)
     if (phase.steps.discuss !== 'done') {
@@ -804,7 +850,7 @@ export class Orchestrator extends EventEmitter {
   ): Promise<void> {
     // Check shutdown before starting step
     if (this.shutdownRequested) {
-      await this.stateStore.setState({ status: 'idle' });
+      await this.stateStore.update(() => ({ status: 'idle' }));
       return;
     }
 
@@ -824,19 +870,21 @@ export class Orchestrator extends EventEmitter {
       });
     }
 
-    // Update in-progress state
+    // Update in-progress state — single atomic write to prevent interleaving
     phase.steps[stepName as keyof typeof phase.steps] = stepName;
-    await this.stateStore.setState({ currentStep: stepName });
-
-    // CRITICAL: Persist state BEFORE calling fn (Pitfall 1)
-    await this.persistPhaseUpdate(phase);
+    await this.stateStore.update((state) => ({
+      currentStep: stepName,
+      phases: state.phases.map((p) =>
+        p.number === phase.number ? { ...phase } : p,
+      ),
+    }));
 
     try {
       await fn();
     } catch (err) {
       // If shutdown was requested, persist state and return cleanly
       if (this.shutdownRequested) {
-        await this.stateStore.setState({ status: 'idle' });
+        await this.stateStore.update(() => ({ status: 'idle' }));
         return;
       }
       throw err;
@@ -844,7 +892,7 @@ export class Orchestrator extends EventEmitter {
 
     // Check shutdown after fn completes
     if (this.shutdownRequested) {
-      await this.stateStore.setState({ status: 'idle' });
+      await this.stateStore.update(() => ({ status: 'idle' }));
       return;
     }
 
@@ -859,10 +907,14 @@ export class Orchestrator extends EventEmitter {
       }
     }
 
-    // Mark step done
+    // Mark step done — single atomic write
     phase.steps[stepName as keyof typeof phase.steps] = 'done';
-    await this.persistPhaseUpdate(phase);
-    await this.stateStore.setState({ currentStep: 'done' });
+    await this.stateStore.update((state) => ({
+      currentStep: 'done',
+      phases: state.phases.map((p) =>
+        p.number === phase.number ? { ...phase } : p,
+      ),
+    }));
 
     // Emit step:completed
     this.emit('step:completed', { phase: phase.number, step: stepName });
@@ -1122,7 +1174,6 @@ export class Orchestrator extends EventEmitter {
     });
 
     // ORCH-06: Record error in state
-    const state = this.stateStore.getState();
     const errorRecord = {
       timestamp: new Date().toISOString(),
       phase: meta.phase,
@@ -1130,9 +1181,9 @@ export class Orchestrator extends EventEmitter {
       message: errorMsg,
       truncatedOutput: result.result?.slice(0, 500),
     };
-    await this.stateStore.setState({
+    await this.stateStore.update((state) => ({
       errorHistory: [...state.errorHistory, errorRecord],
-    });
+    }));
 
     // Phase 3: No web UI yet -- default to abort behavior
     throw new Error(`Command failed after retry: ${errorMsg}`);
@@ -1147,10 +1198,10 @@ export class Orchestrator extends EventEmitter {
    * Finds the phase in state and updates it in place.
    */
   private async persistPhaseUpdate(phase: PhaseState): Promise<void> {
-    const state = this.stateStore.getState();
-    const updatedPhases = state.phases.map((p) =>
-      p.number === phase.number ? { ...phase } : p,
-    );
-    await this.stateStore.setState({ phases: updatedPhases });
+    await this.stateStore.update((state) => ({
+      phases: state.phases.map((p) =>
+        p.number === phase.number ? { ...phase } : p,
+      ),
+    }));
   }
 }

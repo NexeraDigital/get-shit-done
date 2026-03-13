@@ -106,6 +106,15 @@ async function handleLaunch(branch, projectDir, args) {
   // 5. Spawn in a visible cmd window using `start` (Windows built-in)
   // Write a temporary .cmd file to avoid quoting hell with nested cmd interpreters
   console.log(`Starting autopilot for branch '${branch}' on port ${port}...`);
+  const isParallel = args.includes('--parallel');
+  if (isParallel) {
+    const concurrencyIdx = args.indexOf('--concurrency');
+    const concurrency = (concurrencyIdx !== -1 && args[concurrencyIdx + 1])
+      ? parseInt(args[concurrencyIdx + 1], 10) || 3
+      : 3;
+    const hasContinue = args.includes('--continue');
+    console.log(`  Mode: parallel (concurrency: ${concurrency}${hasContinue ? ', continue-on-failure' : ''})`);
+  }
   const cmdTitle = `GSD Autopilot [${branch}] :${port}`;
   const batContent = `@title ${cmdTitle}\n@"${process.execPath}" ${spawnArgs.map(a => `"${a}"`).join(' ')}\n@pause\n`;
   const batPath = join(projectDir, '.planning', 'autopilot', 'run.cmd');
@@ -192,10 +201,32 @@ async function handleStatus(branch, projectDir) {
   }
 
   // 4. Print formatted status
+  const inProgressPhases = state.phases?.filter(p => p.status === 'in_progress') ?? [];
+  const pendingPhases = state.phases?.filter(p => p.status === 'pending') ?? [];
+  const completedPhases2 = state.phases?.filter(p => p.status === 'completed') ?? [];
+  const failedPhases = state.phases?.filter(p => p.status === 'failed') ?? [];
+  const isParallel = inProgressPhases.length > 1;
+
   console.log(`Autopilot Status (${branch})`);
   console.log(`Status: ${status}`);
-  console.log(`Phase:  ${currentPhase}/${totalPhases}`);
-  console.log(`Progress: ${progress}%`);
+
+  if (isParallel) {
+    console.log(`Mode:     parallel (${inProgressPhases.length} active workers)`);
+    console.log(`Progress: ${completedPhases2.length}/${totalPhases} phases complete (${progress}%)`);
+    if (inProgressPhases.length > 0) {
+      console.log(`Running:  ${inProgressPhases.map(p => `Phase ${p.number}`).join(', ')}`);
+    }
+    if (pendingPhases.length > 0) {
+      console.log(`Queued:   ${pendingPhases.map(p => `Phase ${p.number}`).join(', ')}`);
+    }
+    if (failedPhases.length > 0) {
+      console.log(`Failed:   ${failedPhases.map(p => `Phase ${p.number}`).join(', ')}`);
+    }
+  } else {
+    console.log(`Phase:  ${currentPhase}/${totalPhases}`);
+    console.log(`Progress: ${progress}%`);
+  }
+
   console.log(`Dashboard: http://localhost:${port}`);
   console.log(`PID: ${pid}`);
 }

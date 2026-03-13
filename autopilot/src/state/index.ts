@@ -100,6 +100,7 @@ export class StateWriteQueue {
 export class StateStore {
   private state: AutopilotState;
   private readonly _filePath: string;
+  private writeQueue = new StateWriteQueue();
 
   private constructor(state: AutopilotState, filePath: string) {
     this.state = state;
@@ -116,6 +117,17 @@ export class StateStore {
     // Return a shallow copy so mutations to the returned object
     // do not affect internal state
     return { ...this.state };
+  }
+
+  /**
+   * Atomically read-modify-write state through the serialized write queue.
+   * Prevents lost updates when multiple parallel workers modify state concurrently.
+   */
+  async update(fn: (state: AutopilotState) => Partial<AutopilotState>): Promise<void> {
+    await this.writeQueue.enqueue(async () => {
+      const patch = fn(this.state);
+      await this.setState(patch);
+    });
   }
 
   /** Merges a partial patch into state, updates lastUpdatedAt, and persists to disk */
